@@ -8,7 +8,7 @@
     - Частина 2: https://www.youtube.com/watch?v=QLcotJ0oLVA.
     - Презентація: https://docs.google.com/presentation/d/1j2ZJtroInNB-r72zG1KeAW8VmfMx37-GGyqVOt_hCeo/edit?usp=sharing.
 - **Інструкція з користування GitHub-ом**: https://docs.google.com/document/d/1Muo7uuaRVGhhJ5sBHU_BRKew3DluG2aOVgpuS889cJw/edit?usp=sharing.
-- **Таблиця вибору варіантів** (в майбутньому - таблиця з оцінками): TBD
+- **Таблиця вибору варіантів** (а далі - таблиця з оцінками): https://docs.google.com/spreadsheets/d/1BuWSTqRlimvUFdC-9y0dbwdcwEwjRNxsPfXuW-a-CqM/edit?usp=sharing
 
 ## Графік дедлайнів
 
