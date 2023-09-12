@@ -16,9 +16,8 @@ def look_for_commands(string):
    pattern = r'(?i)(' + '|'.join(COMMANDS) + r')\b'  # (?i) - case-insensitivity, | - pipe for commands
    match = re.match(pattern, string) 
 
-
    if match:
-        COMMAND = match.group().upper()
+        COMMAND = match.group(1).upper()
         string = re.sub(f'(?i){COMMAND}' + r'\s+', '', string)
         return COMMAND, string  # goup() - for extracting values
    else:
@@ -34,13 +33,20 @@ def re_create(string):
     else:
         return None
 
+def re_insert(string):
+    print(string)
+    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*"([a-zA-Z]*\s*[a-zA-Z0-9_]*)"\s*;'
+    match = re.match(pattern, string) 
+    if match:
+        collection_name = match.group(1)
+        print(collection_name)
+        value = match.group(2)
+        print(value)
 
-
-s = '    CREaTE      jnodfsods;'
+s = '\tCREaTE      jnodfs "ods bsdh";'
 c, s = look_for_commands(s)
-print(c)
 n = re_create(s)
-print(n)
+re_insert(s)
 
 '''
 while True: # read user input
