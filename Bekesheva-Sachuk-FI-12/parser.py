@@ -51,12 +51,21 @@ def re_print(string):
         return string
     else:
         return None
+    
+def re_search(string):
+    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*(?i:WHERE\s*"([a-zA-Z]*\s*[a-zA-Z0-9_]*)"\s*)?\s*;'
+    match = re.search(pattern, string)
+    if match:
+        print(match.group(2))
+        return string
+    else:
+        return None
 
-s = '\tCREaTE      jnodfs "ods bsdh";'
+s = '\tCREaTE      jnodfs WHERE "ods bsdh";'
 c, s = look_for_commands(s)
 n = re_create(s)
 re_insert(s)
-re_print(s)
+re_search(s)
 '''
 while True: # read user input
     while READ:
