@@ -34,20 +34,29 @@ def re_create(string):
         return None
 
 def re_insert(string):
-    print(string)
-    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*"([a-zA-Z]*\s*[a-zA-Z0-9_]*)"\s*;'
+    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*"([a-zA-Z]*\s*[a-zA-Z0-9_]*)"\s*;' # я оце пишу ці регулярки, а хто потім згадає як ця хуйня мені в голову прийшла
     match = re.match(pattern, string) 
     if match:
         collection_name = match.group(1)
-        print(collection_name)
         value = match.group(2)
-        print(value)
+        return collection_name, value
+    else:
+        return None, None
+
+def re_print(string):
+    pattern = '^[a-zA-Z]*[a-zA-Z0-9_]*\s*;'
+    match = re.search(pattern, string)
+    if match:
+        string = re.sub(';', '', match.group())
+        return string
+    else:
+        return None
 
 s = '\tCREaTE      jnodfs "ods bsdh";'
 c, s = look_for_commands(s)
 n = re_create(s)
 re_insert(s)
-
+re_print(s)
 '''
 while True: # read user input
     while READ:
