@@ -56,12 +56,15 @@ def re_search(string):
     pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*(?i:WHERE\s*"([a-zA-Z]*\s*[a-zA-Z0-9_]*)"\s*)?\s*;'
     match = re.search(pattern, string)
     if match:
-        print(match.group(2))
-        return string
+        collection_name = match.group(1)
+        print(collection_name)
+        if match.group(1):
+            keyword = match.group(1)
+            return collection_name, keyword
     else:
         return None
 
-s = '\tCREaTE      jnodfs WHERE "ods bsdh";'
+s = '\tCREaTE      jnodfs ;'
 c, s = look_for_commands(s)
 n = re_create(s)
 re_insert(s)
