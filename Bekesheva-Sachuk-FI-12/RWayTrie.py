@@ -1,31 +1,75 @@
 class Node:
-    # fucking python with it's dynamic type-designs, I can't write this shit, it doesn't make any sense AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    def __init__(self, next=None, value=None, is_terminal=None):
-        self._next = next # this is supposed to be an dict with links to next (aka children) nodes
-        self._value = value 
-        self._is_terminal = is_terminal
-        # this oop is cringe
+    def __init__(self, key=" ", children={}, value={}):
+        self._key = key
+        self._children = children # map key - value --{"key": next nodes letters}-- 
+        self._value = value # non-None if it's the last letter in word, {}
 
-    def __repr__(self): # overload output (kinda)
-        return str(self.value)
+    def __eq__(self, value: object) -> bool:
+        return self._key == value._key and self._children == value._children and self._value == value._value 
+
+    def __repr__(self) -> str: 
+        if self._value:
+            return f'{self._key}\n{self._value}'
+        else:
+            return str(self._key)
     
-
+    
 class Trie:
-
     def __init__(self):
         self._root = Node()
 
-    def __insert__(self, key, value):
+    def insert(self, key: str, value: dict):
         x = self._root
-        for i in range(0, len(key)):
-            if x._next[key[i]] == None:
-                x._next[key[i]] = Node()
-            x = x._next[key[i]]
-            
+        self.__insert__(x, key, value)
 
-        self._root._value = value
-        self._root._is_terminal = True
+    def __insert__(self, x: Node, key: str, value: dict):
+        for i in range(len(key)):
+            if key[i] not in x._children.keys():
+                x._children[key[i]] = Node(key[i], children={})
+            x = x._children[key[i]]
+
+        x._value = value
+
+    def search(self, key: str) -> Node:
+        x = self._root
+        return self.__search__(x, key)
+
+    def __search__(self, x: Node, key: str) -> Node:
+        for i in range(len(key)):
+            try:
+                if x != None and key[i] not in x._children.keys():
+                    return None
+            except:
+                return None
+                
+            x = x._children[key[i]]
+
+        return x
     
+    def delete(self, key: str):
+        x = self._root
+        self.__delete__(x, key)
 
-node = Node(value={"d1":[3, 5]})
-print(node)
+    def __delete__(self, x: Node, key: str):
+        print(key)
+        if key == " ":
+            if x._value != {}:
+                x._value == {}
+
+            for i in range(len(x._children)):
+                if x._children != {}:
+                    return x
+                
+            return None
+        
+        if len(key) > 0:
+            x._children[key[0]] = self.__delete__(x._children[key[0]], key[1:])
+
+
+
+
+t = Trie()
+t.insert("sdsd", {"1": [1, 2]})
+print(t.search("sdsd"))
+t.delete("sdsd")
+print(t.search("sdsd"))
