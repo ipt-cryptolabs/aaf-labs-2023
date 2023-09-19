@@ -13,12 +13,12 @@ READ = True
 
 def look_for_commands(string):
    string = re.sub(r'^\s*', '', string)
-   pattern = r'(?i)(' + '|'.join(COMMANDS) + r')\b'  # (?i) - case-insensitivity, | - pipe for commands
+   pattern = r'(?i)(' + '|'.join(COMMANDS) + r')\s*'  # (?i) - case-insensitivity, | - pipe for commands
    match = re.match(pattern, string) 
 
    if match:
         COMMAND = match.group(1).upper()
-        string = re.sub(f'(?i){COMMAND}' + r'\s+', '', string)
+        string = re.sub(f'(?i){COMMAND}' + r'\s*', '', string)
         return COMMAND, string  
    else:
        return None, None  
