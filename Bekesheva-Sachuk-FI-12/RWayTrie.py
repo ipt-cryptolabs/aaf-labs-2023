@@ -1,5 +1,5 @@
 class Node:
-    def __init__(self, key=" ", children={}, value={}):
+    def __init__(self, key=" ", children={}, value=[]):
         self._key = key
         self._children = children # map key - value --{"key": next nodes letters}-- 
         self._value = value # non-None if it's the last letter in word, {}
@@ -15,20 +15,20 @@ class Node:
     
     
 class Trie:
-    def __init__(self):
+    def __init__(self) -> None:
         self._root = Node() # root is always empty
 
-    def insert(self, key: str, value: dict):
+    def insert(self, key: str, value: dict) -> None:
         x = self._root
         self.__insert__(x, key, value)
 
-    def __insert__(self, x: Node, key: str, value: dict):
+    def __insert__(self, x: Node, key: str, value: dict) -> None:
         for i in range(len(key)):
             if key[i] not in x._children.keys():
-                x._children[key[i]] = Node(key[i], children={})
+                x._children[key[i]] = Node(key[i], children={},  value = [])
             x = x._children[key[i]]
 
-        x._value = value
+        x._value.append(value)
 
     def search(self, key: str) -> Node:
         x = self._root
@@ -46,12 +46,12 @@ class Trie:
 
         return x
     
-    def delete(self, key: str):
+    def delete(self, key: str) -> None:
         x = self._root
         self.__delete__(x, key)
 
 
-    def __delete__(self, x: Node, key: str):
+    def __delete__(self, x: Node, key: str) -> None:
         nodes_stack = [] 
 
         for i in range(len(key)):
@@ -94,21 +94,3 @@ class Trie:
         return res
 
  
-    
-
-
-
-
-
-t = Trie()
-t.insert("sdsd", {"1": [1, 2]})
-#print(t.search("sdsd"))
-t.delete("sdsd")
-t.insert("sdsd", {"1": [1, 2]})
-t.insert("sdioesdsd", {"2": [3, 2]})
-t.insert("sdtwe", {"3": [3, 2]})
-#print(t.search("sdsd"))
-#print(t.search("sdioesdsd"))
-t.insert("qwwqwq", {"4": [5, 3, 2]})
-print(t)
-
