@@ -16,7 +16,7 @@ class Node:
     
 class Trie:
     def __init__(self):
-        self._root = Node()
+        self._root = Node() # root is always empty
 
     def insert(self, key: str, value: dict):
         x = self._root
@@ -36,7 +36,7 @@ class Trie:
 
     def __search__(self, x: Node, key: str) -> Node:
         for i in range(len(key)):
-            try:
+            try:  # x might exist but have None values, thus the overloaded = won't work and it's probably cheaper to use try/catch rather than check if values exist in Node and then compare 
                 if x != None and key[i] not in x._children:
                     return None
             except:
@@ -52,49 +52,63 @@ class Trie:
 
 
     def __delete__(self, x: Node, key: str):
-        nodes_stack = []  # To keep track of visited nodes
+        nodes_stack = [] 
 
-        # Traverse the trie to find the key
         for i in range(len(key)):
-        #for char in key:
             if key[i] not in x._children:
-                return  # Key not found, nothing to delete
+                return  # key not found, nothing to delete
             x = x._children[key[i]]
             nodes_stack.append(x)
 
-        # Mark the node as deleted
-        x._value = None
 
-        # Traverse back and remove deleted nodes with no non-deleted children
+        x._value = None  # mark the node as deleted
+
         while nodes_stack:
             x = nodes_stack.pop()
-            if all(child._value is None for child in x._children.values()):
+            if all(child._value is None for child in x._children.values()): # check if there are no children
                 if nodes_stack:
                     parent = nodes_stack[-1]
                     del parent._children[x._key]
 
-    def __delete_(self, x: Node, key: str):
-        print(key)
-        if key == "":
-            if x._value != {}:
-                x._value = {}
+    def __repr__(self) -> str:
+        level = 0
+        key = {}
+        x = self._root
+        return self.__display__(x, key, level)
+    
+    def __display__(self, x: Node, key: dict, level: int) -> str:
+        res = ""
+        nodes_stack = [(x, key, level)]
+    
+        while nodes_stack:
+            x, x_key, x_level = nodes_stack.pop()
+            if len(x._children) == 0:
+                x_key[x_level] = f' - {x._value}\n'
+                res += "".join(x_key.values())
+            else:
+                for child in x._children.values():
+                    child_key = x_key.copy()
+                    child_key[x_level] = child._key
+                    nodes_stack.append((child, child_key, x_level + 1))
 
-            for i in range(len(x._children)):
-                if x._children[x._children.keys()[i]] != {}:
-                    return x
-                
-            return None
-        
-        if len(key) > 0:
-            x._children[key[0]] = self.__delete__(x._children[key[0]], key[1:])
+        return res
+
+ 
+    
+
+
+
 
 
 t = Trie()
 t.insert("sdsd", {"1": [1, 2]})
-print(t.search("sdsd"))
+#print(t.search("sdsd"))
 t.delete("sdsd")
 t.insert("sdsd", {"1": [1, 2]})
 t.insert("sdioesdsd", {"2": [3, 2]})
-print(t.search("sdioesdsd"))
-
+t.insert("sdtwe", {"3": [3, 2]})
+#print(t.search("sdsd"))
+#print(t.search("sdioesdsd"))
+t.insert("qwwqwq", {"4": [5, 3, 2]})
+print(t)
 
