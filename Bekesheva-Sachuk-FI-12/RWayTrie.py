@@ -16,11 +16,10 @@ class Node:
     
 class Trie:
     def __init__(self) -> None:
-        self._root = Node() # root is always empty
+        self._root = Node(key="", children={}, value=[]) # root is always empty
 
     def insert(self, key: str, value: dict) -> None:
-        x = self._root
-        self.__insert__(x, key, value)
+        self.__insert__(self._root, key, value)
 
     def __insert__(self, x: Node, key: str, value: dict) -> None:
         for i in range(len(key)):
@@ -31,24 +30,19 @@ class Trie:
         x._value.append(value)
 
     def search(self, key: str) -> Node:
-        x = self._root
-        return self.__search__(x, key)
+        return self.__search__(self._root, key)
 
     def __search__(self, x: Node, key: str) -> Node:
         for i in range(len(key)):
-            try:  # x might exist but have None values, thus the overloaded = won't work and it's probably cheaper to use try/catch rather than check if values exist in Node and then compare 
-                if x != None and key[i] not in x._children:
-                    return None
-            except:
-                pass
+            if key[i] not in x._children:
+                return None
                 
             x = x._children[key[i]]
 
         return x
     
     def delete(self, key: str) -> None:
-        x = self._root
-        self.__delete__(x, key)
+        self.__delete__(self._root, key)
 
 
     def __delete__(self, x: Node, key: str) -> None:
@@ -71,10 +65,7 @@ class Trie:
                     del parent._children[x._key]
 
     def __repr__(self) -> str:
-        level = 0
-        key = {}
-        x = self._root
-        return self.__display__(x, key, level)
+        return self.__display__(self._root, {}, 0)
     
     def __display__(self, x: Node, key: dict, level: int) -> str:
         res = ""
@@ -92,5 +83,31 @@ class Trie:
                     nodes_stack.append((child, child_key, x_level + 1))
 
         return res
+    
+    def get_all_values(self) -> list:
+        return self.__get_all_values__(self._root)
+    
+    def __get_all_values__(self, x: Node):
+        values = []
+        nodes_stack = [x]
+    
+        while nodes_stack:
+            x = nodes_stack.pop()
+            if len(x._children) == 0:
+                values.append(x._value)
+            else:
+                for child in x._children.values():
+                    nodes_stack.append(child)
+        return values
+
+'''t = Trie()
+t.insert("sdsd", {"1": [1, 2]})
+t.delete("sdsd")
+t.insert("sdsd", {"1": [1, 2]})
+t.insert("sdioesdsd", {"2": [3, 2]})
+t.insert("sdtwe", {"3": [3, 2]})
+t.insert("qwwqwq", {"4": [5, 3, 2]})
+print(t)
+print(t.get_all_values())'''
 
  
