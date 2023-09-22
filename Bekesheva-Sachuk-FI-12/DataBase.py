@@ -12,8 +12,6 @@ class DB:
 
     def CREATE(self, collection_name: str) -> None:
         self._collections.update({collection_name : Collection(collection_name)})
-        print(self._collections[collection_name]._name)
-        self._collections[collection_name].print_index()
 
     def INSERT(self, collection_name: str, value: str) -> None:
         if collection_name in self._collections:
@@ -29,7 +27,7 @@ class DB:
 
     def SEARCH(self, collection_name: str) -> list:
         if collection_name in self._collections:
-            self._collections[collection_name].search()
+            return self._collections[collection_name].search()
         else:
             print(f"No collection named '{collection_name}")
         
@@ -60,8 +58,14 @@ class Collection:
         print(self._trie)
 
     def search(self) -> list:
-        print(self._trie.get_all_values())
-        return
+        values = self._trie.get_all_values()
+        unique_keys = set()
+
+        for sublist in values:
+            for dictionary in sublist:
+                unique_keys.update(dictionary.keys())
+
+        return list(unique_keys)
 
     def search_where(self, keyword: str) -> list:
         res = self._trie.search(keyword)
@@ -82,13 +86,13 @@ db.CREATE("col")
 db.INSERT("col", "There is no place for blalbal, also non= is - no, dsd , sd.")
 db.INSERT("col", " is no place for blalbal, nxfgns")
 #db.PRINT_INDEX("col")
-print(db.SEARCH_WHERE("col", "no"))
+#print(db.SEARCH_WHERE("col", "no"))
 #db.SEARCH("col")
 db.CREATE("col2")
 db.INSERT("col2", "hello wrold hi")
 #db.PRINT_INDEX("col2")
-db.PRINT_INDEX("col")
-print(db.SEARCH_WHERE("col", "is"))
+#db.PRINT_INDEX("col")
+print(db.SEARCH("col"))
 
 
     
