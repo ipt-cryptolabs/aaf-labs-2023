@@ -4,6 +4,7 @@
         Importing relevant modules
 '''
 import re
+from DataBase import *
 
 
 COMMANDS = ["CREATE", "INSERT", "PRINT_INDEX", "SEARCH"] # we'll be using uppercase to distinguish querry commands
@@ -54,7 +55,8 @@ def re_print(string):
         return None
     
 def re_search(string):
-    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*(?i:WHERE\s*"(.*)"\s*)?\s*;'  # search for collection name, nvm spaces, group keyword if present
+    print(stringSE)
+    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*|(?i:WHERE\s*"(.*)"\s*-\s*"(.*))"\s*|\s*(?i:WHERE\s*"(.*)"\s*<(\d)>\s*"(.*))"\s*|\s*(?i:WHERE\s*"(.*)"\s*);'  # search for collection name, nvm spaces, group keyword if present
     match = re.search(pattern, string)
     if match:
         collection_name = match.group(1)
@@ -65,6 +67,7 @@ def re_search(string):
             return collection_name, None
     else:
         return None, None
+db = DB()
 
 while READ:
     user_input = input()
@@ -75,18 +78,22 @@ while READ:
         collection_name = re_create(STRING)
         if collection_name:
             print(f'creating collection \'{collection_name}\'...')
+            db.CREATE(collection_name)
+
         else:
             print("incorrect collection_name")
     elif COMMAND == "INSERT":
         collection_name, value = re_insert(STRING)
         if collection_name and value:
             print(f'inserting \'{value}\' into collection \'{collection_name}\'...')
+            db.INSERT(collection_name, value)
         else:
             print("incorrect collection_name or value")
     elif COMMAND == "PRINT_INDEX":
         collection_name = re_print(STRING)
         if collection_name:
             print(f'printing collection \'{collection_name}\' as index...')
+            db.PRINT_INDEX(collection_name)
         else:
             print("incorrect collection_name")
     elif COMMAND == "SEARCH":
@@ -94,8 +101,10 @@ while READ:
         if collection_name:
             if keyword:
                 print(f'searching collection \'{collection_name} with keyword \'{keyword}\'...')
+                db.SEARCH_WHERE(collection_name, keyword)
             else:
                 print(f'searching collection \'{collection_name}\'...')
+                db.SEARCH(collection_name)
         else:
             print("incorrect collection_name or no keyword provided")
     else:
