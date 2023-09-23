@@ -1,4 +1,6 @@
-# Long-Arithmetic-Lib
+# InvertedIndexLib
+for now u should use only first 5 steps))))))))))))))
+i ll change it soon
 
 ## Build and Usage
 
@@ -6,12 +8,12 @@ Follow these steps to build and run LongArithmeticLib, including tests and examp
 
 1. Clone the LongArithmeticLib repository to your local machine:
 ```bash
-git clone <https://github.com/prumat4/Long-Arithmetic.git>
+git clone <link>
 ```
 
 2. Navigate to the project directory:
 ```bash 
-cd LongArithmeticLib
+cd 
 ```
 
 3. Create a build directory:
@@ -27,14 +29,14 @@ cmake ..
 
 5. Build the library:
 ```bash
-cmake --build .
+make
 ```
    
 Run Tests
 
 1. After building the library, you can run the tests using the following command:
 ```bash
-./test/LongArithmeticLibTests
+will add 
 ```
    
 Run Example Program
@@ -51,12 +53,12 @@ To use LongArithmeticLib in your own project, follow these steps:
 
 1. Include the necessary header files in your C++ code:
 ```c++
-#include "LongArithmeticLib/LongArithmeti.hpp"
+#include "invertedIndex.hpp"
 ```
 
 2. Link your project with the LongArithmeticLib library:
 ```cmake
-target_link_libraries(YourProjectName LongArithmeticLib)
+target_link_libraries(InvertedIndex InvertedIndex)
 ```
 
 3. Use the provided functions for long arithmetic operations in your code.
