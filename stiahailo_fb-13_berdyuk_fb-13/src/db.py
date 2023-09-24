@@ -99,3 +99,5 @@ class Collection:
                     for position in self.indexes[key2][idx]:
                         if (position - int(n) - 1) in self.indexes[key1][idx]:
                             print(f"DOCUMENT:\n{self.documents[idx]}\n")
+                        elif (position + int(n) - 1) in self.indexes[key2][idx]:
+                            print(f"DOCUMENT:\n{self.documents[idx]}\n")
