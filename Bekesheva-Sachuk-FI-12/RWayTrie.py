@@ -55,7 +55,11 @@ class Trie:
             nodes_stack.append(x)
 
 
-        x._value = None  # mark the node as deleted
+       # Mark the node as deleted only if it has no children
+        if all(child._value is None for child in x._children.values()):
+            x._value = None
+        else:
+            x._value = []
 
         while nodes_stack:
             x = nodes_stack.pop()
@@ -97,7 +101,11 @@ t = Trie()
 t.insert("sdsd", {"1": [1, 2]})
 t.insert("sdsdss", {"2": [1, 5]})
 print(t.search("sdsd"))
-print(t)
+t.delete("sdsd")
+print(t.search("sdsd"))
+t.insert("sdsd", {"1": [1, 2]})
+print(t.search("sdsd"))
+
 print(t.get_all_values())
 
  
