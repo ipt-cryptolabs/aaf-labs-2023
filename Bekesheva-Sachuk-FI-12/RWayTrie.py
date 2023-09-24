@@ -29,14 +29,14 @@ class Trie:
 
         x._value.append(value)
 
-    def search(self, key: str) -> Node:
+    def search(self, key: str) -> list:
         return self.__search__(self._root, key)
 
-    def __search__(self, x: Node, key: str) -> Node:
+    def __search__(self, x: Node, key: str) -> list:
         for i in range(len(key)):
-            if key[i] not in x._children:
+            if key[i].lower() not in x._children:
                 return None
-                
+            
             x = x._children[key[i]]
 
         return x
@@ -65,23 +65,17 @@ class Trie:
                     del parent._children[x._key]
 
     def __repr__(self) -> str:
-        return self.__display__(self._root, {}, 0)
-    
-    def __display__(self, x: Node, key: dict, level: int) -> str:
-        res = ""
-        nodes_stack = [(x, key, level)]
-    
-        while nodes_stack:
-            x, x_key, x_level = nodes_stack.pop()
-            if len(x._children) == 0:
-                x_key[x_level] = f' - {x._value}\n'
-                res += "".join(x_key.values())
-            else:
-                for child in x._children.values():
-                    child_key = x_key.copy()
-                    child_key[x_level] = child._key
-                    nodes_stack.append((child, child_key, x_level + 1))
+        return self.__display__()
 
+    def __display__(self) -> str:
+        res = ""
+        stack = [(self._root, "")]
+        while stack:
+            x, prefix = stack.pop()
+            if x._value:
+                res += f"{prefix} - {x._value}\n"
+            for child in x._children.values():
+                stack.append((child, prefix + child._key))
         return res
     
     def get_all_values(self) -> list:
@@ -93,21 +87,17 @@ class Trie:
     
         while nodes_stack:
             x = nodes_stack.pop()
-            if len(x._children) == 0:
+            if x._value != [] and x._value != None:
                 values.append(x._value)
-            else:
-                for child in x._children.values():
-                    nodes_stack.append(child)
+            for child in x._children.values():
+                nodes_stack.append(child)
         return values
 
-'''t = Trie()
+t = Trie()
 t.insert("sdsd", {"1": [1, 2]})
-t.delete("sdsd")
-t.insert("sdsd", {"1": [1, 2]})
-t.insert("sdioesdsd", {"2": [3, 2]})
-t.insert("sdtwe", {"3": [3, 2]})
-t.insert("qwwqwq", {"4": [5, 3, 2]})
+t.insert("sdsdss", {"2": [1, 5]})
+print(t.search("sdsd"))
 print(t)
-print(t.get_all_values())'''
+print(t.get_all_values())
 
  
