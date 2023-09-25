@@ -1,55 +1,36 @@
-// #include <iostream>
-// #include <vector>
-// #include <string>
-// #include <map>
-
-// class Parser {};
-
-// class DataStructure {
-// private:
-//     std::map<int, std::vector<int>> index;
-
-// public:
-//     void create();
-//     void insert();
-//     void print();
-//     bool contains();
-//     void search();   
-
-//     Parser parser;
-//     parser.parse(std::string);
-
-//     while() {
-//         1. read a string
-//         2. parse -> get out methods;
-//             for example there insert:  
-//         3. print success/fail
-//         4.
-//     }
-
-//     index1: {1, 32, 8273, 123};
-//     index2: {1, 912039, 123};
-
-
-// };
-
-
-
-
-
-// int main() {
-    
-    
-//     return 0;
-// }
-
-#include <iostream>
 #include "invertedIndex.hpp"
 
 int main() {
+    InvertedIndex ii;
+    ii.activateParser("INSERT MyCollectionName {1488, 228, 666, 999};");
     
-    pruvit a;
-    a.say_hello();
+    // ii.contains();
+    
+
+
+    // /n, /t
+    // std::string t1 = "INSERT MyCollectionName {1488, 228, 666, 999};";
+    // std::string t2 = "    Insert      Another_Collection   {   111,  231, 4522    }  ;";
+    // std::string t3 = "INSERT MissingSemicolon {1023, 14};";
+    // std::string t4 = "INSERT 123InvalidName {31209837, 2};";
+    // std::string t5 = "inSeRt CaseSensitiveName {1, 24};";
+    // std::string t6 = "INSERT SpecialCollection {124, 24, 12874};";
+    // std::string t7 = "INSERT SingleValueCollection {1110101};";
+
+
+
+
+    // Parser pars;
+    // pars.lexer(t1);
+    // pars.lexer(t2);
+    // pars.lexer(t3);
+    // pars.lexer(t4);
+    // pars.lexer(t5);
+    // pars.lexer(t6);
+    // pars.lexer(t7);
+
+
+
     return 0;
 }
 
