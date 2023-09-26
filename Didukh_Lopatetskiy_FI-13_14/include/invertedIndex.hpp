@@ -9,6 +9,13 @@
 
 namespace {
     std::regex insertPattern("^\\s*INSERT\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+\\{(.+?)\\};\\s*$", std::regex::icase);
+    std::regex createPattern("^\\s*CREATE\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+\\;\\s*$", std::regex::icase);
+    
+    std::regex identifierPattern("[a-zA-Z][a-zA-Z0-9_]*");
+    std::regex numberPattern("\\s*([^,]+)\\s*,?");
+    // std::regex createPattern("^\\s*CREATE\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*;\\s*$", std::regex::icase);
+
+    // std::regex insertPattern("^\\s*INSERT\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+\\{(.+?)\\};\\s*$", std::regex::icase);
 
 //     std::regex insertRegex("INSERT", std::regex_constants::icase);
 //     std::regex createRegex("CREATE", std::regex_constants::icase);
@@ -23,28 +30,28 @@ private:
     std::vector<std::string> tokens;
 
 private:
-    std::string mergeTokens();
 
 public:
     // add method to get string from user 
     
-    std::string lexer(std::string inputString);
+    void lexer(std::string inputString);
     std::vector<std::string> getTokens();
+    void clearTokens();
 };
-
 
 class InvertedIndex {
 private: 
-    std::map<int, std::vector<int>> invertedIndex;
+    std::map<std::string, std::vector<int>> invertedIndex;
     Parser parser;
 
 public: 
-    // type are definitely wrong)
-    void insert();
-    void create();
+    void insert(const std::string& collectionName, const std::vector<int>& collection);
+    void create(const std::string& collectionName);
     void print_index();
+
+    // for Mykhailo)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))0
     void contains();
     void search();
 
-    void activateParser(std::string inputString);
+    void parse(std::string inputString);
 };

@@ -1,13 +1,21 @@
 #include "invertedIndex.hpp"
 
 int main() {
+
+    std::vector<int> vec = { 11, 11, 11 };
+
     InvertedIndex ii;
-    ii.activateParser("INSERT MyCollectionName {1488, 228, 666, 999};");
-    
-    // ii.contains();
-    
+    ii.create("first colletion");
+    ii.insert("first colletion", vec);
+    ii.print_index();
 
+    ii.create("MyCollectionName");
+    ii.parse("INSERT MyCollectionName { 22, 22, 22 };");
+    ii.print_index();
 
+    // ii.parse("INSERT MyCollectionName {1488, 228, 666, 999};");
+
+    
     // /n, /t
     // std::string t1 = "INSERT MyCollectionName {1488, 228, 666, 999};";
     // std::string t2 = "    Insert      Another_Collection   {   111,  231, 4522    }  ;";
