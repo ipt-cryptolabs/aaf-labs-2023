@@ -131,7 +131,6 @@ void Collections::createCollection(const std::string& collectionName) {
     }
 }
 
-
 void Collections::insertSet(const std::string& collecntionName, const std::set<int>& set) {
     collections[collecntionName].insert(set);
     std::cout << "Set has been added to " << collecntionName << std::endl;
@@ -140,14 +139,6 @@ void Collections::insertSet(const std::string& collecntionName, const std::set<i
 void Collections::printCollectionIndex(const std::string &collectionName) {
     std::cout << "Printing " << collectionName << "collection...\n";
     collections[collectionName].print_index();
-}
-
-void Collection::insert(const std::set<int>& set) {
-    sets.push_back(set);
-    
-    for(auto it = set.begin(); it != set.end(); ++it) {
-        invertedIndex[*it].push_back("set" + std::to_string(sets.size()));
-    }
 }
 
 void Collections::searchInCollection(const std::string& collectionName, const std::set<int>& set) {
@@ -171,6 +162,14 @@ void Collections::containsCollection(const std::string &collectionName, const st
             std::cout << num << " ";
 
         std::cout << std::endl;
+    }
+}
+
+void Collection::insert(const std::set<int>& set) {
+    sets.push_back(set);
+    
+    for(auto it = set.begin(); it != set.end(); ++it) {
+        invertedIndex[*it].push_back("set" + std::to_string(sets.size()));
     }
 }
 
