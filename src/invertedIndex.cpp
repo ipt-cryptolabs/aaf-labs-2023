@@ -7,7 +7,7 @@ void Parser::processCommand(const std::smatch& match, const std::string& command
         tokens.push_back(commandName);
         tokens.push_back(collectionName);
     } else {
-        std::cout << "Invalid collection name." << std::endl << std::endl;
+        std::cout << "Error: Invalid collection name." << std::endl << std::endl;
     }
 }
 
@@ -117,15 +117,20 @@ void Collections::parse(const std::string& inputString) {
         if(tokens.at(0) == "CONTAINS") 
             containsCollection(collectionName, getSetFromTokens(tokens));
     } else {
-        std::cout << "Invalid command, try again.\n";
+        std::cout << "Error: Invalid command syntaxis, try again.\n";
     }
 
 }
 
 void Collections::createCollection(const std::string& collectionName) {
-    collections[collectionName] = Collection();
-    std::cout << "Collection " << collectionName << " has been created." << std::endl;
+    if (collections.find(collectionName) != collections.end()) {
+        std::cout << "Error: Creating collection with existing name '" << collectionName << "'" << std::endl;
+    } else {
+        collections[collectionName] = Collection();
+        std::cout << "Collection '" << collectionName << "' has been created." << std::endl;
+    }
 }
+
 
 void Collections::insertSet(const std::string& collecntionName, const std::set<int>& set) {
     collections[collecntionName].insert(set);
@@ -146,21 +151,27 @@ void Collection::insert(const std::set<int>& set) {
 }
 
 void Collections::searchInCollection(const std::string& collectionName, const std::set<int>& set) {
-    std::cout << "search in collection will be executed with this input: " << collectionName << ", ";
-    
-    for(const auto& num : set)
-        std::cout << num << " ";
-    
-    std::cout << std::endl;
+    if (collections.find(collectionName) == collections.end()) {
+        std::cout << "Error: Searching in collection that doesn't exist '" << collectionName << "'" << std::endl;
+    } else {
+        std::cout << "search in collection will be executed with this input: " << collectionName << ", ";
+        for(const auto& num : set)
+            std::cout << num << " ";
+
+        std::cout << std::endl;
+    }
 }
 
 void Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
-    std::cout << "contains will be executed with this input: " << collectionName << ", ";
-    
-    for(const auto& num : set)
-        std::cout << num << " ";
-    
-    std::cout << std::endl;
+    if (collections.find(collectionName) == collections.end()) {
+        std::cout << "Error: Contains method called in collection that doesn't exist '" << collectionName << "'" << std::endl;
+    } else {
+        std::cout << "search in collection will be executed with this input: " << collectionName << ", ";
+        for(const auto& num : set)
+            std::cout << num << " ";
+
+        std::cout << std::endl;
+    }
 }
 
 void Collection::print_index() {
