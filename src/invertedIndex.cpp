@@ -1,101 +1,77 @@
 #include "invertedIndex.hpp"
 
+void Parser::processCommand(const std::smatch& match, const std::string& commandName) {
+    std::string collectionName = match[1];
+
+    if (std::regex_match(collectionName, identifierPattern)) {
+        tokens.push_back(commandName);
+        tokens.push_back(collectionName);
+    } else {
+        std::cout << "Invalid collection name." << std::endl << std::endl;
+    }
+}
+
+void Parser::processCreateCommand(const std::smatch& match) {
+    processCommand(match, "CREATE");
+}
+
+void Parser::processPrintIndexCommand(const std::smatch& match) {
+    processCommand(match, "PRINT_INDEX");
+}
+
+void Parser::processCommandWithValues(const std::smatch& match, const std::string& commandName) {
+    std::string collectionName = match[1];
+    std::string values = match[2];
+
+    if (std::regex_match(collectionName, identifierPattern)) {
+        tokens.push_back(commandName);
+        tokens.push_back(collectionName);
+
+        std::sregex_iterator it(values.begin(), values.end(), numberPattern);
+        std::sregex_iterator end;
+
+        while (it != end) {
+            std::smatch numberMatch = *it;
+            std::string numberToken = numberMatch[1];
+            tokens.push_back(numberToken);
+            ++it;
+        }
+    } else {
+        std::cout << "Invalid collection name." << std::endl << std::endl;
+    }
+}
+
+void Parser::processInsertCommand(const std::smatch& match) {
+    processCommandWithValues(match, "INSERT");
+}
+
+void Parser::processSearchCommand(const std::smatch& match) {
+    processCommandWithValues(match, "SEARCH");
+}
+
+void Parser::processContainsCommand(const std::smatch& match) {
+    processCommandWithValues(match, "CONTAINS");
+}
+
+
 void Parser::lexer(std::string inputString) {
     clearTokens();
     std::smatch match;
 
-    if(std::regex_match(inputString, match, createPattern)) {
-        std::string commandName = "CREATE";
-        std::string collectionName = match[1];
+    if(std::regex_match(inputString, match, createPattern))
+        processCreateCommand(match);
 
-        if (std::regex_match(collectionName, identifierPattern)) {
-            tokens.push_back(commandName);
-            tokens.push_back(collectionName);
-        } else {
-            std::cout << "Invalid collection name." << std::endl << std::endl;
-        }
-    }
+    if (std::regex_match(inputString, match, insertPattern)) 
+        processInsertCommand(match);
 
-    if (std::regex_match(inputString, match, insertPattern)) {
-        std::string commandName = "INSERT";
-        std::string collectionName = match[1];
-        std::string values = match[2];
+    if (std::regex_match(inputString, match, printIndexPattern))
+        processPrintIndexCommand(match);
 
-        if (std::regex_match(collectionName, identifierPattern)) {
-            tokens.push_back(commandName);
-            tokens.push_back(collectionName);
-        
-            std::sregex_iterator it(values.begin(), values.end(), numberPattern);
-            std::sregex_iterator end;
-            
-            while (it != end) {
-                std::smatch match = *it;
-                std::string numberToken = match[1];
-                tokens.push_back(numberToken);
-                ++it;
-            }
-        } else {
-            std::cout << "Invalid collection name." << std::endl << std::endl;
-        }
-    }
+    if (std::regex_match(inputString, match, searchPattern))
+        processSearchCommand(match);
 
-    if (std::regex_match(inputString, match, printIndexPattern)) {
-        std::string commandName = "PRINT_INDEX";
-        std::string collectionName = match[1];
-
-        if (std::regex_match(collectionName, identifierPattern)) {
-            tokens.push_back(commandName);
-            tokens.push_back(collectionName);
-        } else {
-            std::cout << "Invalid collection name." << std::endl << std::endl;
-        }
-    }
-
-    if (std::regex_match(inputString, match, searchPattern)) {
-        std::string commandName = "SEARCH";
-        std::string collectionName = match[1];
-        std::string values = match[2];
-
-        if (std::regex_match(collectionName, identifierPattern)) {
-            tokens.push_back(commandName);
-            tokens.push_back(collectionName);
-        
-            std::sregex_iterator it(values.begin(), values.end(), numberPattern);
-            std::sregex_iterator end;
-            
-            while (it != end) {
-                std::smatch match = *it;
-                std::string numberToken = match[1];
-                tokens.push_back(numberToken);
-                ++it;
-            }
-        } else {
-            std::cout << "Invalid collection name." << std::endl << std::endl;
-        }
-    }
-
-    if (std::regex_match(inputString, match, containsPattern)) {
-        std::string commandName = "CONTAINS";
-        std::string collectionName = match[1];
-        std::string values = match[2];
-
-        if (std::regex_match(collectionName, identifierPattern)) {
-            tokens.push_back(commandName);
-            tokens.push_back(collectionName);
-        
-            std::sregex_iterator it(values.begin(), values.end(), numberPattern);
-            std::sregex_iterator end;
-            
-            while (it != end) {
-                std::smatch match = *it;
-                std::string numberToken = match[1];
-                tokens.push_back(numberToken);
-                ++it;
-            }
-        } else {
-            std::cout << "Invalid collection name." << std::endl << std::endl;
-        }
-    }
+    if (std::regex_match(inputString, match, containsPattern))
+        processContainsCommand(match);
 }
 
 std::vector<std::string> Parser::getTokens() {
@@ -106,7 +82,7 @@ void Parser::clearTokens() {
     tokens.clear();
 }
 
-std::set<int> Collections::getSetFrom(const std::vector<std::string>& tokens) {
+std::set<int> Collections::getSetFromTokens(const std::vector<std::string>& tokens) {
     std::set<int> setToInsert;
     for(int j = 2; j < tokens.size(); j++) {
         try{
@@ -126,7 +102,7 @@ void Collections::parse(const std::string& inputString) {
     std::string collectionName = tokens.at(1);
 
     if(tokens.at(0) == "INSERT") 
-        insertSet(collectionName, getSetFrom(tokens));
+        insertSet(collectionName, getSetFromTokens(tokens));
 
     if(tokens.at(0) == "CREATE")
         createCollection(collectionName);
@@ -135,10 +111,10 @@ void Collections::parse(const std::string& inputString) {
         printCollectionIndex(tokens.at(1));
 
     if(tokens.at(0) == "SEARCH") 
-        searchInCollection(collectionName, getSetFrom(tokens));
+        searchInCollection(collectionName, getSetFromTokens(tokens));
 
     if(tokens.at(0) == "CONTAINS") 
-        containsCollection(collectionName, getSetFrom(tokens));
+        containsCollection(collectionName, getSetFromTokens(tokens));
 
 
 }

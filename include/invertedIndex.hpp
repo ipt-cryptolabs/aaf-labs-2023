@@ -22,8 +22,18 @@ namespace {
 class Parser {
 private:
     std::vector<std::string> tokens;
-private:
 
+private:
+    // processes commands with this pattern: <command_name> <collection_name>;
+    void processCommand(const std::smatch& match, const std::string& commandName);
+    // processes commands with this pattern: <command_name> <collection_name> {val1, val2, ... };
+    void processCommandWithValues(const std::smatch& match, const std::string& commandName);
+   
+    void processCreateCommand(const std::smatch& match);
+    void processInsertCommand(const std::smatch& match);
+    void processPrintIndexCommand(const std::smatch& match);
+    void processSearchCommand(const std::smatch& match);
+    void processContainsCommand(const std::smatch& match);
 public:
     // add method to get string from user 
     void lexer(std::string inputString);
@@ -45,7 +55,7 @@ private:
     std::map<std::string, Collection> collections;
     Parser parser;
     
-    std::set<int> getSetFrom(const std::vector<std::string>& tokens);
+    std::set<int> getSetFromTokens(const std::vector<std::string>& tokens);
 public:
     void createCollection(const std::string& collecntionName);
     void insertSet(const std::string& collecntionName, const std::set<int>& set);
