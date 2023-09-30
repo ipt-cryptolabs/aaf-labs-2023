@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(src)
 
 # Build the tests
-# enable_testing()
-# add_subdirectory(tests)
+enable_testing()
+add_subdirectory(tests)
 
 # Build the example
 add_subdirectory(examples)
