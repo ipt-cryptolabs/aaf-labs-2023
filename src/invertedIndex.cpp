@@ -53,7 +53,6 @@ void Parser::processContainsCommand(const std::smatch& match) {
     processCommandWithValues(match, "CONTAINS");
 }
 
-
 void Parser::lexer(std::string inputString) {
     clearTokens();
     std::smatch match;
@@ -79,7 +78,8 @@ std::vector<std::string> Parser::getTokens() {
 }
 
 void Parser::clearTokens() {
-    tokens.clear();
+    if(tokens.size())
+        tokens.clear();
 }
 
 std::set<int> Collections::getSetFromTokens(const std::vector<std::string>& tokens) {
@@ -98,24 +98,27 @@ std::set<int> Collections::getSetFromTokens(const std::vector<std::string>& toke
 void Collections::parse(const std::string& inputString) {
     parser.lexer(inputString);
     auto tokens = parser.getTokens(); 
+    
+    if(tokens.size()) {
+        std::string collectionName = tokens.at(1);
 
-    std::string collectionName = tokens.at(1);
+        if(tokens.at(0) == "INSERT") 
+            insertSet(collectionName, getSetFromTokens(tokens));
 
-    if(tokens.at(0) == "INSERT") 
-        insertSet(collectionName, getSetFromTokens(tokens));
+        if(tokens.at(0) == "CREATE")
+            createCollection(collectionName);
 
-    if(tokens.at(0) == "CREATE")
-        createCollection(collectionName);
+        if(tokens.at(0) == "PRINT_INDEX") 
+            printCollectionIndex(tokens.at(1));
 
-    if(tokens.at(0) == "PRINT_INDEX") 
-        printCollectionIndex(tokens.at(1));
+        if(tokens.at(0) == "SEARCH") 
+            searchInCollection(collectionName, getSetFromTokens(tokens));
 
-    if(tokens.at(0) == "SEARCH") 
-        searchInCollection(collectionName, getSetFromTokens(tokens));
-
-    if(tokens.at(0) == "CONTAINS") 
-        containsCollection(collectionName, getSetFromTokens(tokens));
-
+        if(tokens.at(0) == "CONTAINS") 
+            containsCollection(collectionName, getSetFromTokens(tokens));
+    } else {
+        std::cout << "Invalid command, try again.\n";
+    }
 
 }
 
@@ -126,9 +129,11 @@ void Collections::createCollection(const std::string& collectionName) {
 
 void Collections::insertSet(const std::string& collecntionName, const std::set<int>& set) {
     collections[collecntionName].insert(set);
+    std::cout << "Set has been added to " << collecntionName << std::endl;
 }
 
 void Collections::printCollectionIndex(const std::string &collectionName) {
+    std::cout << "Printing " << collectionName << "collection...\n";
     collections[collectionName].print_index();
 }
 
