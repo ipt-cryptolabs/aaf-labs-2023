@@ -34,6 +34,11 @@ def StringParser(input):
         temp_command = command
 
         temp_command = temp_command[12:]
+        paranthesis_check1 = temp_command.count("(")
+        paranthesis_check2 = temp_command.count(")")
+        if paranthesis_check1 > 1 or  paranthesis_check2 > 1:
+            print('Incorrect syntax. Too much "(" or ")" chars')
+        
         first_paranthesis = temp_command.find("(")
         last_paranthesis = temp_command.find(")")
 
