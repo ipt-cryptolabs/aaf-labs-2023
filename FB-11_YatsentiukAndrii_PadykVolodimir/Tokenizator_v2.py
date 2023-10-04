@@ -9,6 +9,9 @@ def forbidden_name(name):
     ReservedWords = ["CREATE","TABLE", "WHERE", "JOIN", "INDEXED", "INSERT","INTO", "SELECT", "FROM", "ON"]
     if name in ReservedWords:
         return True
+    for i in "()":
+        if i in name:
+            return True
     return False
 
 def StringParser(input):
