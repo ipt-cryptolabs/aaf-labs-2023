@@ -9,7 +9,7 @@ def forbidden_name(name):
     ReservedWords = ["CREATE","TABLE", "WHERE", "JOIN", "INDEXED", "INSERT","INTO", "SELECT", "FROM", "ON"]
     if name in ReservedWords:
         return True
-    for i in "()":
+    for i in "()+/:;'\"*^%":
         if i in name:
             return True
     return False
@@ -36,9 +36,9 @@ def StringParser(input):
         temp_command = temp_command[12:]
         paranthesis_check1 = temp_command.count("(")
         paranthesis_check2 = temp_command.count(")")
-        if paranthesis_check1 > 1 or  paranthesis_check2 > 1:
+        if paranthesis_check1 !=1  or  paranthesis_check2 != 1:
             print('Incorrect syntax. Too much "(" or ")" chars')
-        
+            return
         first_paranthesis = temp_command.find("(")
         last_paranthesis = temp_command.find(")")
 
@@ -68,7 +68,7 @@ def StringParser(input):
             if len(ARGUMENTS_token) == 0:
                 print("One of Column Names is 0 length string. Transaction forbidden.")
                 return
-            if not ARGUMENTS_token[0].isalpha():
+            if (not ARGUMENTS_token[0].isalpha()) or forbidden_name(ARGUMENTS_token):
                 print("One of COLUMN names is incorrect. Transaction forbidden.")
                 return
             
@@ -93,7 +93,11 @@ def StringParser(input):
         temp_command = command
         temp_command = temp_command[6:]
 
-
+        paranthesis_check1 = temp_command.count("(")
+        paranthesis_check2 = temp_command.count(")")
+        if paranthesis_check1 !=1  or  paranthesis_check2 != 1:
+            print('Incorrect syntax. Too much "(" or ")" chars')
+            return
         first_paranthesis = temp_command.find("(")
         last_paranthesis = temp_command.find(")")
         # checking table name
@@ -197,7 +201,7 @@ def StringParser(input):
 
 
 
-InputString1 = "CREATE  TABLE table1   (Column1 INDEXED, Column2, Column3, Column4); abrakadabra"
+InputString1 = "CREATE  TABLE table1   (Colu*+-mn1 INDEXED, Column2, Column3, Column4); abrakadabra"
 InputString2 = "INSERT Table1 ('num1','num2','num3','num4'); awdawdwa"
 InputString3 = "SELECT FROM Table11 JOIN Table12 ON bladbla WHERE condition;"
 InputString4 = "SELECT FROM Table11;"
@@ -206,8 +210,7 @@ InputString6 = "SELECT FROM _Table** WHERE condition;"
 
 #StringParser(InputString1)
 #StringParser(InputString2)
-#StringParser(InputString1)
-
+StringParser(InputString1)
 
 
 
