@@ -17,4 +17,4 @@ git commit -m "COMMENTS TO COMMIT"
 git push -u forked-rep BRANCH_NAME
 
 5)If you can't push changes - probably you need to pull the repos
-git pull
+git pull forked-rep "BRANCH_NAME"
