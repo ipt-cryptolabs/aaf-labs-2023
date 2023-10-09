@@ -24,4 +24,17 @@ class DB_Handler:
         print(f'1 row has been inserted into {table_name}.')
 
     def select(self, table_name: str, column=None, cond=None, value=None):
-        pass
+        with open(self.path, 'r', encoding='UTF-8') as f:
+            table = dict(json.load(f))
+            if column:
+                pass
+            else:
+                keys = list(table[table_name].keys())
+                values = [v for v in table[table_name].values()]
+                print(values)
+                print(' '.join(keys))
+                for i in range(len(values[0])):
+                    for n in range(len(values)):
+                        print(values[n][i], end=' ')
+                    print()
+
