@@ -46,6 +46,8 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+.idea/
+
 # AWS User-specific
 .idea/**/aws.xml
 
@@ -80,6 +82,10 @@
 
 # CMake
 cmake-build-*/
+
+# Visual studio code
+
+.vscode/
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml

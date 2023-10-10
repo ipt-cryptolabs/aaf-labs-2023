@@ -12,8 +12,6 @@ enum TokenTypes
     SEARCH_QUERY,
     WHERE_QUERY,
     STRING_ARG,
-    ERROR,
-    EXIT,
 };
 
 struct Token
@@ -23,10 +21,13 @@ struct Token
 };
 
 TokenTypes checkToken(std::string const& str);
+std::string parse (const std::vector<Token> &token_vec);
+std::vector<Token> lexer (const std::string& raw_input);
 
-
-void parse (Token *tokens, int size);
-std::vector<Token> lexer (std::string const& raw_input, Token *tokens, int& size);
-
+void create(std::string collection_name);
+void insert(std::string collection_name, std::string arg);
+void search(std::string collection_name, std::string arg);
+void print_index(std::string collection_name);
+void where();
 
 #endif //AAF_LABS_2023_PARSER_H
