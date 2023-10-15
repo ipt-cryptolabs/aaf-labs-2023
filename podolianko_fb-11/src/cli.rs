@@ -1,7 +1,8 @@
 use crate::lexer;
 use std::error::Error;
 use std::io;
-use std::io::BufRead;
+use std::io::{BufRead, stdout};
+use std::io::Write;
 
 pub struct CLI;
 const PROMPT: &str = " > ";
@@ -12,11 +13,16 @@ impl CLI {
         CLI
     }
 
+    fn prompt(prompt_text: &str) -> io::Result<()>{
+        print!("{}", prompt_text);
+        stdout().flush()
+    }
+
     pub fn start_repl(&self) -> Result<(), Box<dyn Error>> {
+        Self::prompt(PROMPT)?;
         let locked_stdin = io::stdin().lock();
         let mut lexer = lexer::Lexer::new();
 
-        print!("{}", PROMPT);
 
         for line in locked_stdin.lines() {
             println!("Line: {:?}", line);
@@ -26,9 +32,9 @@ impl CLI {
                         // todo!(); // send to parser, reset lexer
                         let lexed_input = lexer.collect();
                         println!("{:?}", lexed_input);
-                        print!("{}", PROMPT);
+                        Self::prompt(PROMPT)?;
                     } else {
-                        print!("{}", PROMPT_CONT);
+                        Self::prompt(PROMPT_CONT)?;
                         continue;
                     }
                 }
