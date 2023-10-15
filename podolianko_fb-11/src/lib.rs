@@ -5,8 +5,8 @@ pub mod cli {
     use std::io::BufRead;
 
     pub struct CLI;
-    const PROMPT:&str = " > ";
-    const PROMPT_CONT:&str = " ...\t";
+    const PROMPT: &str = " > ";
+    const PROMPT_CONT: &str = " ...\t";
 
     impl CLI {
         pub fn new() -> Self {
@@ -20,10 +20,13 @@ pub mod cli {
             print!("{}", PROMPT);
 
             for line in locked_stdin.lines() {
-                match lexer.tokenize(line?) {
+                println!("Line: {:?}", line);
+                match lexer.tokenize(&line?) {
                     Ok(state) => {
                         if let lexer::LexingState::End = state {
-                            todo!(); // send to parser, reset lexer
+                            // todo!(); // send to parser, reset lexer
+                            let lexed_input = lexer.collect();
+                            println!("{:?}", lexed_input);
                             print!("{}", PROMPT);
                         } else {
                             print!("{}", PROMPT_CONT);
@@ -42,8 +45,12 @@ pub mod cli {
 }
 
 pub mod lexer {
+    use std::num::ParseIntError;
+
+    #[derive(Debug)]
     pub enum Token {
         KeywordOrIdentifier(String),
+        Whitespace,
         OpenSqBracket,
         CloseSqBracket,
         Comma,
@@ -62,7 +69,7 @@ pub mod lexer {
     }
 
     #[derive(Debug, PartialEq)]
-    struct LexingError;
+    pub struct LexingError;
 
     impl Lexer {
         pub fn new() -> Self {
@@ -75,33 +82,37 @@ pub mod lexer {
         /// tokenize input and push tokens to state. Last non-erroneous state is preserved on error.
         pub fn tokenize(&mut self, input: &str) -> Result<LexingState, LexingError> {
             let mut str_b_index = 0;
-            while str_b_index < input.len(){
-                match input[str_b_index..].chars().next(){
+
+            while str_b_index < input.len() {
+                match input[str_b_index..].chars().next() {
                     Some(c) => {
                         match c {
                             // TODO all str_b... += could be refactored out
                             'a'..='z' | 'A'..='Z' => {
-                                let (token_len, koi) = Self::get_koi(&input[str_b_index..])?;
+                                let (token_len, koi) = Self::get_koi(&input[str_b_index..]);
                                 self.tokens.push(Token::KeywordOrIdentifier(koi));
                                 str_b_index += token_len;
-                            },
+                            }
                             '0'..='9' => {
-                                let (token_len, point) = Self::get_point(&input[str_b_index..])?;
+                                let (token_len, point) = match Self::get_point(&input[str_b_index..]) {
+                                    Ok(tuple) => {tuple},
+                                    Err(_) =>{return Err(LexingError)},
+                                };
                                 self.tokens.push(Token::Point(point));
                                 str_b_index += token_len;
-                            },
+                            }
                             '[' => {
                                 self.tokens.push(Token::OpenSqBracket);
                                 str_b_index += 1;
-                            },
-                            ']' =>{
+                            }
+                            ']' => {
                                 self.tokens.push(Token::CloseSqBracket);
                                 str_b_index += 1;
-                            },
+                            }
                             ',' => {
                                 self.tokens.push(Token::Comma);
                                 str_b_index += 1;
-                            },
+                            }
                             ';' => {
                                 // End of command, the rest will be ignored
                                 self.tokens.push(Token::EndOfCommand);
@@ -110,17 +121,26 @@ pub mod lexer {
                             }
                             c @ _ => {
                                 // None of the above and not whitespace is an unexpected lexeme
-                                str_b_index += 1;
-                               if !c.is_whitespace(){
-                                   return Err(LexingError)
-                               }
+                                if !c.is_whitespace() {
+                                    return Err(LexingError);
+                                } else{
+                                    str_b_index += Self::get_whitespace(&input[str_b_index..]);
+                                    // let's just keep one whitespace, its meaningful enough
+                                    match self.tokens.last(){
+                                        // we'll also ignore None, effectively skipping whitespace-only lines
+                                        Some(Token::Whitespace) | None  => {
+
+                                        }
+                                        _ => {self.tokens.push(Token::Whitespace);}
+                                    }
+                                }
                                 // Ignore all the rest (the rest being whitespaces)
                             }
                         }
-                    },
+                    }
 
                     // We will just ignore empty queries and ask for more data
-                    None => {return Ok(LexingState::Continue)}
+                    None => return Ok(LexingState::Continue),
                 }
             }
 
@@ -129,61 +149,58 @@ pub mod lexer {
         }
 
         pub fn collect(&mut self) -> Vec<Token> {
-            todo!()
+            let result = self.tokens.drain(0..).collect();
+
+            result
         }
 
-        fn get_koi(slice: &str) -> Result<(usize, String), LexingError> {
+        fn get_koi(slice: &str) -> (usize, String) {
             let mut token_length = slice.len();
             for (pos, c) in slice.char_indices() {
                 match c {
                     'a'..='z' | 'A'..='Z' | '0'..='9' => {
-                        //character is OK
-                    },
-                    other @ _ => {
-                        if other.is_whitespace() {
-                            // This is ok, end of KOI
-                            // we must get the byte position of this character, it will be the token length in bytes:
-                            token_length = pos;
-                        } else{
-                            // This is not a valid koi character!
-                            return Err(LexingError);
-                        }
+                        //character is OK, go on
+                    }
+                    _ => {
+                        token_length = pos;
+                        break;
                     }
                 }
             }
 
-            Ok((token_length, String::from(&slice[0..token_length])))
+            (token_length, String::from(&slice[0..token_length]))
         }
 
-        fn get_point(slice: &str) -> Result<(usize, i64), LexingError> {
+        fn get_point(slice: &str) -> Result<(usize, i64), ParseIntError> {
             let mut token_length = slice.len();
             for (pos, c) in slice.char_indices() {
                 match c {
                     '0'..='9' => {
                         //character is OK
-                    },
-                    other @ _ => {
-                        if other.is_whitespace() {
-                            // This is ok, end of Point
-                            // we must get the byte position of this character, it will be the token length in bytes:
-                            token_length = pos;
-                        } else{
-                            // This is not a valid Point character!
-                            return Err(LexingError);
-                        }
+                    }
+                    _ => {
+                        token_length = pos;
+                        break;
                     }
                 }
             }
 
             let maybe_point = i64::from_str_radix(&slice[0..token_length], 10);
-            if let Ok(point) = maybe_point{
-                Ok((token_length, point))
-            }
-            else{
-                Err(LexingError)
-            }
+
+            Ok((token_length, maybe_point?))
         }
 
+        fn get_whitespace(slice: &str) -> usize{
+            let mut token_length = slice.len();
+            for (pos, c) in slice.char_indices() {
+                if !c.is_whitespace(){
+                    token_length = pos;
+                    break;
+                }
+            }
+
+            token_length
+        }
     }
 
     #[cfg(test)]
