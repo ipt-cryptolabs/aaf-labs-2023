@@ -44,7 +44,9 @@ pub mod cli {
 pub mod lexer {
     pub enum Token {
         KeywordOrIdentifier(String),
-        LineSegment(i64, i64),
+        OpenSqBracket,
+        CloseSqBracket,
+        Comma,
         Point(i64),
         EndOfCommand,
     }
@@ -77,6 +79,7 @@ pub mod lexer {
                 match input[str_b_index..].chars().next(){
                     Some(c) => {
                         match c {
+                            // TODO all str_b... += could be refactored out
                             'a'..='z' | 'A'..='Z' => {
                                 let (token_len, koi) = Self::get_koi(&input[str_b_index..])?;
                                 self.tokens.push(Token::KeywordOrIdentifier(koi));
@@ -88,21 +91,30 @@ pub mod lexer {
                                 str_b_index += token_len;
                             },
                             '[' => {
-                                let (token_len, linesegment) = Self::get_linesegment(&input[str_b_index..])?;
-                                self.tokens.push(Token::LineSegment(linesegment.0, linesegment.1));
-                                str_b_index += token_len;
+                                self.tokens.push(Token::OpenSqBracket);
+                                str_b_index += 1;
+                            },
+                            ']' =>{
+                                self.tokens.push(Token::CloseSqBracket);
+                                str_b_index += 1;
+                            },
+                            ',' => {
+                                self.tokens.push(Token::Comma);
+                                str_b_index += 1;
                             },
                             ';' => {
                                 // End of command, the rest will be ignored
                                 self.tokens.push(Token::EndOfCommand);
+                                str_b_index += 1; // just in case I'll ever want to use Lexer after the EndCommmand token
                                 return Ok(LexingState::End);
                             }
                             c @ _ => {
                                 // None of the above and not whitespace is an unexpected lexeme
+                                str_b_index += 1;
                                if !c.is_whitespace(){
                                    return Err(LexingError)
                                }
-                                // Ignore ll the rest (the rest being whitespaces)
+                                // Ignore all the rest (the rest being whitespaces)
                             }
                         }
                     },
@@ -156,7 +168,7 @@ pub mod lexer {
                             // we must get the byte position of this character, it will be the token length in bytes:
                             token_length = pos;
                         } else{
-                            // This is not a valid koi character!
+                            // This is not a valid Point character!
                             return Err(LexingError);
                         }
                     }
@@ -172,9 +184,6 @@ pub mod lexer {
             }
         }
 
-        fn get_linesegment(slice: &str) -> Result<(usize, (i64, i64)), LexingError> {
-            todo!()
-        }
     }
 
     #[cfg(test)]
