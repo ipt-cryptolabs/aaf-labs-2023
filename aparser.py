@@ -63,7 +63,6 @@ def parseString(input: str):
         matchNames = re.findall(regInsertNames ,match.group("names"))
         #and one more check if number of columns != number of columns in existing table
         arrayForValue = []
-        print(matchNames)
         for name in matchNames:
             name = name.strip('"')
             arrayForValue.append(name)
@@ -82,7 +81,9 @@ def parseString(input: str):
         output.append(match.group("whereLeft"))
         output.append(match.group("whereRight"))
         #here check if column "whereLeft" exist, and if value of "whereRight" not in quotes check again
-        matchNames = re.findall(regSelectNames, match.group("names")+',')
+        matchNames = []
+        if(match.group("names") != None):
+            matchNames = re.findall(regSelectNames, match.group("names")+',')
         #here check if columns exist
         arrayForNames = []
         for name in matchNames:
@@ -92,44 +93,11 @@ def parseString(input: str):
                 arrayForNames.append((name[0],0))
         output.append(arrayForNames)
         return output
-
+    if(re.match(r"\s*exit\s*", input)):
+        output.append(-1)
+        return output
     
 
     print("error: this command doesnt exist")
     output.append(0)
     return output
-
-
-##testing(will be deleted)
-
-sa = """
-
-creAte table   (cat  , dog indexed, rabbit , oleq inDExed, BEE indexed);
-
-34234234234
-"""
-sb = """
-
-
-insert into name ("table", "not table","12313123123123") 
-
-
-; 228 322
-
-
-
-"""
-
-sc = """select from      table order_by cat      asc   , sssssss2 desc      , non           , lol                            
-
-
-
-
-
-                        ;sdsdsdsd
-"""
-
-
-print(parseString(sa))
-print(parseString(sb))
-print(parseString(sc))
