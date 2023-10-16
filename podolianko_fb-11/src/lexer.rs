@@ -1,4 +1,3 @@
-
 use std::num::ParseIntError;
 
 #[derive(Debug)]
@@ -18,8 +17,8 @@ pub enum LexingState {
 }
 
 pub struct Lexer {
-    state: LexingState,
     tokens: Vec<Token>,
+    state: LexingState,
 }
 
 #[derive(Debug, PartialEq)]
@@ -28,14 +27,23 @@ pub struct LexingError;
 impl Lexer {
     pub fn new() -> Self {
         Self {
-            state: LexingState::End,
             tokens: Vec::new(),
+            state: LexingState::End,
         }
     }
 
     /// tokenize input and push tokens to state. Last non-erroneous state is preserved on error.
     pub fn tokenize(&mut self, input: &str) -> Result<LexingState, LexingError> {
         let mut str_b_index = 0;
+
+        // If tokenization was interrupted, insert an implicit whitespace
+        // This moves the hanling of lexer's state out of CLI
+        if let LexingState::Continue = self.state {
+            self.maintain_single_whitespace()
+        }
+
+        // the state will be Continue until we collect a complete command
+        self.state = LexingState::Continue;
 
         while str_b_index < input.len() {
             match input[str_b_index..].chars().next() {
@@ -49,8 +57,8 @@ impl Lexer {
                         }
                         '0'..='9' => {
                             let (token_len, point) = match Self::get_point(&input[str_b_index..]) {
-                                Ok(tuple) => {tuple},
-                                Err(_) =>{return Err(LexingError)},
+                                Ok(tuple) => tuple,
+                                Err(_) => return Err(LexingError),
                             };
                             self.tokens.push(Token::Point(point));
                             str_b_index += token_len;
@@ -70,6 +78,7 @@ impl Lexer {
                         ';' => {
                             // End of command, the rest will be ignored
                             self.tokens.push(Token::EndOfCommand);
+                            self.state = LexingState::End;
                             str_b_index += 1; // just in case I'll ever want to use Lexer after the EndCommmand token
                             return Ok(LexingState::End);
                         }
@@ -77,16 +86,10 @@ impl Lexer {
                             // None of the above and not whitespace is an unexpected lexeme
                             if !c.is_whitespace() {
                                 return Err(LexingError);
-                            } else{
+                            } else {
                                 str_b_index += Self::get_whitespace(&input[str_b_index..]);
                                 // let's just keep one whitespace, its meaningful enough
-                                match self.tokens.last(){
-                                    // we'll also ignore None, effectively skipping whitespace-only lines
-                                    Some(Token::Whitespace) | None  => {
-
-                                    }
-                                    _ => {self.tokens.push(Token::Whitespace);}
-                                }
+                                self.maintain_single_whitespace();
                             }
                             // Ignore all the rest (the rest being whitespaces)
                         }
@@ -102,6 +105,16 @@ impl Lexer {
         Ok(LexingState::Continue)
     }
 
+    fn maintain_single_whitespace(&mut self) {
+        match self.tokens.last() {
+            // we'll also ignore None, effectively skipping whitespace-only lines
+            Some(Token::Whitespace) => {}
+            _ => {
+                self.tokens.push(Token::Whitespace);
+            }
+        }
+    }
+
     pub fn collect(&mut self) -> Vec<Token> {
         let result = self.tokens.drain(0..).collect();
 
@@ -112,7 +125,7 @@ impl Lexer {
         let mut token_length = slice.len();
         for (pos, c) in slice.char_indices() {
             match c {
-                'a'..='z' | 'A'..='Z' | '0'..='9' => {
+                'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => {
                     //character is OK, go on
                 }
                 _ => {
@@ -144,10 +157,10 @@ impl Lexer {
         Ok((token_length, maybe_point?))
     }
 
-    fn get_whitespace(slice: &str) -> usize{
+    fn get_whitespace(slice: &str) -> usize {
         let mut token_length = slice.len();
         for (pos, c) in slice.char_indices() {
-            if !c.is_whitespace(){
+            if !c.is_whitespace() {
                 token_length = pos;
                 break;
             }
