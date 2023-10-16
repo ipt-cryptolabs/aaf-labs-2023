@@ -1,5 +1,5 @@
-# ReservedWords = ["CREATE TABLE", "WHERE", "JOIN", "INDEXED", "INSERT INTO", "SELECT FROM", "ON"]
-##Tables = {}
+
+Tables = {}
 
 def contains_more_than_one_word(input_string):
     words = input_string.split()
@@ -71,22 +71,10 @@ def StringParser(input):
             if (not ARGUMENTS_token[0].isalpha()) or forbidden_name(ARGUMENTS_token):
                 print("One of COLUMN names is incorrect. Transaction forbidden.")
                 return
-            
 
-
-        print("TABLE_token:",TABLE_token)
-        print("ARGUMENTS_token:",ARGUMENTS_tokens)
-
-        """#adding table to the dictionary of tables
-        Tables[table_name] = []
-
-        #adding list of columns to the corresponding table
-        Tables[table_name].append(arguments)
-        i = 0
-        while i < len(arguments):
-            Tables[table_name].append([])
-            i = i + 1
-        """
+        # print("TABLE_token:",TABLE_token)
+        # print("ARGUMENTS_token:",ARGUMENTS_token)
+        CreateTableFunc(TABLE_token, ARGUMENTS_tokens)
 
     elif command.startswith("INSERT"):
         ARGUMENTS_token = []
@@ -128,8 +116,9 @@ def StringParser(input):
                 return
             i = i + 1
 
-        print("TABLE_token:",TABLE_token)
-        print("ARGUMENTS_token:",ARGUMENTS_token)
+        #print("TABLE_token:",TABLE_token)
+        #print("ARGUMENTS_token:",ARGUMENTS_token)
+        InsertIntoTableFunc(TABLE_token, ARGUMENTS_token)
 
     elif command.startswith("SELECT FROM"):
         TABLE_token = ""
@@ -195,22 +184,152 @@ def StringParser(input):
         print("JOIN_token:", JOIN_token)
         print("ON_token:", ON_token)
         print("WHERE_token:", WHERE_token)
+        SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token)
 
     else:
         print(f"Unknown command '{command[:12]}...'")
 
+def CreateTableFunc(TABLE_token, ARGUMENTS_token):
+    if TABLE_token in Tables:
+        print("Table already exists. Transaction forbidden.")
+        return
+
+    #adding table to the dictionary of tables
+    Tables[TABLE_token] = []
+
+    #adding dictionary of columns to the corresponding table
+    Tables[TABLE_token].append(ARGUMENTS_token)
+    i = 0
+    while i < len(ARGUMENTS_token):
+        Tables[TABLE_token].append([])
+        i = i + 1
 
 
-InputString1 = "CREATE  TABLE table1   (Colu*+-mn1 INDEXED, Column2, Column3, Column4); abrakadabra"
-InputString2 = "INSERT Table1 ('num1','num2','num3','num4'); awdawdwa"
-InputString3 = "SELECT FROM Table11 JOIN Table12 ON bladbla WHERE condition;"
-InputString4 = "SELECT FROM Table11;"
-InputString5 = "SELECT FROM Table11 WHERE condition;"
+def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
+    if TABLE_token in Tables:
+        if len(ARGUMENTS_token) > (len(Tables[TABLE_token])-1):
+            print("Too many arguments. Transaction forbidden")
+            return
+
+        i = 1
+        j = 0
+        while i < len(Tables[TABLE_token]):
+            Tables[TABLE_token][i].append(ARGUMENTS_token[j])
+            i = i + 1
+            j = j + 1
+    else:
+        print(f"Table '{TABLE_token}' doesn't exist. Transaction forbidden.")
+        return
+
+
+
+def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
+    columns_data = Tables[TABLE_token][1:]  # data
+    #print(columns_data)
+    columns = [key for key in Tables[TABLE_token][0].keys()]  # column names
+    #print(columns)
+
+    # check for the longest string in each column
+    total_length_of_row = 0
+    max_len_array = []
+    i = 0
+    while i < len(columns_data):
+        longest_string = max(columns_data[i], key=len)
+        max_len_array.append(len(longest_string))
+        i = i + 1
+
+    i = 0
+    while i < len(max_len_array):
+        if len(columns[i]) > max_len_array[i]:
+            max_len_array[i] = len(columns[i])
+        i = i + 1
+
+    #print(max_len_array)
+
+    # Creating first row
+    print("-"*100)
+    print(f"Table {TABLE_token}")
+    row = ''
+    i = 0
+    while i < len(max_len_array):
+        row += "+-"
+        row += "-" * max_len_array[i]
+        row += "-"
+        i += 1
+    row += "+"
+    print(row)
+
+    # Second row
+    row = ''
+    i = 0
+    while i < len(max_len_array):
+        row += "| "
+        row += columns[i]
+        row += " " * (1 + (max_len_array[i] - len(columns[i])))
+        i += 1
+    row += "|"
+    print(row)
+
+    # Third row
+    row = ''
+    i = 0
+    while i < len(max_len_array):
+        row += "+-"
+        row += "-" * max_len_array[i]
+        row += "-"
+        i += 1
+    row += "+"
+    print(row)
+
+    # other rows
+    i = 0
+    while i < len(columns_data[0]):
+        row = ''
+        h = 0
+        while h < len(max_len_array):
+            row += "| "
+            row += columns_data[h][i]
+            row += " " * (1 + (max_len_array[h] - len(columns_data[h][i])))
+            h += 1
+        row += "|"
+        print(row)
+
+        j = 0
+        row = ''
+        while j < len(max_len_array):
+            row += "+-"
+            row += "-" * max_len_array[j]
+            row += "-"
+            j += 1
+        row += "+"
+        print(row)
+
+        i = i + 1
+
+
+def SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
+    if TABLE_token in Tables:
+        PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token)
+    else:
+        print(f"Table '{TABLE_token}' doesn't exist. Transaction forbidden.")
+        return
+
+InputString1 = "CREATE  TABLE Table1   (Column1 INDEXED, Column2, Column3, Column4); abrakadabra"
+InputString2 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awdawdwa"
+InputString2_1 = "INSERT Table1 ('numaaaaaaaaaaaaaaaaaaaa1','num2212112','num3121121211','num4'); awdawdwa"
+InputString3 = "SELECT FROM Table1 JOIN Table2 ON bladbla WHERE condition;"
+InputString4 = "SELECT FROM Table1;"
+InputString5 = "SELECT FROM Table1 WHERE condition;"
 InputString6 = "SELECT FROM _Table** WHERE condition;"
 
-#StringParser(InputString1)
-#StringParser(InputString2)
 StringParser(InputString1)
+StringParser(InputString2)
+StringParser(InputString2)
+StringParser(InputString2)
+StringParser(InputString2_1)
+StringParser(InputString4)
+#StringParser(InputString2)
+
 
 
 
