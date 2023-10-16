@@ -1,27 +1,23 @@
 import re
 
 
-regForCreate = r"""\A(?P<command>create)
+regForCreate = r'''\A(?P<command>create)
 \s+(?P<table>[a-zA-Z]\w*)
 \s+\((?P<names>
 (\s*[a-zA-Z]\w*\s*(\sindexed)?\s*,)*
-(\s*[a-zA-Z]\w*\s*(\sindexed)?\s*,?))\)\s*;"""
+(\s*[a-zA-Z]\w*\s*(\sindexed)?\s*,?))\)\s*;'''
 
-regForInsert = r'''\A(?P<command>insert(\s+into)?)\s+(?P<table>[a-zA-Z]\w*)\s+\((?P<names>
-(\s*\"[\w\s]*\"\s*,)*
-(\s*\"[\w\s]*\"\s*,?))
-\)\s*;
-'''
+regForInsert = r'''\A(?P<command>insert(\s+into)?)\s+
+(?P<table>[a-zA-Z]\w*)\s+\(
+(?P<names>(\s*\"[\w\s]*\"\s*,)*
+(\s*\"[\w\s]*\"\s*,?))\)\s*;'''
 
 regForSelect = r'''\A(?P<command>select\s+from)\s+(?P<table>[a-zA-Z]\w*)\s*
 (\swhere\s+(?P<whereLeft>[a-zA-Z]\w*)\s+\>\s+(?P<whereRight>(?:[a-zA-Z]\w*)|(?:"[\w\s]*")))?\s*
 (\sorder_by(?P<names>(\s*[a-zA-Z]\w*(\s+(?:asc)|\s+(?:desc))?\s*,)*\s*
-([a-zA-Z]\w*(\s+(?:asc)|\s+(?:desc))?))\s*)?;
+([a-zA-Z]\w*(\s+(?:asc)|\s+(?:desc))?))\s*)?;'''
 
-
-'''
-
-regCreateNames = r"\s*([a-zA-Z]\w*)\s*(\sindexed)?\s*,"
+regCreateNames = r'\s*([a-zA-Z]\w*)\s*(\sindexed)?\s*,'
 regInsertNames = r'("[\w\s]*")'
 regSelectNames = r'\s*([a-zA-Z]\w*)(\s+(?:(?:asc)|(?:desc)))?\s*,'
 
@@ -29,12 +25,10 @@ regForCreate = re.compile(regForCreate, re.X|re.IGNORECASE)
 regForInsert = re.compile(regForInsert, re.X|re.IGNORECASE)
 regForSelect = re.compile(regForSelect, re.X|re.IGNORECASE)
 
-
-
-
 def parseString(input: str):
     input = input.strip()
     output = []
+    
     #case if command is CREATE
     #return array = ["command", "table name", "array of pairs: (column, isIndexed)",]
     if(re.match(regForCreate, input) != None):  
@@ -53,6 +47,7 @@ def parseString(input: str):
         s = f"Table {match.group('table')} has been created"
         print(s)
         return output
+    
     #case if command is INSERT
     #returns array ["command", "table name", "array of values"]
     if(re.match(regForInsert, input)):     
@@ -71,7 +66,7 @@ def parseString(input: str):
         print(s)
         return output
 
-    #here will be case for SELECT
+    #case if command is SELECT
     #return array ["command", "table name", "whereLeft","whereRight", "array of (column,isDesc) for ORDER_BY"], where last 3 values can be None
     if(re.match(regForSelect,input)):
         output.append(3)
@@ -93,7 +88,8 @@ def parseString(input: str):
                 arrayForNames.append((name[0],0))
         output.append(arrayForNames)
         return output
-    if(re.match(r"\s*exit\s*", input)):
+    #case, if command is EXIT
+    if(re.match(r"\s*exit\s*", input, re.IGNORECASE)):
         output.append(-1)
         return output
     
