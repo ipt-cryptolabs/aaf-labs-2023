@@ -1,13 +1,13 @@
 use crate::lexer::Token;
 
 #[derive(Debug)]
-struct Point(i64);
+pub struct Point(i64);
 
 #[derive(Debug)]
-struct LineSegment(i64, i64);
+pub struct LineSegment(i64, i64);
 
 #[derive(Debug)]
-enum Command {
+pub enum Command {
     Create(String),
     Insert {
         set_name: String,
@@ -28,23 +28,23 @@ enum Command {
 }
 
 #[derive(Debug)]
-enum WhereClause {
+pub enum WhereClause {
     ContainedBy(LineSegment),
     Intersects(LineSegment),
     RightOf(Point),
 }
 
-struct Parser;
+pub struct Parser;
 
 #[derive(Debug, PartialEq)]
-struct ParserError;
+pub struct ParserError;
 
 impl Parser {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Parser
     }
 
-    fn parse_command(&mut self, tokens: Vec<Token>) -> Result<Command, ParserError> {
+    pub fn parse_command(&self, tokens: Vec<Token>) -> Result<Command, ParserError> {
         let mut command: Command = Command::NOP;
         let mut current_token_index: usize = 0;
 
@@ -67,9 +67,14 @@ impl Parser {
                         Err(err) => {
                             return Err(err);
                         }
-                    }
+                    };
+
+                    current_token_index += consumed_tokens;
                 }
+                // skip whitespaces
+                Token::Whitespace => current_token_index += 1,
                 Token::EndOfCommand => {
+                    current_token_index += 1; // just in case...
                     break;
                 }
                 _ => {
@@ -79,39 +84,241 @@ impl Parser {
         }
 
         if let Command::NOP = command {
-             Err(ParserError)
+            Err(ParserError)
         } else {
             Ok(command)
         }
     }
 
-    fn parse_create(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
-        let mut consumed_tokens = tokens.len();
+    // this and the following should DEFINITELY shoul be refactored ... - TODO
 
-        todo!()
+    fn parse_create(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
+        let mut cti: usize = 0; // current token index
+
+        if let Some(Token::Whitespace) = tokens.get(cti) {
+            cti += 1;
+            if let Some(Token::KeywordOrIdentifier(ref name)) = tokens.get(cti) {
+                cti += 1;
+                return Ok((cti, Command::Create(String::from(name))));
+            }
+        }
+
+        Err(ParserError)
     }
 
     fn parse_insert(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
-        let mut consumed_tokens = tokens.len();
+        let mut cti: usize = 0; // current token index
 
-        todo!()
+        if let Some(Token::Whitespace) = tokens.get(cti) {
+            cti += 1;
+            if let Some(Token::KeywordOrIdentifier(ref set_name)) = tokens.get(cti) {
+                cti += 1;
+                if let Some(Token::Whitespace) = tokens.get(cti) {
+                    cti += 1;
+
+                    let (parsed_len, line_segment) = Self::parse_line_segment(&tokens[cti..])?;
+                    cti += parsed_len;
+
+                    return Ok((
+                        cti,
+                        Command::Insert {
+                            set_name: String::from(set_name),
+                            line_segment: line_segment,
+                        },
+                    ));
+                }
+            }
+        }
+
+        Err(ParserError)
     }
 
     fn parse_printtree(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
-        let mut consumed_tokens = tokens.len();
+        let mut cti: usize = 0; // current token index
 
-        todo!()
+        if let Some(Token::Whitespace) = tokens.get(cti) {
+            cti += 1;
+            if let Some(Token::KeywordOrIdentifier(ref set_name)) = tokens.get(cti) {
+                cti += 1;
+
+                return Ok((
+                    cti,
+                    Command::PrintTree {
+                        set_name: String::from(set_name),
+                    },
+                ));
+            }
+        }
+
+        Err(ParserError)
     }
 
     fn parse_contains(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
-        let mut consumed_tokens = tokens.len();
+        let mut cti: usize = 0; // current token index
 
-        todo!()
+        if let Some(Token::Whitespace) = tokens.get(cti) {
+            cti += 1;
+            if let Some(Token::KeywordOrIdentifier(ref set_name)) = tokens.get(cti) {
+                cti += 1;
+                if let Some(Token::Whitespace) = tokens.get(cti) {
+                    cti += 1;
+
+                    let (parsed_len, line_segment) = Self::parse_line_segment(&tokens[cti..])?;
+                    cti += parsed_len;
+
+                    return Ok((
+                        cti,
+                        Command::Contains {
+                            set_name: String::from(set_name),
+                            line_segment: line_segment,
+                        },
+                    ));
+                }
+            }
+        }
+
+        Err(ParserError)
     }
 
     fn parse_search(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
-        let mut consumed_tokens = tokens.len();
+        let mut cti: usize = 0; // current token index
 
-        todo!()
+        if let Some(Token::Whitespace) = tokens.get(cti) {
+            cti += 1;
+            if let Some(Token::KeywordOrIdentifier(ref set_name)) = tokens.get(cti) {
+                cti += 1;
+                if let (parsed_len, Some(where_clause)) = Self::parse_where(&tokens[cti..])? {
+                    cti += parsed_len;
+
+                    return Ok((
+                        cti,
+                        Command::Search {
+                            set_name: String::from(set_name),
+                            where_query: Some(where_clause),
+                        },
+                    ));
+                } else {
+                    return Ok((
+                        cti,
+                        Command::Search {
+                            set_name: String::from(set_name),
+                            where_query: None,
+                        },
+                    ));
+                }
+            }
+        }
+
+        Err(ParserError)
+    }
+
+    fn parse_line_segment(tokens: &[Token]) -> Result<(usize, LineSegment), ParserError> {
+        let mut cti: usize = 0;
+
+        if let Some(Token::OpenSqBracket) = tokens.get(cti) {
+            cti += 1;
+            // Whitespace is optional
+            if let Some(Token::Whitespace) = tokens.get(cti) {
+                cti += 1
+            }
+            if let Some(Token::Point(x)) = tokens.get(cti) {
+                cti += 1;
+                // Whitespace is optional
+                if let Some(Token::Whitespace) = tokens.get(cti) {
+                    cti += 1
+                }
+                if let Some(Token::Comma) = tokens.get(cti) {
+                    cti += 1;
+                    if let Some(Token::Whitespace) = tokens.get(cti) {
+                        cti += 1
+                    }
+                    if let Some(Token::Point(y)) = tokens.get(cti) {
+                        cti += 1;
+                        if let Some(Token::Whitespace) = tokens.get(cti) {
+                            cti += 1
+                        }
+                        if let Some(Token::CloseSqBracket) = tokens.get(cti) {
+                            cti += 1;
+                            return Ok((cti, LineSegment(*x, *y)));
+                        }
+                    }
+                }
+            }
+        }
+
+        Err(ParserError)
+    }
+
+    fn parse_where(tokens: &[Token]) -> Result<(usize, Option<WhereClause>), ParserError> {
+        let mut cti: usize = 0;
+
+        if let Some(Token::Whitespace) = tokens.get(cti) {
+            cti += 1;
+            if let Some(Token::KeywordOrIdentifier(maybe_where)) = tokens.get(cti) {
+                cti += 1;
+                if maybe_where.to_lowercase() == "where" {
+                    if let Some(Token::Whitespace) = tokens.get(cti) {
+                        cti += 1;
+                        if let Some(Token::KeywordOrIdentifier(ref query)) = tokens.get(cti) {
+                            cti += 1;
+                            match query.to_lowercase().as_str() {
+                                "contained_by" => {
+                                    if let Some(Token::Whitespace) = tokens.get(cti) {
+                                        cti += 1;
+
+                                        let (parsed_len, line_segment) =
+                                            Self::parse_line_segment(&tokens[cti..])?;
+
+                                        cti += parsed_len;
+
+                                        return Ok((
+                                            cti,
+                                            Some(WhereClause::ContainedBy(line_segment)),
+                                        ));
+                                    }
+
+                                    return Err(ParserError);
+                                }
+                                "intersects" => {
+                                    if let Some(Token::Whitespace) = tokens.get(cti) {
+                                        cti += 1;
+
+                                        let (parsed_len, line_segment) =
+                                            Self::parse_line_segment(&tokens[cti..])?;
+
+                                        cti += parsed_len;
+
+                                        return Ok((
+                                            cti,
+                                            Some(WhereClause::Intersects(line_segment)),
+                                        ));
+                                    }
+
+                                    return Err(ParserError);
+                                }
+                                "right_of" => {
+                                    if let Some(Token::Whitespace) = tokens.get(cti) {
+                                        cti += 1;
+
+                                        if let Some(Token::Point(x)) = tokens.get(cti) {
+                                            cti += 1;
+                                            return Ok((
+                                                cti,
+                                                Some(WhereClause::RightOf(Point(*x))),
+                                            ));
+                                        }
+                                    }
+
+                                    return Err(ParserError);
+                                }
+                                _ => return Err(ParserError),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Err(ParserError)
     }
 }
