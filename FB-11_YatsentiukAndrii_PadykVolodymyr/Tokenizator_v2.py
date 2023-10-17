@@ -222,6 +222,10 @@ def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
         return
 
 
+def TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token):
+    print("Hello!")
+
+
 
 def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
     columns_data = Tables[TABLE_token][1:]  # data
@@ -249,7 +253,7 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
     # Creating first row
     print("-"*100)
     print(f"Table {TABLE_token}")
-    row = ''
+    row = '+-----'
     i = 0
     while i < len(max_len_array):
         row += "+-"
@@ -260,7 +264,7 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
     print(row)
 
     # Second row
-    row = ''
+    row = '|  №  '
     i = 0
     while i < len(max_len_array):
         row += "| "
@@ -271,7 +275,7 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
     print(row)
 
     # Third row
-    row = ''
+    row = '+-----'
     i = 0
     while i < len(max_len_array):
         row += "+-"
@@ -284,7 +288,7 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
     # other rows
     i = 0
     while i < len(columns_data[0]):
-        row = ''
+        row = '| ' + str(i) + ' '* (4 - len('| ')+len(str(i)))
         h = 0
         while h < len(max_len_array):
             row += "| "
@@ -295,7 +299,7 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
         print(row)
 
         j = 0
-        row = ''
+        row = '+-----'
         while j < len(max_len_array):
             row += "+-"
             row += "-" * max_len_array[j]
@@ -308,8 +312,10 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
 
 
 def SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
-    if TABLE_token in Tables:
+    if TABLE_token in Tables and len(JOIN_token) == 0 and len(ON_token) == 0 and len(WHERE_token) == 0:
         PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token)
+    elif TABLE_token in Tables:
+        TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token) #New instance of a table called TEMP with needed WHERE condtion has to be created in Tables then printed with PrintDataFunc() then immediately deleted.
     else:
         print(f"Table '{TABLE_token}' doesn't exist. Transaction forbidden.")
         return
@@ -319,7 +325,7 @@ InputString2 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awda
 InputString2_1 = "INSERT Table1 ('numaaaaaaaaaaaaaaaaaaaa1','num2212112','num3121121211','num4'); awdawdwa"
 InputString3 = "SELECT FROM Table1 JOIN Table2 ON bladbla WHERE condition;"
 InputString4 = "SELECT FROM Table1;"
-InputString5 = "SELECT FROM Table1 WHERE condition;"
+InputString5 = "SELECT FROM Table1 WHERE Column1=num1;"
 InputString6 = "SELECT FROM _Table** WHERE condition;"
 
 StringParser(InputString1)
