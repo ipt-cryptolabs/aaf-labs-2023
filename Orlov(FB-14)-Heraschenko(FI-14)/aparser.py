@@ -62,7 +62,6 @@ def parseString(input_str: str):
             elif char == '"':
                 quote_open = not quote_open
     #case if command is CREATE
-    print(input_str)
     #return array = ["command", "table name", "array of pairs: (column, isIndexed)",]
     if(re.match(regForCreate, input_str) != None):  
         output.append(1)
