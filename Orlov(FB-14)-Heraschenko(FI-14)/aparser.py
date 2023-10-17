@@ -25,15 +25,48 @@ regForCreate = re.compile(regForCreate, re.X|re.IGNORECASE)
 regForInsert = re.compile(regForInsert, re.X|re.IGNORECASE)
 regForSelect = re.compile(regForSelect, re.X|re.IGNORECASE)
 
-def parseString(input: str):
-    input = input.strip()
+def parseString(input_str: str):
+    input_str = input_str.strip()
     output = []
-    
+
+    bracket_count = 0
+    parentheses_count = 0
+    quote_open = False
+
+    for char in input_str:
+            if char == '(':
+                parentheses_count += 1
+            elif char == ')':
+                parentheses_count -= 1
+            elif char == '[':
+                bracket_count += 1
+            elif char == ']':
+                bracket_count -= 1
+            elif char == '"':
+                quote_open = not quote_open
+
+    while not (input_str.endswith(';') and bracket_count == 0 and parentheses_count == 0 and not quote_open):
+        # Continuously read input
+        new_input = input('> ')
+        input_str += ' ' + new_input
+
+        for char in new_input:
+            if char == '(':
+                parentheses_count += 1
+            elif char == ')':
+                parentheses_count -= 1
+            elif char == '[':
+                bracket_count += 1
+            elif char == ']':
+                bracket_count -= 1
+            elif char == '"':
+                quote_open = not quote_open
     #case if command is CREATE
+    print(input_str)
     #return array = ["command", "table name", "array of pairs: (column, isIndexed)",]
-    if(re.match(regForCreate, input) != None):  
+    if(re.match(regForCreate, input_str) != None):  
         output.append(1)
-        match = re.match(regForCreate, input)
+        match = re.match(regForCreate, input_str)
         #here check if table with this name is exist
         output.append(match.group("table"))
         matchNames = re.findall(regCreateNames,match.group("names") + ",")
@@ -50,9 +83,9 @@ def parseString(input: str):
     
     #case if command is INSERT
     #returns array ["command", "table name", "array of values"]
-    if(re.match(regForInsert, input)):     
+    if(re.match(regForInsert, input_str)):     
         output.append(2)
-        match = re.match(regForInsert, input)
+        match = re.match(regForInsert, input_str)
         #here check if table with this name DOESNT exist
         output.append(match.group("table"))
         matchNames = re.findall(regInsertNames ,match.group("names"))
@@ -68,9 +101,9 @@ def parseString(input: str):
 
     #case if command is SELECT
     #return array ["command", "table name", "whereLeft","whereRight", "array of (column,isDesc) for ORDER_BY"], where last 3 values can be None
-    if(re.match(regForSelect,input)):
+    if(re.match(regForSelect,input_str)):
         output.append(3)
-        match = re.match(regForSelect,input)
+        match = re.match(regForSelect,input_str)
         #here check if table with this name DOESNT exist
         output.append(match.group("table"))
         output.append(match.group("whereLeft"))
@@ -89,7 +122,7 @@ def parseString(input: str):
         output.append(arrayForNames)
         return output
     #case, if command is EXIT
-    if(re.match(r"\s*exit\s*", input, re.IGNORECASE)):
+    if(re.match(r"\s*exit\s*", input_str, re.IGNORECASE)):
         output.append(-1)
         return output
     
