@@ -1,10 +1,12 @@
 from Parser import parse_create, parse_insert, parse_select
-from CommandHandler import handle_create, handle_insert, handle_select
+from DataBase import Database
 
+db = Database()
 
 buffer = []
 while True:
-    cmd = input()       
+    prompt = '...  ' if buffer else '> '
+    cmd = input(prompt)       
     if cmd.strip().lower() == 'exit':
         break
 
@@ -16,21 +18,30 @@ while True:
         if full_cmd.upper().startswith("CREATE"):
             parsed_command = parse_create(full_cmd)
             if parsed_command["success"]:
-                handle_create(parsed_command)
+                print(parsed_command)
+                result = db.handle_create(parsed_command)
+                if result:
+                    print(result)
             else:
                 print("Incorrect syntax for CREATE. Correct syntax is CREATE table_name (column_name [INDEXED] [, ...]);")
 
         elif full_cmd.upper().startswith("INSERT"):
             parsed_command = parse_insert(full_cmd)
             if parsed_command["success"]:
-                handle_insert(parsed_command)
+                print(parsed_command)
+                result = db.handle_insert(parsed_command)
+                if result:
+                    print(result)
             else:
                 print("Incorrect syntax for INSERT. Correct syntax is INSERT [INTO] table_name (“value” [, ...]);")
 
         elif full_cmd.upper().startswith("SELECT"):
             parsed_command = parse_select(full_cmd)
             if parsed_command["success"]:
-                handle_select(parsed_command)
+                print(parsed_command)
+                result = db.handle_select(parsed_command)
+                if result:
+                    print(result)
             else:
                 print("""Incorrect syntax for SELECT. Correct syntax is 
                     SELECT [agg_function(agg_column) [, ... ]]

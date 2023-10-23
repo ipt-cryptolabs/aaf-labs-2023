@@ -21,13 +21,12 @@ def parse_create(command):
     indexed_columns = []
     for i, col in enumerate(columns):
         if col.upper().endswith(" INDEXED"):
-            indexed_columns.append(col.replace(" INDEXED", "").strip())
-            columns[i] = col.replace(" INDEXED", "").strip()
+            indexed_columns.append(col.upper().replace(" INDEXED", "").strip())
+            columns[i] = col.upper().replace(" INDEXED", "").strip()
     
     # Return the parsed information
     return {
         "success": True,
-        "type": "CREATE",
         "table_name": table_name,
         "columns": columns,
         "indexed_columns": indexed_columns
@@ -47,7 +46,6 @@ def parse_insert(command):
     values = [value.strip().strip('"') for value in match.group(2).split(",")]
     return {
         "success": True,
-        "type": "INSERT",
         "table_name": table_name,
         "values": values,
     }
@@ -96,7 +94,6 @@ def parse_select(command):
     # Return the parsed command
     parsed_command = {
         "success": True,
-        "type": "SELECT",
         "agg_columns": agg_columns,
         "table_name": table_name,
         "conditions": where_match.group(1).strip() if where_match else None,
