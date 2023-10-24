@@ -245,7 +245,7 @@ class InputProcessor:
             compare = Compare(pattern[0], self.tokens[0])
             compare.match()
             if not compare.matched:
-                self.output_device.output(f"Expected {pattern[0]}, got: {self.tokens[0]}")
+                self.output_device.output(f"Expected {pattern[0]}, got: '{self.tokens[0]}'")
                 self.clear()
                 break
             if compare.go_to_next_pattern:
@@ -253,7 +253,8 @@ class InputProcessor:
             if compare.go_to_next_token:
                 self.tokens = self.tokens[1:]
         else:
-            print("Nice command!")
+            if pattern:
+                self.output_device.output(f"Expected {pattern[0]}, got nothing")
 
 
 
