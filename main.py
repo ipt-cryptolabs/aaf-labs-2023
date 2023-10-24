@@ -117,6 +117,7 @@ PATTERNS = {"create": [IdentifierPattern(),
                                         OptionalStringPattern("indexed"),
                                         StringPattern(",")]),
                        StringPattern(")")]}
+QUERIES = {"create": []}
 
 
 
@@ -162,12 +163,14 @@ class InputProcessor:
         self.text = ""
         self.new_string = ""
         self.tokens = []
+        self.command = ""
         self.query = dict()
 
     def clear(self):
         self.text = ""
         self.new_string = ""
         self.tokens = []
+        self.command = ""
         self.query = dict()
 
     def user_input(self):
@@ -238,23 +241,33 @@ class InputProcessor:
 
 
     def syntax_analysis(self):
-        command = self.tokens[0]
-        pattern = PATTERNS[command]
-        self.tokens = self.tokens[1:]
-        while self.tokens:
-            compare = Compare(pattern[0], self.tokens[0])
+        self.command = self.tokens[0]
+        pattern = PATTERNS[self.command]
+        tokens = self.tokens[1:].copy()
+        while tokens:
+            compare = Compare(pattern[0], tokens[0])
             compare.match()
             if not compare.matched:
-                self.output_device.output(f"Expected {pattern[0]}, got: '{self.tokens[0]}'")
+                self.output_device.output(f"Expected {pattern[0]}, got: '{tokens[0]}'")
                 self.clear()
                 break
             if compare.go_to_next_pattern:
                 pattern = pattern[1:]
             if compare.go_to_next_token:
-                self.tokens = self.tokens[1:]
+                tokens = tokens[1:]
         else:
             if pattern:
                 self.output_device.output(f"Expected {pattern[0]}, got nothing")
+
+
+    def extract_query(self):
+        merged_tokens = self.tokens.copy()
+        mt = merged_tokens  # Alias
+        while "(" in merged_tokens:
+            mt[mt.index("("):mt.index(")")+1] = [" ".join(mt[mt.index("(")+1:mt.index(")")]).split(" , ")]
+        print(mt)
+
+
 
 
 
@@ -276,6 +289,7 @@ class InputProcessor:
             self.extract_tokens()
             self.lexical_analysis()
             self.syntax_analysis()
+            self.extract_query()
 
         return self.query
 
