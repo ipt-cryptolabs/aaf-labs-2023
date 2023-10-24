@@ -37,6 +37,9 @@ class StringPattern(Pattern):
     def __init__(self, string_value: str):
         self.string_value = string_value
 
+    def __repr__(self):
+        return f"Necessary '{self.string_value}'"
+
     def match(self, token: str) -> bool:
         return token.lower() == self.string_value
 
@@ -48,6 +51,9 @@ class StringPattern(Pattern):
 
 
 class OptionalStringPattern(StringPattern):
+
+    def __repr__(self):
+        return f"Optional '{self.string_value}'"
 
     def is_optional(self) -> bool:
         return True
@@ -77,6 +83,9 @@ class RepeatedPattern(Pattern):
         self.index = 0
         self.finished = False
 
+    def __repr__(self):
+        return f"RepeatedPattern with {self.patterns[self.index]}"
+
     def match(self, value):
         print(f"Matching {value} to pattern {self.patterns[self.index]}")
         if self.patterns[self.index].match(value):
@@ -89,7 +98,8 @@ class RepeatedPattern(Pattern):
             return True
         elif self.patterns[self.index].is_optional():
             print("Skipping optional...")
-            return True
+            self.index += 1
+            return self.match(value)
         else:
             print("Not matched!")
             return False
