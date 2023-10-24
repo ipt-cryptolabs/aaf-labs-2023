@@ -5,7 +5,8 @@ from typing import List
 
 SPECIAL_CHARS = ("(", ")", "<", ",")
 INITIAL_KEYWORDS = ("create", "insert", "select")
-KEYWORDS = ("create", "insert", "into", "select", "from", "where", "group_by", "indexed")
+AGGREGATION_FUNCTIONS = ("count", "max", "longest")
+KEYWORDS = INITIAL_KEYWORDS + AGGREGATION_FUNCTIONS + ("into", "from", "where", "group_by", "indexed")
 
 class ImplementationError(Exception):
 
@@ -20,7 +21,7 @@ class Match:
 class Pattern(ABC):
 
     @abstractmethod
-    def match(self, value):
+    def match(self, token: str) -> bool:
         pass
 
     @abstractmethod
@@ -28,7 +29,7 @@ class Pattern(ABC):
         pass
 
     @abstractmethod
-    def is_finished(self) -> bool:
+    def can_go_to_next_pattern(self) -> bool:
         pass
 
 
@@ -46,7 +47,7 @@ class StringPattern(Pattern):
     def is_optional(self) -> bool:
         return False
 
-    def is_finished(self) -> bool:
+    def can_go_to_next_pattern(self) -> bool:
         return True
 
 
@@ -61,8 +62,8 @@ class OptionalStringPattern(StringPattern):
 
 class IdentifierPattern(Pattern):
 
-    def match(self, value) -> bool:
-        if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", value):
+    def match(self, token) -> bool:
+        if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
             print("Matched!")
             return True
         print("Unmatched!")
@@ -71,26 +72,65 @@ class IdentifierPattern(Pattern):
     def is_optional(self) -> bool:
         return False
 
-    def is_finished(self) -> bool:
+    def can_go_to_next_pattern(self) -> bool:
+        return True
+
+
+class LiteralPattern(Pattern):
+
+    def match(self, token) -> bool:
+        return token[0] == token[-1] == "\""
+
+    def is_optional(self) -> bool:
+        return False
+
+    def can_go_to_next_pattern(self) -> bool:
+        return True
+
+
+class LiteralOrIdentifierPattern(Pattern):
+
+    def match(self, token: str) -> bool:
+        if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
+            return True
+        return token[0] == token[-1] == "\""
+
+    def is_optional(self) -> bool:
+        return False
+
+    def can_go_to_next_pattern(self) -> bool:
+        return True
+
+
+class AggregationFunctionPattern(Pattern):
+
+    def match(self, token: str) -> bool:
+        return token in AGGREGATION_FUNCTIONS
+
+    def is_optional(self) -> bool:
+        return False
+
+    def can_go_to_next_pattern(self) -> bool:
         return True
 
 
 class RepeatedPattern(Pattern):
 
-    def __init__(self, patterns: List[Pattern]):
+    def __init__(self, patterns: List[Pattern], repeat_from: int):
         self.patterns = patterns
         self.last_index = len(patterns)-1
+        self.repeat_from = repeat_from
         self.index = 0
         self.finished = False
 
     def __repr__(self):
         return f"RepeatedPattern with {self.patterns[self.index]}"
 
-    def match(self, value):
-        print(f"Matching {value} to pattern {self.patterns[self.index]}")
-        if self.patterns[self.index].match(value):
+    def match(self, token):
+        print(f"Matching {token} to pattern {self.patterns[self.index]}")
+        if self.patterns[self.index].match(token):
             print("Matched!")
-            self.index = 0 if self.index == self.last_index else self.index + 1
+            self.index = self.repeat_from if self.index == self.last_index else self.index + 1
             return True
         elif self.index == self.last_index:
             print("Kind of matched...")
@@ -99,7 +139,7 @@ class RepeatedPattern(Pattern):
         elif self.patterns[self.index].is_optional():
             print("Skipping optional...")
             self.index += 1
-            return self.match(value)
+            return self.match(token)
         else:
             print("Not matched!")
             return False
@@ -107,8 +147,43 @@ class RepeatedPattern(Pattern):
     def is_optional(self) -> bool:
         return False
 
-    def is_finished(self) -> bool:
+    def can_go_to_next_pattern(self) -> bool:
         return self.finished
+
+
+class OptionalRepeatedPattern(RepeatedPattern):
+
+    def is_optional(self) -> bool:
+        return True  # TODO might be a bug here
+
+
+class OptionalNonRepeatedPattern(Pattern):
+
+    def __init__(self, patterns: List[Pattern]):
+        self.patterns = patterns
+        self.last_index = len(patterns) - 1
+        self.index = 0
+        self.finished = False
+
+    def match(self, token: str) -> bool:  # TODO better not forget to test this
+        if self.patterns[self.index].match(token):
+            print("Matched!")
+            self.index = self.index + 1
+            self.finished = self.index == self.last_index
+            return True
+        elif self.patterns[self.index].is_optional():
+            print("Skipping optional...")
+            self.index += 1
+            return self.match(token)
+        else:
+            print("Not matched!")
+            return False
+
+    def is_optional(self) -> bool:
+        return True # TODO might be a bug here too
+
+    def can_go_to_next_pattern(self) -> bool:
+        return True
 
 
 PATTERNS = {"create": [IdentifierPattern(),
@@ -116,8 +191,27 @@ PATTERNS = {"create": [IdentifierPattern(),
                        RepeatedPattern([IdentifierPattern(),
                                         OptionalStringPattern("indexed"),
                                         StringPattern(",")]),
-                       StringPattern(")")]}
-QUERIES = {"create": []}
+                       StringPattern(")")],
+            "insert": [OptionalStringPattern("into"),
+                       IdentifierPattern(),
+                       StringPattern(")"),
+                       RepeatedPattern([LiteralPattern(),
+                                        StringPattern(",")]),
+                       StringPattern(")")],
+            "select": [OptionalRepeatedPattern([AggregationFunctionPattern(),
+                                                StringPattern("("),
+                                                IdentifierPattern(),
+                                                StringPattern(")"),
+                                                StringPattern(",")]),
+                       StringPattern("from"),
+                       IdentifierPattern(),
+                       OptionalNonRepeatedPattern([StringPattern("where"),
+                                                   IdentifierPattern(),
+                                                   StringPattern("<"),
+                                                   LiteralOrIdentifierPattern()]),
+                       OptionalRepeatedPattern([StringPattern("group_by"),
+                                                IdentifierPattern(),
+                                                StringPattern(",")])]}
 
 
 
@@ -134,7 +228,7 @@ class Compare:
         if self.pattern.match(self.token):
             self.matched = True
             self.go_to_next_token = True
-            self.go_to_next_pattern = self.pattern.is_finished()
+            self.go_to_next_pattern = self.pattern.can_go_to_next_pattern()
         elif self.pattern.is_optional():
             self.matched = True
             self.go_to_next_pattern = True
@@ -164,14 +258,14 @@ class InputProcessor:
         self.new_string = ""
         self.tokens = []
         self.command = ""
-        self.query = dict()
+        self.query = []
 
     def clear(self):
         self.text = ""
         self.new_string = ""
         self.tokens = []
         self.command = ""
-        self.query = dict()
+        self.query = []
 
     def user_input(self):
         prompt = "..." if self.text else ">"
@@ -259,19 +353,13 @@ class InputProcessor:
             if pattern:
                 self.output_device.output(f"Expected {pattern[0]}, got nothing")
 
-
     def extract_query(self):
-        merged_tokens = self.tokens.copy()
-        mt = merged_tokens  # Alias
-        while "(" in merged_tokens:
+        mt = self.tokens.copy()  # Alias
+        while "(" in mt:
             mt[mt.index("("):mt.index(")")+1] = [" ".join(mt[mt.index("(")+1:mt.index(")")]).split(" , ")]
-        print(mt)
+        self.query = mt
 
-
-
-
-
-    def get_command(self) -> dict:
+    def get_command(self) -> list:
         while not self.query:  # Until the correct input is given
 
             self.user_input()
