@@ -31,7 +31,7 @@ class DB:
         else:
             print(f"No collection named '{collection_name}")
         
-    def SEARCH_WHERE(self, collection_name: str, keyword: str, prefix = False) -> list:
+    def SEARCH_WHERE(self, collection_name: str, keyword: str, prefix) -> list:
         if collection_name in self._collections:
             return self._collections[collection_name].search_where(keyword.lower(), prefix)
         else:
@@ -74,12 +74,19 @@ class Collection:
             return None
 
         if prefix == False:
-            return res[0]._value
+            values = res[0]._value
         else:
             res_docs = []
             for i in res:
                 res_docs.append(i._value)
-            return [item for sublist in res_docs for item in sublist]
+            values = [item for sublist in res_docs for item in sublist]
+        
+        unique_keys = set()
+
+        for dictionary in values:
+            unique_keys.update(dictionary.keys())
+
+        return list(unique_keys)
         
 
 
@@ -96,7 +103,7 @@ db.CREATE("col2")
 db.INSERT("col2", "hello wrold hi")
 #db.PRINT_INDEX("col2")
 #db.PRINT_INDEX("col")
-print(db.SEARCH_WHERE("col", "no", True))
+print(db.SEARCH_WHERE("col", "no", False))
 
 
     
