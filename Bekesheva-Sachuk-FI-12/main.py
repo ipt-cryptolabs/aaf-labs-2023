@@ -31,7 +31,7 @@ while READ:
         else:
             print("incorrect collection_name")
     elif COMMAND == "SEARCH":
-        collection_name, keyword1, N, keyword2 = re_search(STRING)
+        collection_name, keyword1, N, keyword2, prefix = re_search(STRING)
         if collection_name:
             if keyword1:
                 if keyword2:
@@ -41,7 +41,7 @@ while READ:
                         print(f'searching collection \'{collection_name} with keywords \'{keyword1}\', \'{keyword2}\'...')
                 else:
                     print(f'searching collection \'{collection_name} with keyword \'{keyword1}\'...')
-                    print(db.SEARCH_WHERE(collection_name, keyword1))
+                    print(db.SEARCH_WHERE(collection_name, keyword1, prefix))
             else:
                 print(f'searching collection \'{collection_name}\'...')
                 print(db.SEARCH(collection_name))
