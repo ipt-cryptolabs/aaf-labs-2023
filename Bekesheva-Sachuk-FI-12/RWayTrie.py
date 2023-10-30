@@ -33,13 +33,28 @@ class Trie:
         return self.__search__(self._root, key)
 
     def __search__(self, x: Node, key: str) -> list:
-        for i in range(len(key)):
-            if key[i].lower() not in x._children:
-                return None
-            
-            x = x._children[key[i]]
+        matches = []
+        nodes_stack = [(x, key, 0)]
 
-        return x
+        while nodes_stack:
+            x, sub_key, i = nodes_stack.pop()
+            while i < len(sub_key):
+                if sub_key[i].lower() not in x._children:
+                    break  # Key not found, so break out of the loop
+                x = x._children[sub_key[i].lower()]
+                i += 1
+
+            if i == len(sub_key):
+                self.__collect_matches__(x, matches)
+            nodes_stack.extend((child, sub_key, i) for child in x._children.values())
+
+        return matches
+
+    def __collect_matches__(self, x: Node, matches: list) -> None:
+        if x._value:
+            matches.append(x)  # Add the current node to the list of matches
+
+
     
     def delete(self, key: str) -> None:
         self.__delete__(self._root, key)
@@ -53,10 +68,8 @@ class Trie:
                 return  # key not found, nothing to delete
             x = x._children[key[i]]
             nodes_stack.append(x)
-
-
-       # Mark the node as deleted only if it has no children
-        if all(child._value is None for child in x._children.values()):
+       
+        if all(child._value is None for child in x._children.values()): # mark the node as deleted only if it has no children
             x._value = None
         else:
             x._value = []
@@ -100,12 +113,8 @@ class Trie:
 t = Trie()
 t.insert("sdsd", {"1": [1, 2]})
 t.insert("sdsdss", {"2": [1, 5]})
-print(t.search("sdsd"))
-t.delete("sdsd")
-print(t.search("sdsd"))
-t.insert("sdsd", {"1": [1, 2]})
-print(t.search("sdsd"))
+print("searching")
+print(t.search("sds"))
 
-print(t.get_all_values())
 
  

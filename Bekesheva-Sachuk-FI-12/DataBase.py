@@ -15,7 +15,7 @@ class DB:
 
     def INSERT(self, collection_name: str, value: str) -> None:
         if collection_name in self._collections:
-            self._collections[collection_name].insert(value)
+            self._collections[collection_name].insert(value.lower())
         else:
             print(f"No collection named f{collection_name}")
 
@@ -31,9 +31,9 @@ class DB:
         else:
             print(f"No collection named '{collection_name}")
         
-    def SEARCH_WHERE(self, collection_name: str, keyword: str) -> list:
+    def SEARCH_WHERE(self, collection_name: str, keyword: str, prefix = False) -> list:
         if collection_name in self._collections:
-            return self._collections[collection_name].search_where(keyword)
+            return self._collections[collection_name].search_where(keyword.lower(), prefix)
         else:
             print(f"No collection named '{collection_name}")
 
@@ -67,17 +67,21 @@ class Collection:
 
         return list(unique_keys)
 
-    def search_where(self, keyword: str) -> list:
+    def search_where(self, keyword: str, prefix) -> list:
         res = self._trie.search(keyword)
-        res_docs = []
-        if res is None or res._key is None:
-            return None
-        for i in res._value:
-            res_docs.append(list(i.keys()))
-
         
-        res_docs = sum(res_docs, [])
-        return list(set(res_docs))
+        if res == []:
+            return None
+
+        if prefix == False:
+            return res[0]._value
+        else:
+            res_docs = []
+            for i in res:
+                res_docs.append(i._value)
+            return [item for sublist in res_docs for item in sublist]
+        
+
 
 
 db = DB()
@@ -92,7 +96,7 @@ db.CREATE("col2")
 db.INSERT("col2", "hello wrold hi")
 #db.PRINT_INDEX("col2")
 #db.PRINT_INDEX("col")
-print(db.SEARCH("col"))
+print(db.SEARCH_WHERE("col", "no", True))
 
 
     

@@ -4,7 +4,7 @@
         Importing relevant modules
 '''
 import re
-from DataBase import *
+
 
 
 COMMANDS = ["CREATE", "INSERT", "PRINT_INDEX", "SEARCH"] # we'll be using uppercase to distinguish querry commands
@@ -40,7 +40,6 @@ def re_insert(string):
     if match:
         collection_name = match.group(1)
         value = match.group(2)
-        print(collection_name, value)
         return collection_name, value
     else:
         return None, None
@@ -55,58 +54,36 @@ def re_print(string):
         return None
     
 def re_search(string):
-    print(stringSE)
-    pattern = '^([a-zA-Z]*[a-zA-Z0-9_]*)\s*|(?i:WHERE\s*"(.*)"\s*-\s*"(.*))"\s*|\s*(?i:WHERE\s*"(.*)"\s*<(\d)>\s*"(.*))"\s*|\s*(?i:WHERE\s*"(.*)"\s*);'  # search for collection name, nvm spaces, group keyword if present
+    pattern = '(?i)^([a-zA-Z]*[a-zA-Z0-9_]*)\s*(?:WHERE\s*\"(.*)\"(\*)?\s*)?\s*;'  # search for collection name, nvm spaces, group keyword if present
     match = re.search(pattern, string)
-    if match:
-        collection_name = match.group(1)
+    if match:   
         if match.group(1):
-            keyword = match.group(2)
-            return collection_name, keyword
-        else:
-            return collection_name, None
-    else:
-        return None, None
-db = DB()
-
-while READ:
-    user_input = input()
-    COMMAND, STRING = look_for_commands(user_input)
-    if user_input == "--s":
-        READ = False
-    elif COMMAND == "CREATE":
-        collection_name = re_create(STRING)
-        if collection_name:
-            print(f'creating collection \'{collection_name}\'...')
-            db.CREATE(collection_name)
-
-        else:
-            print("incorrect collection_name")
-    elif COMMAND == "INSERT":
-        collection_name, value = re_insert(STRING)
-        if collection_name and value:
-            print(f'inserting \'{value}\' into collection \'{collection_name}\'...')
-            db.INSERT(collection_name, value)
-        else:
-            print("incorrect collection_name or value")
-    elif COMMAND == "PRINT_INDEX":
-        collection_name = re_print(STRING)
-        if collection_name:
-            print(f'printing collection \'{collection_name}\' as index...')
-            db.PRINT_INDEX(collection_name)
-        else:
-            print("incorrect collection_name")
-    elif COMMAND == "SEARCH":
-        collection_name, keyword = re_search(STRING)
-        if collection_name:
-            if keyword:
-                print(f'searching collection \'{collection_name} with keyword \'{keyword}\'...')
-                db.SEARCH_WHERE(collection_name, keyword)
+            collection_name = match.group(1)
+            if match.group(2):
+                keyword = match.group(2)
+                if match.group(3):
+                    prefix = True
+                else:
+                    prefix = False
+                pattern = '(.*)\"\s*-\s*\"(.*)|(.*)\"\s*<(\d)>\s*\"(.*)|\"(.*)'
+                match = re.search(pattern, keyword)
+                if match:
+                    if match.group(1) and match.group(2):
+                        keyword1, keyword2 = match.group(1), match.group(2)
+                        return collection_name, keyword1, None, keyword2, False
+                    elif match.group(3) and match.group(4) and match.group(5):
+                        keyword1, N, keyword2 = match.group(3), match.group(4), match.group(5)
+                        return collection_name, keyword1, N, keyword2, False
+                    elif match.group(6):
+                        return None, None, None, None, False
+                return collection_name, keyword, None, None, prefix
             else:
-                print(f'searching collection \'{collection_name}\'...')
-                db.SEARCH(collection_name)
+                return collection_name, None, None, None, False
         else:
-            print("incorrect collection_name or no keyword provided")
+            return None, None, None, None, False
     else:
-        print("incorrect input, plese try again")
+        return None, None, None, None, False
+
+
+
 
