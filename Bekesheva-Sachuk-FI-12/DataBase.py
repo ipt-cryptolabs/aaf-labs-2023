@@ -68,12 +68,12 @@ class Collection:
         return list(unique_keys)
 
     def search_where(self, keyword: str, prefix) -> list:
-        res = self._trie.search(keyword)
         
+        '''
         if res == []:
             return None
 
-        if prefix == False:
+        if prefix == True:
             values = res[0]._value
         else:
             res_docs = []
@@ -84,7 +84,32 @@ class Collection:
         unique_keys = set()
 
         for dictionary in values:
-            unique_keys.update(dictionary.keys())
+            unique_keys.update(dictionary.keys())'''
+        
+        if prefix == False:
+            res = self._trie.search(keyword)
+            if res:
+                values = res._value
+                unique_keys = set()
+
+                for dictionary in values:
+                    unique_keys.update(dictionary.keys())
+
+            else:
+                return None
+        else:
+            res = self._trie.search(keyword, True)
+            if res == []:
+                return None
+            res_docs = []
+            for i in res:
+                res_docs.append(i._value)
+            values = [item for sublist in res_docs for item in sublist]
+            
+            unique_keys = set()
+
+            for dictionary in values:
+                unique_keys.update(dictionary.keys()) 
 
         return list(unique_keys)
         
@@ -103,7 +128,7 @@ db.CREATE("col2")
 db.INSERT("col2", "hello wrold hi")
 #db.PRINT_INDEX("col2")
 #db.PRINT_INDEX("col")
-print(db.SEARCH_WHERE("col", "no", False))
+print(db.SEARCH_WHERE("col", "nxfgn", True))
 
 
     

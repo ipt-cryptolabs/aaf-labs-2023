@@ -29,10 +29,22 @@ class Trie:
 
         x._value.append(value)
 
-    def search(self, key: str) -> list:
-        return self.__search__(self._root, key)
+    def search(self, key1: str, prefix = False) -> list:
+        if prefix == False:
+            return self.__search__(self._root, key1)
+        else:
+            return self.__search_prefix__(self._root, key1)
 
-    def __search__(self, x: Node, key: str) -> list:
+    def __search__(self, x: Node, key: str) -> Node:
+        for i in range(len(key)):
+            if key[i].lower() not in x._children:
+                return None
+            
+            x = x._children[key[i]]
+
+        return x
+
+    def __search_prefix__(self, x: Node, key: str) -> list:
         matches = []
         nodes_stack = [(x, key, 0)]
 
