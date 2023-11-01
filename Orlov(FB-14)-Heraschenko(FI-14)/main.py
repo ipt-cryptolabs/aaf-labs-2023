@@ -3,7 +3,7 @@ import aparser
 if __name__ == "__main__":
     output = []
     while True:
-        print("Type the command(SQL-like)")
+        print("Type the command(SQL-like):")
         
         input_str = input()
         bracket_count = 0
@@ -38,8 +38,11 @@ if __name__ == "__main__":
                     bracket_count -= 1
                 elif char == '"':
                     quote_open = not quote_open
-            
+        
+        
         output = aparser.parseString(input_str)
+        print(output)
+        
         if(output[0] == -1):
             break
             
