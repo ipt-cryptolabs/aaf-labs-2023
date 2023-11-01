@@ -13,7 +13,7 @@ regForInsert = r'''\A(?P<command>insert(\s+into)?)\s+
 (\s*\"[\w\s]*\"\s*,?))\)\s*;'''
 
 regForSelect = r'''\A(?P<command>select\s+from)\s+(?P<table>[a-zA-Z]\w*)\s*
-(\swhere\s+(?P<whereLeft>[a-zA-Z]\w*)\s+\>\s+(?P<whereRight>(?:[a-zA-Z]\w*)|(?:"[\w\s]*")))?\s*
+(\swhere\s+(?P<whereLeft>[a-zA-Z]\w*)\s+(?P<operation>\<|\>|=)\s+(?P<whereRight>(?:[a-zA-Z]\w*)|(?:"[\w\s]*")))?\s*
 (\sorder_by(?P<names>(\s*[a-zA-Z]\w*(\s+(?:asc)|\s+(?:desc))?\s*,)*\s*
 ([a-zA-Z]\w*(\s+(?:asc)|\s+(?:desc))?))\s*)?;'''
 
@@ -69,7 +69,8 @@ def parseString(input_str: str):
         return output
 
     #case if command is SELECT
-    #return array ["command", "table name", "whereLeft","whereRight", "array of (column,isDesc) for ORDER_BY"], where last 3 values can be None
+    #return array ["command", "table name", "whereLeft","whereRight", "conditional operator", "array of (column,isDesc) for ORDER_BY"], where last 3 values can be None
+    #conditional operator equals 0 if "=", 1 if ">", -1 if "<"
     if(re.match(regForSelect,input_str)):
         output.append(3)
         match = re.match(regForSelect,input_str)
@@ -77,6 +78,14 @@ def parseString(input_str: str):
         output.append(match.group("table"))
         output.append(match.group("whereLeft"))
         output.append(match.group("whereRight"))
+        
+        if(match.group("operation") == '>'):
+            output.append(1)
+        elif(match.group("operation") == '<'):
+            output.append(-1)
+        elif(match.group("operation") == '='):
+            output.append(0)
+        
         #here check if column "whereLeft" exist, and if value of "whereRight" not in quotes check again
         matchNames = []
         if(match.group("names") != None):
