@@ -34,7 +34,7 @@ def parseString(input_str: str):
     #case if command is CREATE
     #return array = ["command", "table name", "array of pairs: (column, isIndexed)",]
     if(re.match(regForCreate, input_str) != None):  
-        output.append(1)
+        output.append('Create')
         match = re.match(regForCreate, input_str)
         #here check if table with this name is exist
         output.append(match.group("table"))
@@ -46,14 +46,14 @@ def parseString(input_str: str):
             else:
                 arrayForNames.append((name[0],0))
         output.append(arrayForNames)
-        s = f"Table {match.group('table')} has been created"
-        print(s)
+        # s = f"Table {match.group('table')} has been created"
+        # print(s)
         return output
     
     #case if command is INSERT
     #returns array ["command", "table name", "array of values"]
     if(re.match(regForInsert, input_str)):     
-        output.append(2)
+        output.append('Insert')
         match = re.match(regForInsert, input_str)
         #here check if table with this name DOESNT exist
         output.append(match.group("table"))
@@ -64,27 +64,30 @@ def parseString(input_str: str):
             name = name.strip('"')
             arrayForValue.append(name)
         output.append(arrayForValue)
-        s = f"1 row has been inserted into {match.group('table')}"
-        print(s)
+        # s = f"1 row has been inserted into {match.group('table')}"
+        # print(s)
         return output
 
     #case if command is SELECT
     #return array ["command", "table name", "whereLeft","whereRight", "conditional operator", "array of (column,isDesc) for ORDER_BY"], where last 3 values can be None
     #conditional operator equals 0 if "=", 1 if ">", -1 if "<"
     if(re.match(regForSelect,input_str)):
-        output.append(3)
+        output.append('Select')
         match = re.match(regForSelect,input_str)
         #here check if table with this name DOESNT exist
         output.append(match.group("table"))
-        output.append(match.group("whereLeft"))
-        output.append(match.group("whereRight"))
+        arrayForParams = []
+        arrayForParams.append(match.group("whereLeft"))
+        arrayForParams.append(match.group("whereRight"))
         
         if(match.group("operation") == '>'):
-            output.append(1)
+            arrayForParams.append(1)
         elif(match.group("operation") == '<'):
-            output.append(-1)
+            arrayForParams.append(-1)
         elif(match.group("operation") == '='):
-            output.append(0)
+            arrayForParams.append(0)
+        else:
+            arrayForParams.append(None)
         
         #here check if column "whereLeft" exist, and if value of "whereRight" not in quotes check again
         matchNames = []
@@ -94,10 +97,11 @@ def parseString(input_str: str):
         arrayForNames = []
         for name in matchNames:
             if("desc" in name[1].lower()):
-                arrayForNames.append((name[0],1))
+                arrayForNames.append((name[0],-1))
             else:
-                arrayForNames.append((name[0],0))
-        output.append(arrayForNames)
+                arrayForNames.append((name[0],1))
+        arrayForParams.append(arrayForNames)
+        output.append(arrayForParams)
         return output
     #case, if command is EXIT
     if(re.match(r"\s*exit\s*", input_str, re.IGNORECASE)):

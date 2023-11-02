@@ -1,7 +1,9 @@
 import aparser
+import database
 
 if __name__ == "__main__":
     output = []
+    connection = database.Database()
     while True:
         print("Type the command(SQL-like):")
         
@@ -41,7 +43,8 @@ if __name__ == "__main__":
         
         
         output = aparser.parseString(input_str)
-        print(output)
+        if(len(output)>2):
+            connection.execute(output[0],output[1],output[2])
         
         if(output[0] == -1):
             break
