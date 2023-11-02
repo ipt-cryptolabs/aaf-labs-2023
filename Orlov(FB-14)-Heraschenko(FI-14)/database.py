@@ -25,18 +25,18 @@ class Database:
         else:
             print("ERROR! Table {tableName} exists")
             return
-        print("Table {tableName} has been created")
+        print(f"Table {tableName} has been created")
 
     def insertInto(self, tableName: str, params):
         if tableName not in self.tables:
-            print("Table {tableName} not found...")
+            print(f"Table {tableName} not found...")
             return
         self.tables[tableName].insert_into(params)
-        print("1 row has been inserted into {tableName}")
+        print(f"1 row has been inserted into {tableName}")
 
     def select(self, tableName, params):
         if tableName not in self.tables:
-            print("Table {tableName} not found...")
+            print(f"Table {tableName} not found...")
             return
     
         data = self.tables[tableName].select_from(
@@ -99,7 +99,7 @@ class Table:
         if where_value[0] != '"':
             if where_column not in self.columns or where_value not in self.columns:
                 print(
-                    "ERROR! Column {where_column} or {where_value} doesn't exist in table '{self.tableName}"
+                    f"ERROR! Column {where_column} or {where_value} doesn't exist in table '{self.tableName}"
                 )
                 return None
 
@@ -242,7 +242,6 @@ class BinarySearchTree:
 
     def search_values_less_than_asc(self, value):
         result = []
-        print(value, self.value)
         if self.value is not None:
             if self.value < value:
                 if self.left:
