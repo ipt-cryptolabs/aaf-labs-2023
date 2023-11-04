@@ -1,26 +1,79 @@
 #include <iostream>
 #include <string>
+
 #include "parser.h"
+
+const char* const HELPSTR = "Laboratory work. 8 variant.\n"
+"Implementation of a collection of text documents with the possibility of full - text search using inverted indexes.\n"
+"\n"
+"Authors:\n"
+"FI-13 Igor Voloshin\n"
+"FI-13 Isachenko Nikita\n"
+"\n"
+"Commands :\n"
+" - Semicolon means end of the line. If only one line, semicolon can be dropped.\n"
+" - Commands and words out of \"\" are case insensitive.\n"
+"\n"
+"CREATE [table name];\n"
+"INSERT [table name] \"[TEXT]\";\n"
+"PRINT_INDEX [table_name];\n"
+"SELECT [table_name] WHERE [WHERE_EXPRESSION];\n"
+"! - for exit\n"
+"HELP - for the string to appear\n";
+
+void cli();
+std::ostream& operator<< (std::ostream& out, const QueryResult& qRes);
 
 int main ()
 {
-    using namespace std;
+    cli();
+    return 0;
+}
 
-    vector<Token> tokensvec ;
+void cli()
+{
+    using namespace std;
     string input;
+    QueryBuilder qb;
+
+    cout << HELPSTR << endl;
 
     while (true)
     {
-        cout << "->";
+        cout << "-> ";
+
         getline(cin, input);
-        if (input == "EXIT")
+        
+        if (input == "!")
         {
-            return 0;
+            break;
         }
-        tokensvec = lexer(input);
+        if (input.size() == 4 && toLowerStr(input) == "help")
+        {
+            cout << HELPSTR << endl;
+            continue;
+        }
+        if (!input.empty() && input.back() != ';')
+        {
+            input += ';';
+        }
 
-        cout << parse(tokensvec) << endl;
+        Query* query = qb.getQueryFromString(input);
 
-        cout << endl;
+        if (query == nullptr)
+        {
+            cout << "Build Querry Error!" << endl;
+            continue;
+        }
+
+        QueryResult qRes = query->execute();
+
+        cout << qRes << endl;
     }
+}
+
+std::ostream& operator<<(std::ostream& out, const QueryResult& qRes)
+{
+    out << qRes.queryType << " query " << qRes.message;
+    return out;
 }
