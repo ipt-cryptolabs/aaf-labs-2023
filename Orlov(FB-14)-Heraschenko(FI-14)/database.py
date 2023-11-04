@@ -39,10 +39,11 @@ class Database:
             print(f"Table {tableName} not found...")
             return
     
-        data = self.tables[tableName].select_from(
-            params[0], params[1], params[2], params[3]
-        )
-        self.printResult(data)
+        if self.validateSelectInput(self.tables[tableName],params):
+            data = self.tables[tableName].select_from(
+                params[0], params[1], params[2], params[3]
+            )
+            self.printResult(data)
         
 
     def printResult(self, data:Dict):
@@ -56,6 +57,29 @@ class Database:
             print(table)
         else:
             print('Rows not found...')
+
+    def validateSelectInput(self, table, params:List)->bool:
+        if params[0] is not None and params[0] not in table.columns:
+            print( f"Column '{params[0]}' does not exist in table '{table.tableName}'.")
+            return False
+
+        if params[1] is not None and params[1][0]!='"' and params[1] not in table.columns:
+            print ( f"Column '{params[1]}' does not exist in table '{table.tableName}'.")
+            return False
+
+        if params[2] is not None and params[2] not in [0,-1,1]:
+            print(f'Where wit code {params[2]} operation is not allowed.')
+            return False
+
+        if params[3] is not None:
+            for column,order in params[3]:
+                if column not in table.columns:
+                     print ( f"Column '{column}' does not exist in table '{table.tableName}'.")
+                     return False
+                
+        return True
+
+
 
 
 class Table:
