@@ -1,4 +1,3 @@
-
 #pragma once
 #include <string>
 #include <vector>
@@ -19,6 +18,9 @@ struct Command {
     std::string condition;
     std::string order_by;
     std::string order;
+    std::string select_all;
+    std::vector<std::vector<std::string>> data;
+    std::string operation;
 };
 
 struct SelectionResult {

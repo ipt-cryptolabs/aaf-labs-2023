@@ -22,17 +22,47 @@ Command parseCommand(std::string input) {
     }
     else if (token == "INSERT") {
         command.type = INSERT;
-        ss >> command.table_name; // Read the table name directly
         std::string value;
-        while (ss >> value) {
-            if (value == ")") break;
-            command.values.push_back(value);
+        ss >> token;
+        if (token == "INTO") {
+            // If "INTO" was find, read the name of table
+            ss >> command.table_name;
+            while (ss >> value) {
+                if (value == ")") break;
+                command.values.push_back(value);
+            }
         }
+        else {
+            // If "INTO" wasn't find, token = name of table
+            command.table_name = token;
+            while (ss >> value) {
+                if (value == ")") break;
+                command.values.push_back(value);
+            }
+        }
+       
     }
     else if (token == "SELECT") {
         command.type = SELECT;
-        ss.ignore(); // Ignore the "FROM" keyword
-        ss >> command.table_name;
+        ss >> token;
+        if (token == "FROM") {
+            // If "FROM" was find, read the name of table
+            ss >> command.table_name;
+            ss >> token;
+            if (token == "WHERE") {
+                //std::getline(ss, command.condition);
+                ss >> command.condition;
+            }
+        }
+        else {
+            // If "FROM" wasn't find, token = name of table
+            command.table_name = token;
+            ss >> token;
+            if (token == "WHERE") {
+                //std::getline(ss, command.condition);
+                ss >> command.condition;
+            }
+        }
     }
     else if (token == "DELETE") {
         command.type = DELETE;

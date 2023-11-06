@@ -10,3 +10,5 @@ void insertRecord(const Command& command, std::vector<Command>& collection, Sele
 void deleteAllRecords();
 
 void printSelectionResult(const SelectionResult& result);
+
+void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result);
