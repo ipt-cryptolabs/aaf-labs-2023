@@ -1,55 +1,44 @@
-from Parser import parse_create, parse_insert, parse_select
+from Parser import parse_create, parse_insert, parse_select, tokenize
 from DataBase import Database
 
-db = Database()
+def main():
+    db = Database()
 
-buffer = []
-while True:
-    prompt = '...  ' if buffer else '> '
-    cmd = input(prompt)       
-    if cmd.strip().lower() == 'exit':
-        break
+    buffer = []
+    while True:
+        prompt = '...  ' if buffer else '> '
+        cmd = input(prompt)
+        
+        if cmd.strip().lower() == 'exit':
+            break
 
-    buffer.append(cmd)
+        buffer.append(cmd)
 
-    if ';' in cmd:
-        full_cmd = ' '.join(buffer).strip()
-
-        if full_cmd.upper().startswith("CREATE"):
-            parsed_command = parse_create(full_cmd)
-            if parsed_command["success"]:
-                print(parsed_command)
-                result = db.handle_create(parsed_command)
-                if result:
+        if ';' in cmd:
+            full_cmd = ' '.join(buffer).strip()
+            tokens = tokenize(full_cmd)
+            
+            try:
+                if tokens[0].value.upper() == "CREATE":
+                    create_command = parse_create(tokens)
+                    result = db.create_table(create_command)
                     print(result)
-            else:
-                print("Incorrect syntax for CREATE. Correct syntax is CREATE table_name (column_name [INDEXED] [, ...]);")
 
-        elif full_cmd.upper().startswith("INSERT"):
-            parsed_command = parse_insert(full_cmd)
-            if parsed_command["success"]:
-                print(parsed_command)
-                result = db.handle_insert(parsed_command)
-                if result:
+                elif tokens[0].value.upper() == "INSERT":
+                    insert_command = parse_insert(tokens)
+                    result = db.insert_into_table(insert_command)
                     print(result)
-            else:
-                print("Incorrect syntax for INSERT. Correct syntax is INSERT [INTO] table_name (“value” [, ...]);")
 
-        elif full_cmd.upper().startswith("SELECT"):
-            parsed_command = parse_select(full_cmd)
-            if parsed_command["success"]:
-                print(parsed_command)
-                result = db.handle_select(parsed_command)
-                if result:
+                elif tokens[0].value.upper() == "SELECT":
+                    select_command = parse_select(tokens)
+                    result = db.select_from_table(select_command)
                     print(result)
-            else:
-                print("""Incorrect syntax for SELECT. Correct syntax is 
-                    SELECT [agg_function(agg_column) [, ... ]]
-                     FROM table_name
-                     [WHERE condition]
-                     [GROUP_BY column_name [, ...] ];""")
-        else:
-            print("Error: Unknown or incorrect command")
+                else:
+                    print("Error: Unknown or incorrect command")
+            except ValueError as e:
+                print(e)
 
-        buffer = []
+            buffer = []
 
+if __name__ == "__main__":
+    main()
