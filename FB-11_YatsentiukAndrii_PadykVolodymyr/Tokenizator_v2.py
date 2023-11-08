@@ -210,6 +210,16 @@ def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
         if len(ARGUMENTS_token) > (len(Tables[TABLE_token])-1):
             print("Too many arguments. Transaction forbidden")
             return
+        true_indices = [i for i, value in enumerate(Tables[TABLE_token][0].values()) if value]
+
+        i = 0
+        while i < len(true_indices):
+            if ARGUMENTS_token[true_indices[i]] in Tables[TABLE_token][true_indices[i]+1]:
+                print("Trying to add a clone data to INDEXED COLUMN. Transaction forbidden.")
+                return
+            i = i + 1
+
+
 
         i = 1
         j = 0
@@ -223,7 +233,13 @@ def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
 
 
 def TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token):
-    print("Hello!")
+    ARGUMENTS_token = Tables[TABLE_token][0]
+    CreateTableFunc("temp", ARGUMENTS_token)
+    print(Tables)
+    #if len(JOIN_token) != 0 and len(ON_token) !=0:
+
+
+
 
 
 
@@ -321,20 +337,21 @@ def SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
         return
 
 InputString1 = "CREATE  TABLE Table1   (Column1 INDEXED, Column2, Column3, Column4); abrakadabra"
+InputString1_1 = "CREATE  TABLE Table2   (Column1 INDEXED, Column2, Column3, Column4); abrakadabra"
 InputString2 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awdawdwa"
-InputString2_1 = "INSERT Table1 ('numaaaaaaaaaaaaaaaaaaaa1','num2212112','num3121121211','num4'); awdawdwa"
-InputString3 = "SELECT FROM Table1 JOIN Table2 ON bladbla WHERE condition;"
+InputString2_1 = "INSERT Table1 ('num2','num2212112','num3121121211','num4'); awdawdwa"
+InputString3 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Column1 WHERE condition;"
 InputString4 = "SELECT FROM Table1;"
-InputString5 = "SELECT FROM Table1 WHERE Column1=num1;"
+InputString5 = "SELECT FROM Table1 WHERE Column1===num1;"
 InputString6 = "SELECT FROM _Table** WHERE condition;"
+
 
 StringParser(InputString1)
 StringParser(InputString2)
-StringParser(InputString2)
-StringParser(InputString2)
 StringParser(InputString2_1)
 StringParser(InputString4)
-#StringParser(InputString2)
+
+
 
 
 
