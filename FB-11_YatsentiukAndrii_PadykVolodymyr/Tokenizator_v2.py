@@ -233,21 +233,63 @@ def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
 
 
 def TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token):
-    ARGUMENTS_token = Tables[TABLE_token][0]
-    CreateTableFunc("temp", ARGUMENTS_token)
-    print(Tables)
-    #if len(JOIN_token) != 0 and len(ON_token) !=0:
+    if len(JOIN_token) != 0 and len(ON_token) != 0:
+        FirstPart = ON_token[:ON_token.find("==")]
+        SecondPart = ON_token[ON_token.find("==")+2:]
 
+        FirstTable = FirstPart[:FirstPart.find(".")]
+        FirstColumn = FirstPart[FirstPart.find(".")+1:]
+        SecondTable = SecondPart[:FirstPart.find(".")]
+        SecondColumn = SecondPart[FirstPart.find(".") + 1:]
+
+        ARGUMENTS_token = {**Tables[FirstTable][0], **Tables[SecondTable][0]}
+        CreateTableFunc("TEMP", ARGUMENTS_token)
+
+        keys_list1 = list(Tables[FirstTable][0])
+        keys_list2 = list(Tables[SecondTable][0])
+        FirstColumnindex = keys_list1.index(FirstColumn)+1
+        SecondColumnindex = keys_list2.index(SecondColumn)+1
+        skipped_index = []
+        i = 0
+        while i < len(Tables[TABLE_token][1]):
+            arguments_array = []
+            j = 1
+            while j < len(keys_list1)+1:
+                arguments_array.append(Tables[FirstTable][j][i])
+                j = j + 1
+            try:
+                #needed_secondtable_row = Tables[SecondTable][SecondColumnindex].index(Tables[FirstTable][FirstColumnindex][i])
+                l = 0
+                while l < len(Tables[SecondTable][SecondColumnindex]):
+                    if Tables[SecondTable][SecondColumnindex][l] == Tables[FirstTable][FirstColumnindex][i] and l not in skipped_index:
+                        needed_secondtable_row = l
+                        skipped_index.append(needed_secondtable_row)
+                        break
+                    l = l + 1
+            except:
+                break
+            j = 1
+            while j < len(keys_list1)+1:
+                arguments_array.append(Tables[SecondTable][j][needed_secondtable_row])
+                j = j + 1
+            i = i + 1
+            InsertIntoTableFunc("TEMP",arguments_array)
+
+        PrintDataFunc("TEMP", JOIN_token, ON_token, WHERE_token)
+        del Tables["TEMP"]
 
 
 
 
 
 def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
+    if len(Tables[TABLE_token][1])==0 :
+        print(f"Table {TABLE_token} is empty.")
+        return
+
+
     columns_data = Tables[TABLE_token][1:]  # data
-    #print(columns_data)
     columns = [key for key in Tables[TABLE_token][0].keys()]  # column names
-    #print(columns)
 
     # check for the longest string in each column
     total_length_of_row = 0
@@ -336,20 +378,25 @@ def SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
         print(f"Table '{TABLE_token}' doesn't exist. Transaction forbidden.")
         return
 
-InputString1 = "CREATE  TABLE Table1   (Column1 INDEXED, Column2, Column3, Column4); abrakadabra"
-InputString1_1 = "CREATE  TABLE Table2   (Column1 INDEXED, Column2, Column3, Column4); abrakadabra"
+InputString1 = "CREATE  TABLE Table1   (Column1, Column2, Column3, Column4); abrakadabra"
+InputString1_1 = "CREATE  TABLE Table2   (Col1, Col2, Col3, Col4); abrakadabra"
 InputString2 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awdawdwa"
-InputString2_1 = "INSERT Table1 ('num2','num2212112','num3121121211','num4'); awdawdwa"
-InputString3 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Column1 WHERE condition;"
+InputString2_1 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awdawdwa"
+InputString2_2 = "INSERT Table2 ('num1','a','num3121121211','num4'); awdawdwa"
+InputString2_3 = "INSERT Table2 ('num1','b','num3121121211','num4'); awdawdwa"
+InputString3 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Col1 WHERE condition;"
 InputString4 = "SELECT FROM Table1;"
 InputString5 = "SELECT FROM Table1 WHERE Column1===num1;"
 InputString6 = "SELECT FROM _Table** WHERE condition;"
 
 
 StringParser(InputString1)
+StringParser(InputString1_1)
 StringParser(InputString2)
 StringParser(InputString2_1)
-StringParser(InputString4)
+StringParser(InputString2_2)
+StringParser(InputString2_3)
+StringParser(InputString3)
 
 
 
