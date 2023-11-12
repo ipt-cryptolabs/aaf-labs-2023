@@ -1,10 +1,17 @@
+use std::fmt::{Display, Formatter};
 use crate::lexer::Token;
 
 #[derive(Debug)]
 pub struct Point(i64);
 
 #[derive(Debug)]
-pub struct LineSegment(i64, i64);
+pub struct LineSegment(pub i64, pub i64);
+
+impl Display for LineSegment {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}, {}]", self.0, self.1)
+    }
+}
 
 #[derive(Debug)]
 pub enum Command {

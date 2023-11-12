@@ -3,13 +3,15 @@ use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct LineSegment {
-    l: i64,
-    h: i64,
+    // have to make fields public to allow bounds checking in the interpreter module;
+    // tried impl TryFrom with checks, got conflict with blanket implementation
+    pub l: i64,
+    pub h: i64,
 }
 
 type LSNodePointer = Option<Box<LSNode>>;
 
-struct LSNode {
+pub struct LSNode {
     key: LineSegment,
     left: LSNodePointer,
     right: LSNodePointer,
@@ -78,8 +80,12 @@ impl LSTree {
         Self { root: None }
     }
 
-    pub fn insert(&mut self, key: LineSegment) {
-        // let new_node_ptr = Some(Box::new(LSNode::new(key)));
+    /// returns None if inserted successfully, Some(&Node) if node with such key is already present
+    pub fn insert(&mut self, key: LineSegment) -> Option<&LSNode> {
+        if self.root.is_none() {
+            self.root = Some(Box::new(LSNode::new(key)));
+            return None;
+        }
 
         if let Some(root) = &mut self.root {
             let mut dim = 0;
@@ -88,7 +94,10 @@ impl LSTree {
                 if dim == 0 {
                     if key.l <= current_node.key.l {
                         if current_node.left.is_none() {
-                            // dbg!(&key);
+                            if current_node.key == key {
+                                return Some(&*current_node);
+                            }
+
                             current_node.add_left(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
@@ -97,7 +106,9 @@ impl LSTree {
                         }
                     } else {
                         if current_node.right.is_none() {
-                            // dbg!(&key);
+                            if current_node.key == key {
+                                return Some(&*current_node);
+                            }
                             current_node.add_right(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
@@ -108,7 +119,9 @@ impl LSTree {
                 } else {
                     if key.h <= current_node.key.h {
                         if current_node.left.is_none() {
-                            // dbg!(&key);
+                            if current_node.key == key {
+                                return Some(&*current_node);
+                            }
                             current_node.add_left(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
@@ -117,7 +130,9 @@ impl LSTree {
                         }
                     } else {
                         if current_node.right.is_none() {
-                            // dbg!(&key);
+                            if current_node.key == key {
+                                return Some(&*current_node);
+                            }
                             current_node.add_right(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
@@ -127,9 +142,8 @@ impl LSTree {
                     }
                 }
             }
-        } else {
-            self.root = Some(Box::new(LSNode::new(key)));
         }
+        None
     }
 }
 
@@ -169,9 +183,13 @@ impl From<parser::LineSegment> for LineSegment {
 
 impl From<(i64, i64)> for LineSegment {
     fn from(value: (i64, i64)) -> Self {
+        if value.0 > value.1 {
+            panic!("Line Segment lower bound should be less than or equal to the higher bound, got {} <= {}", &value.0, &value.1);
+        }
         Self {
             l: value.0,
             h: value.1,
         }
     }
 }
+

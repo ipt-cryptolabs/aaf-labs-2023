@@ -3,7 +3,7 @@ pub mod lexer;
 
 pub mod parser;
 
-pub mod interpreter {}
+pub mod interpreter;
 
 pub mod kd_tree;
 #[cfg(test)]
@@ -21,6 +21,5 @@ mod tests{
         tree.insert(LineSegment::from((4,6)));
         tree.insert(LineSegment::from((5,10)));
         println!("{}", &tree);
-
     }
 }
