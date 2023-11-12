@@ -1,17 +1,10 @@
+use std::error::Error;
 use std::fmt::{Display, Formatter};
 use crate::lexer::Token;
+use crate::kd_tree::LineSegment;
 
 #[derive(Debug)]
 pub struct Point(i64);
-
-#[derive(Debug)]
-pub struct LineSegment(pub i64, pub i64);
-
-impl Display for LineSegment {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}, {}]", self.0, self.1)
-    }
-}
 
 #[derive(Debug)]
 pub enum Command {
@@ -43,8 +36,18 @@ pub enum WhereClause {
 
 pub struct Parser;
 
-#[derive(Debug, PartialEq)]
-pub struct ParserError;
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParserError {
+    message: String,
+}
+
+impl Error for ParserError {}
+
+impl Display for ParserError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Parser error: {}", &self.message)
+    }
+}
 
 impl Parser {
     pub fn new() -> Self {
@@ -66,7 +69,9 @@ impl Parser {
                         "print_tree" => Self::parse_printtree(&tokens[current_token_index..]),
                         "contains" => Self::parse_contains(&tokens[current_token_index..]),
                         "search" => Self::parse_search(&tokens[current_token_index..]),
-                        _ => return Err(ParserError),
+                        _ => return Err(ParserError {
+                            message: format!("unknown command keyword \"{}\"", token)
+                        }),
                     };
 
                     (consumed_tokens, command) = match maybe_command {
@@ -85,19 +90,23 @@ impl Parser {
                     break;
                 }
                 _ => {
-                    return Err(ParserError);
+                    return Err(ParserError {
+                        message: format!("unhandled token case")
+                    });
                 }
             }
         }
 
         if let Command::NOP = command {
-            Err(ParserError)
+            Err(ParserError {
+                message: format!("empty command")
+            })
         } else {
             Ok(command)
         }
     }
 
-    // this and the following should DEFINITELY shoul be refactored ... - TODO
+    // this and the following should DEFINITELY should be refactored ... - TODO
 
     fn parse_create(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
         let mut cti: usize = 0; // current token index
@@ -110,7 +119,9 @@ impl Parser {
             }
         }
 
-        Err(ParserError)
+        Err(ParserError {
+            message: format!("create command syntax")
+        })
     }
 
     fn parse_insert(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
@@ -137,7 +148,9 @@ impl Parser {
             }
         }
 
-        Err(ParserError)
+        Err(ParserError {
+            message: format!("insert command syntax")
+        })
     }
 
     fn parse_printtree(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
@@ -157,7 +170,9 @@ impl Parser {
             }
         }
 
-        Err(ParserError)
+        Err(ParserError {
+            message: format!("print_tree command syntax")
+        })
     }
 
     fn parse_contains(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
@@ -184,7 +199,9 @@ impl Parser {
             }
         }
 
-        Err(ParserError)
+        Err(ParserError {
+            message: format!("contains command syntax")
+        })
     }
 
     fn parse_search(tokens: &[Token]) -> Result<(usize, Command), ParserError> {
@@ -216,7 +233,9 @@ impl Parser {
             }
         }
 
-        Err(ParserError)
+        Err(ParserError {
+            message: format!("search command syntax")
+        })
     }
 
     fn parse_line_segment(tokens: &[Token]) -> Result<(usize, LineSegment), ParserError> {
@@ -246,86 +265,106 @@ impl Parser {
                         }
                         if let Some(Token::CloseSqBracket) = tokens.get(cti) {
                             cti += 1;
-                            return Ok((cti, LineSegment(*x, *y)));
+                            return Ok((cti, LineSegment { l: *x, h: *y }));
                         }
                     }
                 }
             }
         }
 
-        Err(ParserError)
+        Err(ParserError {
+            message: format!("line segment syntax")
+        })
     }
 
     fn parse_where(tokens: &[Token]) -> Result<(usize, Option<WhereClause>), ParserError> {
         let mut cti: usize = 0;
 
-        if let Some(Token::Whitespace) = tokens.get(cti) {
-            cti += 1;
-            if let Some(Token::KeywordOrIdentifier(maybe_where)) = tokens.get(cti) {
+        match tokens.get(cti) {
+            Some(Token::Whitespace) => {
                 cti += 1;
-                if maybe_where.to_lowercase() == "where" {
-                    if let Some(Token::Whitespace) = tokens.get(cti) {
+                match tokens.get(cti) {
+                    Some(Token::KeywordOrIdentifier(maybe_where)) => {
                         cti += 1;
-                        if let Some(Token::KeywordOrIdentifier(ref query)) = tokens.get(cti) {
-                            cti += 1;
-                            match query.to_lowercase().as_str() {
-                                "contained_by" => {
-                                    if let Some(Token::Whitespace) = tokens.get(cti) {
-                                        cti += 1;
+                        if maybe_where.to_lowercase() == "where" {
+                            if let Some(Token::Whitespace) = tokens.get(cti) {
+                                cti += 1;
+                                if let Some(Token::KeywordOrIdentifier(ref query)) = tokens.get(cti) {
+                                    cti += 1;
+                                    match query.to_lowercase().as_str() {
+                                        "contained_by" => {
+                                            if let Some(Token::Whitespace) = tokens.get(cti) {
+                                                cti += 1;
 
-                                        let (parsed_len, line_segment) =
-                                            Self::parse_line_segment(&tokens[cti..])?;
+                                                let (parsed_len, line_segment) =
+                                                    Self::parse_line_segment(&tokens[cti..])?;
 
-                                        cti += parsed_len;
+                                                cti += parsed_len;
 
-                                        return Ok((
-                                            cti,
-                                            Some(WhereClause::ContainedBy(line_segment)),
-                                        ));
-                                    }
+                                                return Ok((
+                                                    cti,
+                                                    Some(WhereClause::ContainedBy(line_segment)),
+                                                ));
+                                            }
 
-                                    return Err(ParserError);
-                                }
-                                "intersects" => {
-                                    if let Some(Token::Whitespace) = tokens.get(cti) {
-                                        cti += 1;
-
-                                        let (parsed_len, line_segment) =
-                                            Self::parse_line_segment(&tokens[cti..])?;
-
-                                        cti += parsed_len;
-
-                                        return Ok((
-                                            cti,
-                                            Some(WhereClause::Intersects(line_segment)),
-                                        ));
-                                    }
-
-                                    return Err(ParserError);
-                                }
-                                "right_of" => {
-                                    if let Some(Token::Whitespace) = tokens.get(cti) {
-                                        cti += 1;
-
-                                        if let Some(Token::Point(x)) = tokens.get(cti) {
-                                            cti += 1;
-                                            return Ok((
-                                                cti,
-                                                Some(WhereClause::RightOf(Point(*x))),
-                                            ));
+                                            return Err(ParserError {
+                                                message: format!("contained by syntax")
+                                            });
                                         }
-                                    }
+                                        "intersects" => {
+                                            if let Some(Token::Whitespace) = tokens.get(cti) {
+                                                cti += 1;
 
-                                    return Err(ParserError);
+                                                let (parsed_len, line_segment) =
+                                                    Self::parse_line_segment(&tokens[cti..])?;
+
+                                                cti += parsed_len;
+
+                                                return Ok((
+                                                    cti,
+                                                    Some(WhereClause::Intersects(line_segment)),
+                                                ));
+                                            }
+
+                                            return Err(ParserError {
+                                                message: format!("intersects syntax")
+                                            });
+                                        }
+                                        "right_of" => {
+                                            if let Some(Token::Whitespace) = tokens.get(cti) {
+                                                cti += 1;
+
+                                                if let Some(Token::Point(x)) = tokens.get(cti) {
+                                                    cti += 1;
+                                                    return Ok((
+                                                        cti,
+                                                        Some(WhereClause::RightOf(Point(*x))),
+                                                    ));
+                                                }
+                                            }
+
+                                            return Err(ParserError {
+                                                message: format!("right_of syntax")
+                                            });
+                                        }
+                                        _ => return Err(ParserError {
+                                            message: format!("unexpected \"where\" clause")
+                                        }),
+                                    }
                                 }
-                                _ => return Err(ParserError),
                             }
                         }
                     }
+                    _ => { return Ok((cti, None)); }
                 }
             }
-        }
+            Some(Token::EndOfCommand) => { return Ok((cti, None)); }
+            _ => {}
+        };
 
-        Err(ParserError)
+
+        Err(ParserError {
+            message: format!("where syntax")
+        })
     }
 }
