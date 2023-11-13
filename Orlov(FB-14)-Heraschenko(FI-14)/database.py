@@ -31,8 +31,8 @@ class Database:
         if tableName not in self.tables:
             print(f"Table {tableName} not found...")
             return
-        self.tables[tableName].insert_into(params)
-        print(f"1 row has been inserted into {tableName}")
+        if(self.tables[tableName].insert_into(params)):
+            print(f"1 row has been inserted into {tableName}")
 
     def select(self, tableName, params):
         if tableName not in self.tables:
@@ -93,7 +93,7 @@ class Table:
                 self.indexes[column[0]] = BinarySearchTree()
             self.columns.append(column[0])
 
-    def insert_into(self, values):
+    def insert_into(self, values)->bool:
         if len(values) == len(self.columns):
             row = dict(zip(self.columns, values))
             self.data.append(row)
@@ -107,8 +107,10 @@ class Table:
                     index_tree = BinarySearchTree()
                     index_tree.insert(index_value, row_id)
                     self.indexes[index_column] = index_tree
+            return True
         else:
             print("Number of values does not match the number of columns.")
+            return False
 
     # Function to select rows from a table with an index
     def select_from(
