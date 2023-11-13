@@ -24,7 +24,7 @@ cd build
 3. Build the project using CMake:
 
 ```bash
-cmake .. && make
+cmake .. && make -j4
 ```
 
 4. Run executables:
