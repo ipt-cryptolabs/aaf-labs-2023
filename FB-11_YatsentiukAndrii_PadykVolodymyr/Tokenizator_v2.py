@@ -158,14 +158,17 @@ def StringParser(input):
                 ON_token = ON_token.replace(" ", "")
                 WHERE_token = temp_command[WHERE_index+6:]
                 WHERE_token = WHERE_token.replace(";","")
-                WHERE_token = WHERE_token.replace(" ", "")
+                # WHERE_token = WHERE_token.replace(" ", "")
+            else:
+                ON_token = temp_command[ON_index+3:-1]
+                ON_token = ON_token.replace(" ", "")
 
         else:
             if "WHERE " in temp_command:
                 WHERE_index = temp_command.find("WHERE ")
                 WHERE_token = temp_command[WHERE_index + 6:]
                 WHERE_token = WHERE_token.replace(";", "")
-                WHERE_token = WHERE_token.replace(" ", "")
+                # WHERE_token = WHERE_token.replace(" ", "")
 
                 TABLE_token = temp_command[:WHERE_index-1]
 
@@ -204,7 +207,6 @@ def CreateTableFunc(TABLE_token, ARGUMENTS_token):
         Tables[TABLE_token].append([])
         i = i + 1
 
-
 def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
     if TABLE_token in Tables:
         if len(ARGUMENTS_token) > (len(Tables[TABLE_token])-1):
@@ -230,7 +232,6 @@ def InsertIntoTableFunc(TABLE_token, ARGUMENTS_token):
     else:
         print(f"Table '{TABLE_token}' doesn't exist. Transaction forbidden.")
         return
-
 
 def TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token):
     if len(JOIN_token) != 0 and len(ON_token) != 0:
@@ -278,19 +279,24 @@ def TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token):
         PrintDataFunc("TEMP", JOIN_token, ON_token, WHERE_token)
         del Tables["TEMP"]
 
-
-
-
-
 def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
-    if len(Tables[TABLE_token][1])==0 :
+    columns_data = Tables[TABLE_token][1:]  # data
+    columns = [key for key in Tables[TABLE_token][0].keys()]  # column names
+    # Check for where token
+    if len(WHERE_token) != 0:
+        status, columns_data = WhereFilter(columns,columns_data,WHERE_token)
+        if not status:
+            return
+
+
+    if len(columns_data[1])==0 :
         print(f"Table {TABLE_token} is empty.")
         return
 
 
-    columns_data = Tables[TABLE_token][1:]  # data
-    columns = [key for key in Tables[TABLE_token][0].keys()]  # column names
 
+
+  
     # check for the longest string in each column
     total_length_of_row = 0
     max_len_array = []
@@ -368,9 +374,8 @@ def PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
 
         i = i + 1
 
-
 def SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
-    if TABLE_token in Tables and len(JOIN_token) == 0 and len(ON_token) == 0 and len(WHERE_token) == 0:
+    if TABLE_token in Tables and len(JOIN_token) == 0 and len(ON_token) == 0 :
         PrintDataFunc(TABLE_token, JOIN_token, ON_token, WHERE_token)
     elif TABLE_token in Tables:
         TempTableCreate(TABLE_token, JOIN_token, ON_token, WHERE_token) #New instance of a table called TEMP with needed WHERE condtion has to be created in Tables then printed with PrintDataFunc() then immediately deleted.
@@ -378,16 +383,74 @@ def SelectFromTableFunc(TABLE_token, JOIN_token, ON_token, WHERE_token):
         print(f"Table '{TABLE_token}' doesn't exist. Transaction forbidden.")
         return
 
+def WhereTokenSplit(WHERE_token):
+    split_index = WHERE_token.find(' > ')
+    if split_index == -1:
+        return False, None, None
+    else:
+        first_column =WHERE_token[:split_index].replace(" ","")
+        second_part = WHERE_token[split_index+3:]
+        quote_index = second_part.find("'")
+        if quote_index == -1:
+            return True, first_column, {'column':second_part.replace(" ","")}
+        else:
+            next_quote_index = second_part[quote_index+1:].find("'")
+            return True, first_column, {'value':second_part[quote_index+1:next_quote_index+1]}
+
+def WhereFilter(columns,columns_data,WHERE_token):
+    status, first_column, second_part = WhereTokenSplit(WHERE_token)
+    if not status:
+        print("Missing ' > ' in WHERE condition. Transaction forbidden.")
+        return False, None
+    else: 
+        if first_column not in columns:
+            print(f"Bad column name '{first_column}' in WHERE condition. Transaction forbidden.") 
+            return False, None
+        else:
+            first_column_index = columns.index(first_column)
+        for key in second_part:
+            if key == 'column':
+                second_column = second_part[key]
+                if second_column not in columns:
+                    print(f"Bad column name '{second_column}' in WHERE condition. Transaction forbidden.") 
+                    return False, None
+                else:
+                    second_column_index = columns.index(second_column)
+                match_indexes = []
+                for i in range(len(columns_data[first_column_index])):
+                    if columns_data[first_column_index][i] == columns_data[second_column_index][i]:
+                        match_indexes.append(i)
+            else:
+                match_indexes = []
+                for i in range(len(columns_data[first_column_index])):
+                    # print('Cpmpare',columns_data[first_column_index][i],'with',second_part[key])
+                    if columns_data[first_column_index][i] == second_part[key]:
+                        
+                        match_indexes.append(i)
+    new_columns_data = []
+    for column_data  in columns_data:
+        new_column_data = []
+        for i in match_indexes:
+            new_column_data.append(column_data[i])
+        new_columns_data.append(new_column_data)
+    return status, new_columns_data
+    
+
 InputString1 = "CREATE  TABLE Table1   (Column1, Column2, Column3, Column4); abrakadabra"
 InputString1_1 = "CREATE  TABLE Table2   (Col1, Col2, Col3, Col4); abrakadabra"
 InputString2 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awdawdwa"
 InputString2_1 = "INSERT Table1 ('num1','num2212112','num3121121211','num4'); awdawdwa"
 InputString2_2 = "INSERT Table2 ('num1','a','num3121121211','num4'); awdawdwa"
-InputString2_3 = "INSERT Table2 ('num1','b','num3121121211','num4'); awdawdwa"
-InputString3 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Col1 WHERE condition;"
-InputString4 = "SELECT FROM Table1;"
-InputString5 = "SELECT FROM Table1 WHERE Column1===num1;"
-InputString6 = "SELECT FROM _Table** WHERE condition;"
+InputString2_3 = "INSERT Table2 ('num1','b','num3121121211','b'); awdawdwa"
+InputString3 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Col1 WHERE Col2 > Col4;"
+InputString4 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Col1 WHERE Col2 > 'a';"
+InputString5 = "SELECT FROM Table1 JOIN Table2 ON Table1.Column1==Table2.Col1 ;"
+InputString6 = "SELECT FROM Table2 WHERE Col2 > 'a';"
+InputString7 = "SELECT FROM Table2 ;"
+
+# InputString4 = "SELECT FROM Table1;"
+# InputString5 = "SELECT FROM Table1 WHERE Column1===num1;"
+# InputString6 = "SELECT FROM _Table** WHERE condition;"
 
 
 StringParser(InputString1)
@@ -397,6 +460,10 @@ StringParser(InputString2_1)
 StringParser(InputString2_2)
 StringParser(InputString2_3)
 StringParser(InputString3)
+StringParser(InputString4)
+StringParser(InputString5)
+StringParser(InputString6)
+StringParser(InputString7)
 
 
 
