@@ -22,6 +22,7 @@ regInsertNames = r'("[\w\s]*")'
 regSelectNames = r'\s*([a-zA-Z]\w*)(\s+(?:(?:asc)|(?:desc)))?\s*,'
 
 regCreateNames = re.compile(regCreateNames, re.X|re.IGNORECASE)
+regSelectNames = re.compile(regSelectNames, re.X|re.IGNORECASE)
 
 regForCreate = re.compile(regForCreate, re.X|re.IGNORECASE)
 regForInsert = re.compile(regForInsert, re.X|re.IGNORECASE)
