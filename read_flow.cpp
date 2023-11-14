@@ -2,9 +2,9 @@
 
 void flow()
 {
-    cout<<"Program for building a KD-tree using console. Version 1\nTo close the program use command END\n";
+    cout<<"Program for building a KD-tree using console. Version 2\nTo close the program use command END\n";
     bool is_closed = 0;
-
+    //ifstream infile("input.txt");
     Interpreter inter;
     while (is_closed == 0)
         try
@@ -15,6 +15,7 @@ void flow()
             while (line.find(';')>=line.length()){
                 text += (" " + line);
                 getline(cin, line);
+                //getline(infile, line);
             }
 
             text += (" " +line.substr(0,line.find(';')));
@@ -150,8 +151,7 @@ Token Interpreter::get_next_token()
         if (isspace(current_char)!=0)
             skip();
         else
-        if (isalpha(current_char))
-        {
+        if (isalpha(current_char)){
             string w = word();
             string w_up = "";
             int len = w.length();
@@ -193,7 +193,7 @@ void Interpreter::eat(string type)
     if (current_token.type == type)
         current_token = get_next_token();
     else
-        throw std::runtime_error("command is in the wrong sequence: expected '" + type +"', received '"+current_token.type+"'");
+        throw std::runtime_error("sequence expected '" + type +"', received '"+current_token.type+"'");
 }
 
 void Interpreter::eat_name()
@@ -211,7 +211,7 @@ void Interpreter::eat_name()
         if (flag==0)
             throw std::runtime_error("set '" + name + "' doesn't exist");
     }
-    else throw std::runtime_error("command is in the wrong sequence: expected 'NAME', received '"+current_token.type+"'");
+    else throw std::runtime_error("sequence expected 'NAME', received '"+current_token.type+"'");
     current_token = get_next_token();
 }
 
@@ -219,39 +219,48 @@ void Interpreter::expr()
 {
 	current_token = get_next_token();
 
-    if (current_token.type == "END")
+    if (current_token.type == "END"){
         is_closed = 1;
-    else
-	if (current_token.type == "CREATE")
-    {
-        current_token = get_next_token();
-        if (current_token.type == "NAME")
-        {
-            name = current_token.value;
-            for(vector<int>::size_type i=0; i<names.size(); ++i)
-                if (names[i] == name)
-                    throw std::runtime_error("set '" + name + "' have already existed");
-            names.push_back(name);
-
-        }
-        else throw std::runtime_error("command is in the wrong sequence: expected 'NAME', received '"+current_token.type+"'");
-        current_token = get_next_token();
-        eat("EOF");
-        cout<<"Set '" + name + "' has created\n";
-        cout<<"The command is not fully realized\n";
     }
     else
-    if (current_token.type == "PRINT_TREE")
-    {
+	if (current_token.type == "CREATE"){
+        current_token = get_next_token();
+        if (current_token.type == "NAME")
+            name = current_token.value;
+        else throw std::runtime_error("sequence expected 'NAME', received '"+current_token.type+"'");
+        current_token = get_next_token();
+        eat("EOF");
+
+        for(vector<int>::size_type i=0; i<names.size(); ++i)
+            if (names[i] == name)
+                throw std::runtime_error("set '" + name + "' have already existed");
+        if (names.size()<=10000){
+            names.push_back(name);
+            cout<<"  Set '" + name + "' has created\n";
+        }
+        else
+            throw std::runtime_error("are too many sets in program");
+    }
+    else
+    if (current_token.type == "PRINT_TREE"){
         current_token = get_next_token();
         eat_name();
         eat("EOF");
-        cout<<"Set '" + name + "' :\n I'm KD-tree \n";
-        cout<<"The command is not fully realized\n";
+        vector<int>::size_type index = 0;
+        bool is_exist = 0;
+        for(vector<int>::size_type i=0; i<names.size(); ++i)
+            if (names[i] == name){
+                index = i;
+                is_exist = 1;
+                break;
+            }
+        if (is_exist){
+            cout<<'\n';
+            kd_trees[index].print_tree();
+        }
     }
     else
-    if (current_token.type == "INSERT")
-    {
+    if (current_token.type == "INSERT"){
         current_token = get_next_token();
         eat_name();
         eat("OPEN_BRACK");
@@ -263,12 +272,20 @@ void Interpreter::expr()
         eat("CLOSE_BRACK");
         eat("EOF");
         if (first_smaller_second(int1, int2) == 0) throw std::runtime_error("range can't exist, because " + int1 + " > " + int2);
-        cout<<"Range [" + int1 + ", " + int2 + "] has added to '" + name + "'\n";
-        cout<<"The command is not fully realized\n";
+        vector<int>::size_type index = 0;
+        bool is_exist = 0;
+        for(vector<int>::size_type i=0; i<names.size(); ++i)
+            if (names[i] == name){
+                index = i;
+                is_exist = 1;
+                break;
+            }
+        if (is_exist)
+            kd_trees[index].insert(stoi(int1), stoi(int2));
+        cout<<"  Range [" + int1 + ", " + int2 + "] has added to '" + name + "'\n";
     }
     else
-    if (current_token.type == "CONTAINS")
-    {
+    if (current_token.type == "CONTAINS"){
         current_token = get_next_token();
         eat_name();
         eat("OPEN_BRACK");
@@ -280,12 +297,24 @@ void Interpreter::expr()
         eat("CLOSE_BRACK");
         eat("EOF");
         if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(" range can't exist, because " + int1 + " > " + int2);
-        cout<<"FALSE\n";
-        cout<<"The command is not fully realized\n";
+        vector<int>::size_type index = 0;
+        bool is_exist = 0;
+        for(vector<int>::size_type i=0; i<names.size(); ++i)
+            if (names[i] == name){
+                index = i;
+                is_exist = 1;
+                break;
+            }
+        if (is_exist){
+            bool in_tree = kd_trees[index].contains(stoi(int1), stoi(int2));
+            if (in_tree)
+                cout<<"TRUE\n";
+            else
+                cout<<"FALSE\n";
+        }
     }
     else
-    if (current_token.type == "SEARCH")
-    {
+    if (current_token.type == "SEARCH"){
         current_token = get_next_token();
         eat_name();
         if (current_token.type == "WHERE")
@@ -294,10 +323,20 @@ void Interpreter::expr()
             if (current_token.type == "RIGHT_OF")
             {
                 current_token = get_next_token();
+                string int1 = current_token.value;
                 eat("INTEGER");
                 eat("EOF");
-                cout<<"list\n";
-                cout<<"The command is not fully realized\n";
+                vector<int>::size_type index = 0;
+                bool is_exist = 0;
+                for(vector<int>::size_type i=0; i<names.size(); ++i)
+                    if (names[i] == name){
+                        index = i;
+                        is_exist = 1;
+                        break;
+                    }
+                if (is_exist)
+                    kd_trees[index].search("RIGHT_OF", stoi(int1), 0);
+                cout<<"\n";
             }
 
             else
@@ -313,8 +352,17 @@ void Interpreter::expr()
                 eat("CLOSE_BRACK");
                 eat("EOF");
                 if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(" range can't exist, because " + int1 + " > " + int2);
-                cout<<"list\n";
-                cout<<"The command is not fully realized\n";
+                vector<int>::size_type index = 0;
+                bool is_exist = 0;
+                for(vector<int>::size_type i=0; i<names.size(); ++i)
+                    if (names[i] == name){
+                        index = i;
+                        is_exist = 1;
+                        break;
+                    }
+                if (is_exist)
+                    kd_trees[index].search("CONTAINED_BY", stoi(int1), stoi(int2));
+                cout<<"\n";
             }
             else
             if (current_token.type == "INTERSECTS")
@@ -329,23 +377,42 @@ void Interpreter::expr()
                 eat("CLOSE_BRACK");
                 eat("EOF");
                 if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(" range can't exist, because " + int1 + " > " + int2);
-                cout<<"list\n";
-                cout<<"The command is not fully realized\n";
+                if (first_smaller_second(int1, int2) == 0) throw std::runtime_error("range can't exist, because " + int1 + " > " + int2);
+                vector<int>::size_type index = 0;
+                bool is_exist = 0;
+                for(vector<int>::size_type i=0; i<names.size(); ++i)
+                    if (names[i] == name){
+                        index = i;
+                        is_exist = 1;
+                        break;
+                    }
+                if (is_exist)
+                    kd_trees[index].search("INTERSECTS", stoi(int1), stoi(int2));
+                cout<<"\n";
             }
             else
-                throw std::runtime_error("command is in the wrong sequence: expected 'RIGHT_OF'/'CONTAINED_BY'/'INTERSECTS', received '"+current_token.type+"'");
+                throw std::runtime_error("sequence expected 'RIGHT_OF'/'CONTAINED_BY'/'INTERSECTS', received '"+current_token.type+"'");
         }
         else
         if (current_token.type == "EOF")
         {
-            cout<<"list\n";
-            cout<<"The command is not fully realized\n";
+            vector<int>::size_type index = 0;
+            bool is_exist = 0;
+            for(vector<int>::size_type i=0; i<names.size(); ++i)
+                if (names[i] == name){
+                    index = i;
+                    is_exist = 1;
+                    break;
+                }
+            if (is_exist)
+                kd_trees[index].search("EOF", 0, 0);
+            cout<<"\n";
         }
         else
-            throw std::runtime_error("command is in the wrong sequence: expected 'EOF'/'WHERE', received '"+current_token.type+"'");
+            throw std::runtime_error("sequence expected 'EOF'/'WHERE', received '"+current_token.type+"'");
 
     }
     else
-        throw std::runtime_error("command is in the wrong sequence: expected 'CREATE'/'PRINT_TREE'/'CONTAINS'/'SEARCH', received '"+current_token.type+"'");
+        throw std::runtime_error("sequence expected 'CREATE'/'INSERT'/'PRINT_TREE'/'CONTAINS'/'SEARCH', received '"+current_token.type+"'");
 }
 
