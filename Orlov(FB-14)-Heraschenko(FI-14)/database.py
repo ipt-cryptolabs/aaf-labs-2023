@@ -3,7 +3,8 @@ from typing import Dict
 from prettytable import PrettyTable
 from functools import cmp_to_key
 from typing import Optional
-
+from colorama import Back
+from PrettyPrint import PrettyPrintTree
 
 class Database:
     def __init__(self) -> None:
@@ -23,7 +24,7 @@ class Database:
         if tableName not in self.tables.keys():
             self.tables[tableName] = Table(tableName, params)
         else:
-            print("ERROR! Table {tableName} exists")
+            print("ERROR! Table {tableName} already exists")
             return
         print(f"Table {tableName} has been created")
 
@@ -90,7 +91,7 @@ class Table:
         self.indexes = {}
         for column in params:
             if column[1]:
-                self.indexes[column[0]] = BinarySearchTree()
+                self.indexes[column[0]] = BlackRedTree()
             self.columns.append(column[0])
 
     def insert_into(self, values)->bool:
@@ -104,7 +105,7 @@ class Table:
                 if index_column in self.indexes:
                     self.indexes[index_column].insert(index_value, row_id)
                 else:
-                    index_tree = BinarySearchTree()
+                    index_tree = BlackRedTree()
                     index_tree.insert(index_value, row_id)
                     self.indexes[index_column] = index_tree
             return True
@@ -157,7 +158,7 @@ class Table:
                 print(
                     f"Column '{where_column}' does not exist in table '{self.tableName}'."
                 )
-
+            
             print(order_by_column)
             if needs_ordering and len(order_by_column):
                 results = self.custom_sort(results, order_by_column)
@@ -207,21 +208,21 @@ class Table:
     def compare_by_index_asc(self, where_column, where_value, sign):
         index_tree = self.indexes[where_column]
         if sign == 0:
-            row_ids = index_tree.search(where_value)
+            row_ids = index_tree.root.search(where_value)
         elif sign == 1:
-            row_ids = index_tree.search_values_greater_than_asc(where_value)
+            row_ids = index_tree.root.search_values_greater_than_asc(where_value)
         else:
-            row_ids = index_tree.search_values_less_than_asc(where_value)
+            row_ids = index_tree.root.search_values_less_than_asc(where_value)
         return self.get_values_at_indexes(row_ids)
 
     def compare_by_index_desc(self, where_column, where_value, sign):
         index_tree = self.indexes[where_column]
         if sign == 0:
-            row_ids = index_tree.search(where_value)
+            row_ids = index_tree.root.search(where_value)
         elif sign == 1:
-            row_ids = index_tree.search_values_greater_than_desc(where_value)
+            row_ids = index_tree.root.search_values_greater_than_desc(where_value)
         else:
-            row_ids = index_tree.search_values_less_than_desc(where_value)
+            row_ids = index_tree.root.search_values_less_than_desc(where_value)
         return self.get_values_at_indexes(row_ids)
 
     def get_values_at_indexes(self, indixes):
@@ -234,27 +235,29 @@ class Table:
         return values
 
 
-class BinarySearchTree:
-    def __init__(self, value=None):
+class Node:
+    def __init__(self, value=None, parent = None, color = 'R'):
         self.value = value
+        self.color = color
         self.left = None
         self.right = None
+        self.parent = parent
         self.data = []
 
-    def insert(self, value, data):
-        if self.value is None:
-            self.value = value
-            self.data.append(data)
-        elif value < self.value:
-            if self.left is None:
-                self.left = BinarySearchTree(value)
-            self.left.insert(value, data)
-        elif value > self.value:
-            if self.right is None:
-                self.right = BinarySearchTree(value)
-            self.right.insert(value, data)
-        else:
-            self.data.append(data)
+    #def insert(self, value, data):
+    #    if self.value is None:
+    #        self.value = value
+    #        self.data.append(data)
+    #    elif value < self.value:
+    #        if self.left is None:
+    #            self.left = Node(value, parent = self, root = self.root)
+    #        self.left.insert(value, data)
+    #    elif value > self.value:
+    #        if self.right is None:
+    #            self.right = Node(value, parent = self, root = self.root)
+    #        self.right.insert(value, data)
+    #    else:
+    #        self.data.append(data)
 
     def search(self, value):
         if self.value == value:
@@ -309,3 +312,110 @@ class BinarySearchTree:
             if self.left:
                 result.extend(self.left.search_values_less_than_desc(value))
         return result
+
+class BlackRedTree:
+    def __init__(self):
+        self.NIL = Node('O_O') #leafs of blackredtree
+        self.NIL.color = 'B'
+        self.NIL.left = None
+        self.NIL.right = None
+        self.root = self.NIL
+
+    def rotateLeft(self,x):
+        y = x.right
+        x.right = y.left
+
+        if(y.left != self.NIL):
+            y.left.parent = x
+        y.parent = x.parent
+        if(x.parent == None):
+            self.root = y
+        elif(x == x.parent.left):
+            x.parent.left = y
+        else: 
+            x.parent.right = y
+        y.left = x
+        x.parent = y
+       
+    
+    def rotateRight(self,x):
+        y = x.left
+        x.left = y.right
+        
+        if(y.right != self.NIL):
+            y.right.parent = x
+        y.parent = x.parent
+        if(x.parent == None):
+            self.root = y
+        elif(x == x.parent.right):
+            x.parent.right = y
+        else: 
+            x.parent.left = y
+        y.right = x
+        x.parent = y
+    
+
+    def fix(self, node):
+        while(node.parent and node.parent.color == 'R'):
+            if(node.parent == node.parent.parent.left):
+                uncle = node.parent.parent.right
+                if(uncle.color == 'R'):
+                    node.parent.color = 'B'
+                    uncle.color = 'B'
+                    node.parent.parent.color = 'R'
+                    node = node.parent.parent
+                else:
+                    if(node == node.parent.right):
+                        node = node.parent
+                        self.rotateLeft(node)
+                    node.parent.color = 'B'
+                    node.parent.parent.color = 'R'
+                    self.rotateRight(node.parent.parent)
+            else:
+                uncle = node.parent.parent.left
+                if(uncle.color == 'R'):
+                    node.parent.color = 'B'
+                    uncle.color = 'B'
+                    node.parent.parent.color = 'R'
+                    node = node.parent.parent
+                else:
+                    if(node == node.parent.left):
+                        node = node.parent
+                        self.rotateRight(node)
+                    node.parent.color = 'B'
+                    node.parent.parent.color = 'R'
+                    self.rotateLeft(node.parent.parent)
+            if(node == self.root):
+                break
+        self.root.color = 'B'
+                
+
+
+    def insert(self,value, data):
+        node = Node(value)
+        node.right = self.NIL
+        node.left = self.NIL
+        node.data.append(data)
+        y = None
+        x = self.root
+        while(x != self.NIL):
+            y = x
+            if(node.value < x.value):
+                x = x.left
+            elif(node.value > x.value):
+                x = x.right
+            else:
+                x.data.append(data)
+                return
+        node.parent = y
+        if(y == None):
+            self.root = node
+        elif(node.value < y.value):
+            y.left = node
+        else:
+            y.right = node
+        self.fix(node)
+
+        
+            
+    
