@@ -3,6 +3,17 @@
 #include <sstream>
 #include "functions.h"
 #include <algorithm>
+#include <cctype> // for std::isdigit
+
+bool isNumeric(const std::string& str) {
+    for (char c : str) {
+        if (!std::isdigit(c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 
 // Global colectiond for saving elements
@@ -70,158 +81,6 @@ void insertRecord(const Command& command, std::vector<Command>& collection, Sele
     std::cout << "Table " << command.table_name << " not found." << std::endl;
 }
 
-/*void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result) {
-    // Only clear if you want to start with an empty result
-    // result.columns.clear();
-    // result.data.clear();
-
-    for (const Command& item : collection) {
-        if (item.table_name == command.table_name) {
-            // Store the columns only once (if they are not already stored)
-            if (result.columns.empty()) {
-                result.columns = item.columns;
-            }
-
-            // Check for the WHERE condition
-            if (!command.condition.empty()) {
-                std::string column1, column2_or_value, operation;
-                std::stringstream cond_stream(command.condition);
-                cond_stream >> column1 >> operation >> column2_or_value;
-
-                if (operation == ">" && column1 == item.columns[0]) {
-                    // Assuming the first column is the one we are comparing
-                    for (const std::vector<std::string>& row : result.data) {
-                        if (column2_or_value[0] == '"' && column2_or_value[column2_or_value.size() - 1] == '"') {
-                            // Compare with a string value
-                            std::string value = column2_or_value.substr(1, column2_or_value.size() - 2);
-                            if (row[0] > value) {
-                                result.data.push_back(row);
-                            }
-                        }
-                        else {
-                            // Compare with another column
-                            int col2_idx = -1;
-                            for (int i = 0; i < item.columns.size(); i++) {
-                                if (item.columns[i] == column2_or_value) {
-                                    col2_idx = i;
-                                    break;
-                                }
-                            }
-                            if (col2_idx != -1 && row.size() > col2_idx && row[0] > row[col2_idx]) {
-                                result.data.push_back(row);
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                // Append all data to result.data
-                //result.data.push_back(item.values);
-            }
-        }
-    }
-}*/
-
-/*void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result) {
-   // result.columns.clear();
-   // result.data.clear();
-    
-
-    for (const Command& item : collection) {
-        if (item.table_name == command.table_name) {
-            if (result.columns.empty()) {
-                result.columns = item.columns;
-            }
-
-            if (!command.condition.empty()) {
-                std::string column1, operation, column2_or_value;
-                std::stringstream cond_stream(command.condition);
-                cond_stream >> column1 >> operation >> column2_or_value;
-
-                for (const std::vector<std::string>& row : item.data) {
-                    int col1_idx = -1;
-                    int col2_idx = -1;
-
-                    for (int i = 0; i < item.columns.size(); i++) {
-                        if (item.columns[i] == column1) {
-                            col1_idx = i;
-                        }
-
-                        if (column2_or_value[0] != '"' && item.columns[i] == column2_or_value) {
-                            col2_idx = i;
-                        }
-                    }
-
-                    if (col1_idx != -1) {
-                        int col1_value = std::stoi(row[col1_idx]);
-
-                        if (operation == ">" && col1_value > std::stoi(column2_or_value)) {
-                            result.data.push_back(row);
-                        }
-                        else if (operation == "=" && col1_value == std::stoi(column2_or_value)) {
-                            result.data.push_back(row);
-                        }
-                    }
-                    else if (col2_idx != -1) {
-                        if (operation == "=" && row[col2_idx] == column2_or_value) {
-                            result.data.push_back(row);
-                        }
-                    }
-                }
-            }
-            else {
-                result.data.insert(result.data.end(), item.data.begin(), item.data.end());
-            }
-        }
-    }
-}*/
-
-/*void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result) {
-    for (const Command& item : collection) {
-        if (item.table_name == command.table_name) {
-            if (result.columns.empty()) {
-                result.columns = item.columns;
-            }
-
-            if (!command.condition.empty()) {
-                std::string column1, operation, column2_or_value;
-                std::stringstream cond_stream(command.condition);
-                cond_stream >> column1 >> operation >> column2_or_value;
-
-                int col1_idx = -1;
-                int col2_idx = -1;
-
-                for (int i = 0; i < item.columns.size(); i++) {
-                    if (item.columns[i] == column1) {
-                        col1_idx = i;
-                    }
-
-                    if (column2_or_value[0] != '"' && item.columns[i] == column2_or_value) {
-                        col2_idx = i;
-                    }
-                }
-
-                if (col1_idx != -1) {
-                    for (const std::vector<std::string>& row : item.data) {
-                        int col1_value = std::stoi(row[col1_idx]);
-                        bool conditionSatisfied = false;
-
-                        if (operation == ">" && (col2_idx != -1 ? col1_value > std::stoi(row[col2_idx]) : col1_value > std::stoi(column2_or_value))) {
-                            conditionSatisfied = true;
-                        }
-
-                        if (conditionSatisfied) {
-                            result.data.push_back(row);
-                        }
-                    }
-                }
-            }
-            else {
-                result.data.insert(result.data.end(), item.data.begin(), item.data.end());
-            }
-        }
-    }
-}*/
 
 void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result) {
     for (const Command& item : collection) {
@@ -230,71 +89,96 @@ void performSelect(const Command& command, const std::vector<Command>& collectio
                 result.columns = item.columns;
             }
 
-            // Apply WHERE condition
-            // (Existing code for WHERE condition)
+            if (!command.condition.empty()) {
+                std::string column1, operation, column2_or_value;
+                std::stringstream cond_stream(command.condition);
+                cond_stream >> column1 >> operation >> column2_or_value;
 
-            // No WHERE condition, include all rows
-            result.data.insert(result.data.end(), item.data.begin(), item.data.end());
+                int col1_idx = std::find(result.columns.begin(), result.columns.end(), column1) - result.columns.begin();
 
-            // Sort the result data if ORDER BY is specified
-            if (!command.order_by_column.empty()) {
-                std::vector<std::string> order_by_columns;  // Store the columns to sort by
-                std::vector<bool> is_descending;  // Store the sorting order for each column
+                if (col1_idx < result.columns.size()) {
+                    result.data.erase(std::remove_if(result.data.begin(), result.data.end(), [&](const std::vector<std::string>& row) {
+                        int col2_idx = -1;
 
-                std::stringstream order_by_ss(command.order_by_column);
-                std::string column;
-                while (getline(order_by_ss, column, ',')) {
-                    size_t pos = column.find_last_not_of(" \t\n\r\f\v");
-                    if (pos != std::string::npos) {
-                        column.erase(pos + 1);
+                    if (!isNumeric(column2_or_value)) {
+                        col2_idx = std::find(result.columns.begin(), result.columns.end(), column2_or_value) - result.columns.begin();
                     }
-                    size_t space_pos = column.find_last_of(" \t\n\r\f\v");
-                    if (space_pos != std::string::npos) {
-                        std::string order = column.substr(space_pos + 1);
-                        if (order == "ASC") {
-                            is_descending.push_back(false);
+
+                    if (isNumeric(column2_or_value)) {
+                        int col1_value = std::stoi(row[col1_idx]);
+                        int col2_value = (col2_idx != -1) ? std::stoi(row[col2_idx]) : std::stoi(column2_or_value);
+
+                        // Compare numerically
+                        return (operation == ">" && col1_value <= col2_value);
+                    }
+                    else {
+                        std::string col1_value = row[col1_idx];
+                        std::string col2_value = (col2_idx != -1) ? row[col2_idx] : column2_or_value;
+
+                        // Compare lexicographically
+                        return (operation == ">" && col1_value <= col2_value);
+                    }
+                        }), result.data.end());
+                }
+            }
+
+
+                // Sort the result data if ORDER BY is specified
+                if (!command.order_by_column.empty()) {
+                    std::vector<std::string> order_by_columns;  // Store the columns to sort by
+                    std::vector<bool> is_descending;  // Store the sorting order for each column
+
+                    std::stringstream order_by_ss(command.order_by_column);
+                    std::string column;
+                    while (getline(order_by_ss, column, ',')) {
+                        size_t pos = column.find_last_not_of(" \t\n\r\f\v");
+                        if (pos != std::string::npos) {
+                            column.erase(pos + 1);
                         }
-                        else if (order == "DESC") {
-                            is_descending.push_back(true);
+                        size_t space_pos = column.find_last_of(" \t\n\r\f\v");
+                        if (space_pos != std::string::npos) {
+                            std::string order = column.substr(space_pos + 1);
+                            if (order == "ASC") {
+                                is_descending.push_back(false);
+                            }
+                            else if (order == "DESC") {
+                                is_descending.push_back(true);
+                            }
+                            else {
+                                // Default to ASC if no explicit order is specified
+                                is_descending.push_back(false);
+                                column += " " + order;  // Append "ASC" for consistent parsing
+                            }
+                            column.erase(space_pos);
                         }
                         else {
                             // Default to ASC if no explicit order is specified
                             is_descending.push_back(false);
-                            column += " " + order;  // Append "ASC" for consistent parsing
                         }
-                        column.erase(space_pos);
-                    }
-                    else {
-                        // Default to ASC if no explicit order is specified
-                        is_descending.push_back(false);
+
+                        order_by_columns.push_back(column);
                     }
 
-                    order_by_columns.push_back(column);
-                }
-
-                std::sort(result.data.begin(), result.data.end(), [&](const std::vector<std::string>& a, const std::vector<std::string>& b) {
-                    for (size_t i = 0; i < order_by_columns.size(); ++i) {
-                        size_t column_index = std::find(result.columns.begin(), result.columns.end(), order_by_columns[i]) - result.columns.begin();
-                        if (column_index < result.columns.size()) {
-                            if (a[column_index] != b[column_index]) {
-                                if (is_descending[i]) {
-                                    return a[column_index] > b[column_index];
-                                }
-                                else {
-                                    return a[column_index] < b[column_index];
+                    std::sort(result.data.begin(), result.data.end(), [&](const std::vector<std::string>& a, const std::vector<std::string>& b) {
+                        for (size_t i = 0; i < order_by_columns.size(); ++i) {
+                            size_t column_index = std::find(result.columns.begin(), result.columns.end(), order_by_columns[i]) - result.columns.begin();
+                            if (column_index < result.columns.size()) {
+                                if (a[column_index] != b[column_index]) {
+                                    if (is_descending[i]) {
+                                        return a[column_index] > b[column_index];
+                                    }
+                                    else {
+                                        return a[column_index] < b[column_index];
+                                    }
                                 }
                             }
                         }
-                    }
-                return false;  // Rows are considered equal if all columns are equal
-                    });
-            }
+                    return false;  // Rows are considered equal if all columns are equal
+                        });
+                }
         }
     }
 }
-
-
-
 
 void deleteAllRecords() {
     collection.clear(); // Clear the collection

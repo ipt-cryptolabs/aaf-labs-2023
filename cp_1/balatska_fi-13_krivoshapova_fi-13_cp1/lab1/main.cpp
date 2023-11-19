@@ -9,6 +9,7 @@ int main() {
     SelectionResult result;
     std::vector<Command> collection;
 
+
     while (true) {
         std::cout << "Enter a command (or 'exit' to quit): ";
         std::getline(std::cin, input);

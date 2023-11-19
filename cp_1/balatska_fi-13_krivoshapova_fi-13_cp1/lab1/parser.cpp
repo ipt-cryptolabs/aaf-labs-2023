@@ -49,6 +49,10 @@ Command parseCommand(std::string input) {
             // If "FROM" was found, read the name of the table
             ss >> command.table_name;
             ss >> token;
+            if (token == "WHERE") {
+                ss.ignore(); // Ignore the space after WHERE
+                std::getline(ss, command.condition); // Read the entire condition line
+            }
             if (token == "ORDER_BY") {
                 std::string order_by_column;
                 std::string order;
