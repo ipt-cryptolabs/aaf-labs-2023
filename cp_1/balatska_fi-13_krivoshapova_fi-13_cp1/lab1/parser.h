@@ -21,6 +21,7 @@ struct Command {
     std::string select_all;
     std::vector<std::vector<std::string>> data;
     std::string operation;
+    std::string order_by_column;
 };
 
 struct SelectionResult {
