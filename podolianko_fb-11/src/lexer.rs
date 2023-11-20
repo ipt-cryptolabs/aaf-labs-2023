@@ -1,3 +1,5 @@
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
 
 #[derive(Debug)]
@@ -21,8 +23,33 @@ pub struct Lexer {
     state: LexingState,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct LexingError;
+#[derive(Debug, PartialEq, Eq)]
+pub enum LexerError {
+    UnexpectedLexeme,
+    ParseIntError
+}
+
+impl Display for LexerError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Lexer error: ")?;
+        match self{
+            Self::UnexpectedLexeme => {
+                write!(f, "unexpected lexeme")
+            },
+            Self::ParseIntError =>{
+            write!(f, "integer could not be parsed")
+        }
+        }
+    }
+}
+
+impl Error for LexerError {}
+
+impl From<ParseIntError> for LexerError{
+    fn from(value: ParseIntError) -> Self {
+        LexerError::ParseIntError
+    }
+}
 
 impl Lexer {
     pub fn new() -> Self {
@@ -33,7 +60,7 @@ impl Lexer {
     }
 
     /// tokenize input and push tokens to state. Last non-erroneous state is preserved on error.
-    pub fn tokenize(&mut self, input: &str) -> Result<LexingState, LexingError> {
+    pub fn tokenize(&mut self, input: &str) -> Result<LexingState, LexerError> {
         let mut str_b_index = 0;
 
         // If tokenization was interrupted, insert an implicit whitespace
@@ -56,10 +83,7 @@ impl Lexer {
                             str_b_index += token_len;
                         }
                         '0'..='9' => {
-                            let (token_len, point) = match Self::get_point(&input[str_b_index..]) {
-                                Ok(tuple) => tuple,
-                                Err(_) => return Err(LexingError),
-                            };
+                            let (token_len, point) = Self::get_point(&input[str_b_index..])?;
                             self.tokens.push(Token::Point(point));
                             str_b_index += token_len;
                         }
@@ -85,7 +109,7 @@ impl Lexer {
                         c @ _ => {
                             // None of the above and not whitespace is an unexpected lexeme
                             if !c.is_whitespace() {
-                                return Err(LexingError);
+                                return Err(LexerError::UnexpectedLexeme);
                             } else {
                                 str_b_index += Self::get_whitespace(&input[str_b_index..]);
                                 // let's just keep one whitespace, its meaningful enough

@@ -89,9 +89,9 @@ impl Parser {
                     current_token_index += 1; // just in case...
                     break;
                 }
-                _ => {
+                ref token => {
                     return Err(ParserError {
-                        message: format!("unhandled token case")
+                        message: format!("unexpected token {:?}", token)
                     });
                 }
             }
