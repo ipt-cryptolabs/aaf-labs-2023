@@ -1,12 +1,22 @@
-from abc import ABC, abstractmethod
-from re import sub, fullmatch
-from typing import List
+from re import sub
+from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS
 
 
-SPECIAL_CHARS = ("(", ")", "<", ",")
-INITIAL_KEYWORDS = ("create", "insert", "select")
-AGGREGATION_FUNCTIONS = ("count", "max", "longest")
-KEYWORDS = INITIAL_KEYWORDS + AGGREGATION_FUNCTIONS + ("into", "from", "where", "group_by", "indexed")
+class Query:
+
+    def __init__(self):
+        self.unnamed_params = list()
+        self.named_params = dict()
+        self.is_finished = False
+
+    def add(self, param_value, param_name=None):
+        if param_name is None:
+            self.unnamed_params.append(param_value)
+        elif param_name not in self.named_params.keys():
+            self.named_params[param_name] = [param_value]
+        else:
+            self.named_params[param_name].append(param_value)
+
 
 class ImplementationError(Exception):
 
@@ -16,203 +26,6 @@ class ImplementationError(Exception):
 class Match:
 
     pass
-
-
-class Pattern(ABC):
-
-    @abstractmethod
-    def match(self, token: str) -> bool:
-        pass
-
-    @abstractmethod
-    def is_optional(self) -> bool:
-        pass
-
-    @abstractmethod
-    def can_go_to_next_pattern(self) -> bool:
-        pass
-
-
-class StringPattern(Pattern):
-
-    def __init__(self, string_value: str):
-        self.string_value = string_value
-
-    def __repr__(self):
-        return f"Necessary '{self.string_value}'"
-
-    def match(self, token: str) -> bool:
-        return token.lower() == self.string_value
-
-    def is_optional(self) -> bool:
-        return False
-
-    def can_go_to_next_pattern(self) -> bool:
-        return True
-
-
-class OptionalStringPattern(StringPattern):
-
-    def __repr__(self):
-        return f"Optional '{self.string_value}'"
-
-    def is_optional(self) -> bool:
-        return True
-
-
-class IdentifierPattern(Pattern):
-
-    def match(self, token) -> bool:
-        if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
-            print("Matched!")
-            return True
-        print("Unmatched!")
-        return False
-
-    def is_optional(self) -> bool:
-        return False
-
-    def can_go_to_next_pattern(self) -> bool:
-        return True
-
-
-class LiteralPattern(Pattern):
-
-    def match(self, token) -> bool:
-        return token[0] == token[-1] == "\""
-
-    def is_optional(self) -> bool:
-        return False
-
-    def can_go_to_next_pattern(self) -> bool:
-        return True
-
-
-class LiteralOrIdentifierPattern(Pattern):
-
-    def match(self, token: str) -> bool:
-        if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
-            return True
-        return token[0] == token[-1] == "\""
-
-    def is_optional(self) -> bool:
-        return False
-
-    def can_go_to_next_pattern(self) -> bool:
-        return True
-
-
-class AggregationFunctionPattern(Pattern):
-
-    def match(self, token: str) -> bool:
-        return token in AGGREGATION_FUNCTIONS
-
-    def is_optional(self) -> bool:
-        return False
-
-    def can_go_to_next_pattern(self) -> bool:
-        return True
-
-
-class RepeatedPattern(Pattern):
-
-    def __init__(self, patterns: List[Pattern], repeat_from: int):
-        self.patterns = patterns
-        self.last_index = len(patterns)-1
-        self.repeat_from = repeat_from
-        self.index = 0
-        self.finished = False
-
-    def __repr__(self):
-        return f"RepeatedPattern with {self.patterns[self.index]}"
-
-    def match(self, token):
-        print(f"Matching {token} to pattern {self.patterns[self.index]}")
-        if self.patterns[self.index].match(token):
-            print("Matched!")
-            self.index = self.repeat_from if self.index == self.last_index else self.index + 1
-            return True
-        elif self.index == self.last_index:
-            print("Kind of matched...")
-            self.finished = True
-            return True
-        elif self.patterns[self.index].is_optional():
-            print("Skipping optional...")
-            self.index += 1
-            return self.match(token)
-        else:
-            print("Not matched!")
-            return False
-
-    def is_optional(self) -> bool:
-        return False
-
-    def can_go_to_next_pattern(self) -> bool:
-        return self.finished
-
-
-class OptionalRepeatedPattern(RepeatedPattern):
-
-    def is_optional(self) -> bool:
-        return True  # TODO might be a bug here
-
-
-class OptionalNonRepeatedPattern(Pattern):
-
-    def __init__(self, patterns: List[Pattern]):
-        self.patterns = patterns
-        self.last_index = len(patterns) - 1
-        self.index = 0
-        self.finished = False
-
-    def match(self, token: str) -> bool:  # TODO better not forget to test this
-        if self.patterns[self.index].match(token):
-            print("Matched!")
-            self.index = self.index + 1
-            self.finished = self.index == self.last_index
-            return True
-        elif self.patterns[self.index].is_optional():
-            print("Skipping optional...")
-            self.index += 1
-            return self.match(token)
-        else:
-            print("Not matched!")
-            return False
-
-    def is_optional(self) -> bool:
-        return True # TODO might be a bug here too
-
-    def can_go_to_next_pattern(self) -> bool:
-        return True
-
-
-PATTERNS = {"create": [IdentifierPattern(),
-                       StringPattern("("),
-                       RepeatedPattern([IdentifierPattern(),
-                                        OptionalStringPattern("indexed"),
-                                        StringPattern(",")]),
-                       StringPattern(")")],
-            "insert": [OptionalStringPattern("into"),
-                       IdentifierPattern(),
-                       StringPattern(")"),
-                       RepeatedPattern([LiteralPattern(),
-                                        StringPattern(",")]),
-                       StringPattern(")")],
-            "select": [OptionalRepeatedPattern([AggregationFunctionPattern(),
-                                                StringPattern("("),
-                                                IdentifierPattern(),
-                                                StringPattern(")"),
-                                                StringPattern(",")]),
-                       StringPattern("from"),
-                       IdentifierPattern(),
-                       OptionalNonRepeatedPattern([StringPattern("where"),
-                                                   IdentifierPattern(),
-                                                   StringPattern("<"),
-                                                   LiteralOrIdentifierPattern()]),
-                       OptionalRepeatedPattern([StringPattern("group_by"),
-                                                IdentifierPattern(),
-                                                StringPattern(",")])]}
-
 
 
 class Compare:
@@ -226,12 +39,16 @@ class Compare:
 
     def match(self):
         if self.pattern.match(self.token):
+            print("aclehwelifhwleifhwfe!")
             self.matched = True
             self.go_to_next_token = True
             self.go_to_next_pattern = self.pattern.can_go_to_next_pattern()
         elif self.pattern.is_optional():
             self.matched = True
             self.go_to_next_pattern = True
+
+    def to_save_in_query(self):
+        return self.pattern.is_matching(self.token)
 
 
 class StandardInputDevice:
@@ -258,14 +75,14 @@ class InputProcessor:
         self.new_string = ""
         self.tokens = []
         self.command = ""
-        self.query = []
+        self.query = Query()
 
     def clear(self):
         self.text = ""
         self.new_string = ""
         self.tokens = []
         self.command = ""
-        self.query = []
+        self.query = Query()
 
     def user_input(self):
         prompt = "..." if self.text else ">"
@@ -335,32 +152,32 @@ class InputProcessor:
 
 
     def syntax_analysis(self):
-        self.command = self.tokens[0]
+        self.command = self.tokens[0].lower()
+        self.query.add(self.command, param_name="command")
         pattern = PATTERNS[self.command]
         tokens = self.tokens[1:].copy()
         while tokens:
             compare = Compare(pattern[0], tokens[0])
+            print(f"Comparing: {pattern[0]} {tokens[0]}")
             compare.match()
+            print("Go_to_next_token", compare.go_to_next_token)
             if not compare.matched:
                 self.output_device.output(f"Expected {pattern[0]}, got: '{tokens[0]}'")
                 self.clear()
                 break
+            if compare.to_save_in_query():
+                self.query.add(tokens[0], param_name=pattern[0].name)
             if compare.go_to_next_pattern:
                 pattern = pattern[1:]
             if compare.go_to_next_token:
+                print("Going to next token")
                 tokens = tokens[1:]
         else:
             if pattern:
                 self.output_device.output(f"Expected {pattern[0]}, got nothing")
 
-    def extract_query(self):
-        mt = self.tokens.copy()  # Alias
-        while "(" in mt:
-            mt[mt.index("("):mt.index(")")+1] = [" ".join(mt[mt.index("(")+1:mt.index(")")]).split(" , ")]
-        self.query = mt
-
-    def get_command(self) -> list:
-        while not self.query:  # Until the correct input is given
+    def get_command(self) -> Query:
+        while not self.query.is_finished:  # Until the correct input is given
 
             self.user_input()
             self.check_last_input()
@@ -377,7 +194,7 @@ class InputProcessor:
             self.extract_tokens()
             self.lexical_analysis()
             self.syntax_analysis()
-            self.extract_query()
+            self.query.is_finished = True
 
         return self.query
 
@@ -391,7 +208,9 @@ class Database:
 
     def run(self):
         while self.running:
-            self.input_processor.get_command()
+            query = self.input_processor.get_command()
+            print(query.unnamed_params, query.named_params)
+            self.running = False
 
 
 if __name__ == "__main__":
