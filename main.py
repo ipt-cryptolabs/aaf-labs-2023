@@ -41,7 +41,7 @@ class Compare:
         if self.pattern.match(self.token):
             print("aclehwelifhwleifhwfe!")
             self.matched = True
-            self.go_to_next_token = True
+            self.go_to_next_token = self.pattern.can_go_to_next_token()
             self.go_to_next_pattern = self.pattern.can_go_to_next_pattern()
         elif self.pattern.is_optional():
             self.matched = True
@@ -159,14 +159,13 @@ class InputProcessor:
         while tokens:
             compare = Compare(pattern[0], tokens[0])
             print(f"Comparing: {pattern[0]} {tokens[0]}")
+            if compare.to_save_in_query():
+                self.query.add(tokens[0], param_name=pattern[0].name)
             compare.match()
-            print("Go_to_next_token", compare.go_to_next_token)
             if not compare.matched:
                 self.output_device.output(f"Expected {pattern[0]}, got: '{tokens[0]}'")
                 self.clear()
                 break
-            if compare.to_save_in_query():
-                self.query.add(tokens[0], param_name=pattern[0].name)
             if compare.go_to_next_pattern:
                 pattern = pattern[1:]
             if compare.go_to_next_token:

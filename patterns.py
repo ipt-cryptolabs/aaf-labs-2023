@@ -29,6 +29,9 @@ class Pattern(ABC):
     def can_go_to_next_pattern(self) -> bool:
         pass
 
+    def can_go_to_next_token(self) -> bool:
+        return True
+
 
 class StringPattern(Pattern):
 
@@ -166,6 +169,9 @@ class RepeatedPattern(Pattern):
 
     def can_go_to_next_pattern(self) -> bool:
         return self.finished
+
+    def can_go_to_next_token(self) -> bool:
+        return not self.finished
 
 
 class OptionalRepeatedPattern(RepeatedPattern):
