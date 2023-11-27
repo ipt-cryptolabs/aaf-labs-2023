@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use std::ops::Add;
+use std::ops::{Add, Deref};
 use crate::kd_tree;
 use crate::parser::{Command, WhereClause};
-use crate::kd_tree::{LineSegment, LSTree};
+use crate::kd_tree::{LineSegment, LSNode, LSTree};
 
 pub struct Interpreter {
     sets: HashMap<String, LSTree>,
@@ -74,7 +74,23 @@ impl Interpreter {
                 let set = self.get_set(&set_name)?;
                 let segments:Vec<LineSegment> = set.get_inorder();
                 match where_query{
-                    Some(_) =>{}
+                    Some(where_clause) =>{
+                        match where_clause{
+                            WhereClause::ContainedBy(line_segment) =>{
+                                let segments = set.contained_by(&line_segment);
+                                let mut dispstr = String::new();
+                                for s in segments{
+                                    dispstr = dispstr.add(format!("{} ", s).as_str());
+                                }
+                                return Ok(dispstr)
+                            }
+                            _=>{
+                                return Err(InterpreterError{
+                                    message: format!("this where clause is not implemented yet")
+                                })
+                            }
+                        };
+                    }
                     None =>{
                         let mut dispstr = String::new();
                         for s in &segments{

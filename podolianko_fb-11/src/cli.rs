@@ -66,6 +66,8 @@ impl CLI {
                 Err(err) => {
                     // TODO implement a valid convertible Error yet
                     eprintln!("Lexer errored: {:?}", err);
+                    lexer.collect(); // clear lexer, current command is done for anyway...
+                    Self::prompt(PROMPT)?;
                 }
             }
         }

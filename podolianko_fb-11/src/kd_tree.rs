@@ -174,28 +174,74 @@ impl LSTree {
         // reached here - no such line segment
         None
     }
-    pub fn get_inorder(&self) -> Vec<LineSegment>{
+    pub fn get_inorder(&self) -> Vec<LineSegment> {
         use std::collections::vec_deque::VecDeque;
 
-        let mut res:Vec<LineSegment> = Vec::new();
+        let mut res: Vec<LineSegment> = Vec::new();
         let mut queue: VecDeque<&Box<LSNode>> = VecDeque::new();
-        if let Some(root) = &self.root{
+        if let Some(root) = &self.root {
             queue.push_back(root)
         }
 
-        while !queue.is_empty(){
-            if let Some(node) = queue.pop_front(){
-                if let Some(ref lchild) = node.left{
+        while !queue.is_empty() {
+            if let Some(node) = queue.pop_front() {
+                if let Some(ref lchild) = node.left {
                     queue.push_back(lchild);
                 }
                 res.push(node.key);
-                if let Some(ref rchild) = node.right{
+                if let Some(ref rchild) = node.right {
                     queue.push_back(rchild);
                 }
             }
         }
 
         res
+    }
+
+    pub fn contained_by(&self, key: &LineSegment) -> Vec<&LineSegment> {
+        let mut results: Vec<&LineSegment> = Vec::new();
+
+        if let Some(root) = &self.root {
+            Self::contained_by_rec(root, 0, key, &mut results);
+        }
+
+        results
+    }
+
+    fn contained_by_rec<'a, 'b, 'c>(node: &'a Box<LSNode>, dimension: i32, key: &'b LineSegment, results: &'c mut Vec<&'a LineSegment>) {
+        match dimension {
+            0 => {
+                if node.key.l >= key.l {
+                    if node.key.h <= key.h {
+                        results.push(&node.key);
+                    }
+                    if let Some(child) = &node.left {
+                        Self::contained_by_rec(child, (dimension + 1) % 2, key, results);
+                    }
+                }
+
+                // we always check the right subtree because our search range extends infinitely to the right
+                if let Some(child) = &node.right {
+                    Self::contained_by_rec(child, (dimension + 1) % 2, key, results);
+                }
+            }
+            1 => {
+                if node.key.h <= key.h {
+                    if node.key.l >= key.l {
+                        results.push(&node.key);
+                    }
+                    if let Some(child) = &node.right {
+                        Self::contained_by_rec(child, (dimension + 1) % 2, key, results);
+                    }
+                }
+
+                // we always check the right subtree because our search range extends down infinitely
+                if let Some(child) = &node.left {
+                    Self::contained_by_rec(child, (dimension + 1) % 2, key, results);
+                }
+            }
+            _ => panic!("unexpected dimension")
+        };
     }
 }
 
@@ -248,6 +294,12 @@ impl Display for LineSegment {
 //         })
 //     }
 // }
+
+impl From<LSNode> for LineSegment{
+    fn from(value: LSNode) -> Self {
+        value.key
+    }
+}
 
 #[cfg(test)]
 mod tests {

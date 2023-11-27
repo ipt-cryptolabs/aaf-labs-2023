@@ -82,7 +82,7 @@ impl Lexer {
                             self.tokens.push(Token::KeywordOrIdentifier(koi));
                             str_b_index += token_len;
                         }
-                        '0'..='9' => {
+                        '0'..='9' | '-' => {
                             let (token_len, point) = Self::get_point(&input[str_b_index..])?;
                             self.tokens.push(Token::Point(point));
                             str_b_index += token_len;
@@ -164,7 +164,9 @@ impl Lexer {
 
     fn get_point(slice: &str) -> Result<(usize, i64), ParseIntError> {
         let mut token_length = slice.len();
-        for (pos, c) in slice.char_indices() {
+        let skippedminus:usize  =  if &slice[0..=0] == "-" {1} else {0};
+
+        for (pos, c) in slice.char_indices().skip(skippedminus) {
             match c {
                 '0'..='9' => {
                     //character is OK
@@ -176,9 +178,9 @@ impl Lexer {
             }
         }
 
-        let maybe_point = i64::from_str_radix(&slice[0..token_length], 10);
+        let point = i64::from_str_radix(&slice[skippedminus..token_length], 10)?;
 
-        Ok((token_length, maybe_point?))
+        Ok((token_length, if skippedminus == 0 {point} else {-point}))
     }
 
     fn get_whitespace(slice: &str) -> usize {
