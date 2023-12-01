@@ -208,7 +208,7 @@ impl LSTree {
         results
     }
 
-    fn contained_by_rec<'a, 'b, 'c>(node: &'a Box<LSNode>, dimension: i32, key: &'b LineSegment, results: &'c mut Vec<&'a LineSegment>) {
+    fn contained_by_rec<'a>(node: &'a LSNode, dimension: i32, key: &LineSegment, results: &mut Vec<&'a LineSegment>) {
         match dimension {
             0 => {
                 if node.key.l >= key.l {
@@ -254,7 +254,7 @@ impl LSTree {
         results
     }
 
-    fn right_of_rec<'a, 'b, 'c>(node: &'a Box<LSNode>, dimension: i32, x: i64, results: &'c mut Vec<&'a LineSegment>) {
+    fn right_of_rec<'a>(node: &'a LSNode, dimension: i32, x: i64, results: &mut Vec<&'a LineSegment>) {
         match dimension {
             0 => {
                 if node.key.l >= x {
@@ -268,7 +268,7 @@ impl LSTree {
                 if let Some(child) = &node.right {
                     Self::right_of_rec(child, (dimension + 1) % 2, x, results);
                 }
-            },
+            }
             1 => {
                 if node.key.l >= x {
                     results.push(&node.key);
@@ -280,7 +280,7 @@ impl LSTree {
                 if let Some(child) = &node.right {
                     Self::right_of_rec(child, (dimension + 1) % 2, x, results);
                 }
-            },
+            }
             _ => panic!("unexpected dimension")
         };
     }
@@ -298,7 +298,7 @@ impl LSTree {
         results
     }
 
-    fn intersects_rec<'a, 'b, 'c>(node: &'a Box<LSNode>, dimension: i32, key: &'b LineSegment, results: &'c mut Vec<&'a LineSegment>) {
+    fn intersects_rec<'a>(node: &'a LSNode, dimension: i32, key: &LineSegment, results: &mut Vec<&'a LineSegment>) {
         // same as contained_by, but searching for points in the top rught quadrant
         // from a fictive point [l',h'] := [h,l] where [h,l] == key
         match dimension {
@@ -337,7 +337,7 @@ impl LSTree {
 
 impl Display for LSTree {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\n")?;
+        writeln!(f)?;
         if let Some(node) = &self.root {
             write!(f, "{}", node)?;
         }
@@ -360,17 +360,17 @@ impl Display for LineSegment {
     }
 }
 
-// impl From<(i64, i64)> for LineSegment {
-//     fn from(value: (i64, i64)) -> Self {
-//         if value.0 > value.1 {
-//             panic!("Line Segment lower bound should be less than or equal to the higher bound, got {} <= {}", &value.0, &value.1);
-//         }
-//         Self {
-//             l: value.0,
-//             h: value.1,
-//         }
-//     }
-// }
+impl From<(i64, i64)> for LineSegment {
+    fn from(value: (i64, i64)) -> Self {
+        if value.0 > value.1 {
+            panic!("Line Segment lower bound should be less than or equal to the higher bound, got {} <= {}", &value.0, &value.1);
+        }
+        Self {
+            l: value.0,
+            h: value.1,
+        }
+    }
+}
 
 // impl TryFrom<(i64, i64)> for LineSegment {
 //     type Error = TryFromLineSegmentError;
