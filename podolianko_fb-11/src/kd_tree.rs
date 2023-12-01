@@ -243,6 +243,96 @@ impl LSTree {
             _ => panic!("unexpected dimension")
         };
     }
+
+    pub fn right_of(&self, x: i64) -> Vec<&LineSegment> {
+        let mut results: Vec<&LineSegment> = Vec::new();
+
+        if let Some(root) = &self.root {
+            Self::right_of_rec(root, 0, x, &mut results);
+        }
+
+        results
+    }
+
+    fn right_of_rec<'a, 'b, 'c>(node: &'a Box<LSNode>, dimension: i32, x: i64, results: &'c mut Vec<&'a LineSegment>) {
+        match dimension {
+            0 => {
+                if node.key.l >= x {
+                    // current node is to the right of x and it's left child might be
+                    results.push(&node.key);
+                    if let Some(child) = &node.left {
+                        Self::right_of_rec(child, (dimension + 1) % 2, x, results);
+                    }
+                }
+                // right child might be right of x for any node
+                if let Some(child) = &node.right {
+                    Self::right_of_rec(child, (dimension + 1) % 2, x, results);
+                }
+            },
+            1 => {
+                if node.key.l >= x {
+                    results.push(&node.key);
+                }
+                // we can't say anything about children of odd nodes, so we'll have to check both subtrees
+                if let Some(child) = &node.left {
+                    Self::right_of_rec(child, (dimension + 1) % 2, x, results);
+                }
+                if let Some(child) = &node.right {
+                    Self::right_of_rec(child, (dimension + 1) % 2, x, results);
+                }
+            },
+            _ => panic!("unexpected dimension")
+        };
+    }
+
+    pub fn intersects(&self, key: &LineSegment) -> Vec<&LineSegment> {
+        let mut results: Vec<&LineSegment> = Vec::new();
+
+        // fictive point
+        let key = LineSegment { l: key.h, h: key.l };
+
+        if let Some(root) = &self.root {
+            Self::intersects_rec(root, 0, &key, &mut results);
+        }
+
+        results
+    }
+
+    fn intersects_rec<'a, 'b, 'c>(node: &'a Box<LSNode>, dimension: i32, key: &'b LineSegment, results: &'c mut Vec<&'a LineSegment>) {
+        // same as contained_by, but searching for points in the top rught quadrant
+        // from a fictive point [l',h'] := [h,l] where [h,l] == key
+        match dimension {
+            0 => {
+                if node.key.l <= key.l {
+                    if node.key.h >= key.h {
+                        results.push(&node.key);
+                    }
+                    if let Some(child) = &node.right {
+                        Self::intersects_rec(child, (dimension + 1) % 2, key, results);
+                    }
+                }
+
+                if let Some(child) = &node.left {
+                    Self::intersects_rec(child, (dimension + 1) % 2, key, results);
+                }
+            }
+            1 => {
+                if node.key.h >= key.h {
+                    if node.key.l <= key.l {
+                        results.push(&node.key);
+                    }
+                    if let Some(child) = &node.left {
+                        Self::intersects_rec(child, (dimension + 1) % 2, key, results);
+                    }
+                }
+
+                if let Some(child) = &node.right {
+                    Self::intersects_rec(child, (dimension + 1) % 2, key, results);
+                }
+            }
+            _ => panic!("unexpected dimension")
+        };
+    }
 }
 
 impl Display for LSTree {
@@ -295,7 +385,7 @@ impl Display for LineSegment {
 //     }
 // }
 
-impl From<LSNode> for LineSegment{
+impl From<LSNode> for LineSegment {
     fn from(value: LSNode) -> Self {
         value.key
     }

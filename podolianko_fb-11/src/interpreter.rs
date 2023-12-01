@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display, format, Formatter};
 use std::ops::{Add, Deref};
 use crate::kd_tree;
 use crate::parser::{Command, WhereClause};
@@ -77,7 +77,35 @@ impl Interpreter {
                     Some(where_clause) =>{
                         match where_clause{
                             WhereClause::ContainedBy(line_segment) =>{
+                                if line_segment.l > line_segment.h{
+                                    return Err(InterpreterError{
+                                        message: format!("Line segment lower bound mustn't be greater that the higher bound (l <= h, got {line_segment})")
+                                    })
+                                }
+
                                 let segments = set.contained_by(&line_segment);
+                                let mut dispstr = String::new();
+                                for s in segments{
+                                    dispstr = dispstr.add(format!("{} ", s).as_str());
+                                }
+                                return Ok(dispstr)
+                            }
+                            WhereClause::RightOf(x) =>{
+                                let segments = set.right_of(x.0);
+                                let mut dispstr = String::new();
+                                for s in segments{
+                                    dispstr = dispstr.add(format!("{} ", s).as_str());
+                                }
+                                return Ok(dispstr)
+                            },
+                            WhereClause::Intersects(line_segment) => {
+                                if line_segment.l > line_segment.h{
+                                    return Err(InterpreterError{
+                                        message: format!("Line segment lower bound mustn't be greater that the higher bound (l <= h, got {line_segment})")
+                                    })
+                                }
+
+                                let segments = set.intersects(&line_segment);
                                 let mut dispstr = String::new();
                                 for s in segments{
                                     dispstr = dispstr.add(format!("{} ", s).as_str());

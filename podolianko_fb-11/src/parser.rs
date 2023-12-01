@@ -4,7 +4,7 @@ use crate::lexer::Token;
 use crate::kd_tree::LineSegment;
 
 #[derive(Debug)]
-pub struct Point(i64);
+pub struct Point(pub(crate) i64);
 
 #[derive(Debug)]
 pub enum Command {
