@@ -63,7 +63,7 @@ public:
     void printCollectionIndex(const std::string& collectionName);
     void parse(const std::string& inputString);
 
-    // for Mykhailo  
+    // for Mykhailo - done 
     void searchInCollection(const std::string& collectionName, const std::set<int>& set);
     // mb u should change the name because it not that clear what that mean
     void containsCollection(const std::string& collectionName, const std::set<int>& set);
