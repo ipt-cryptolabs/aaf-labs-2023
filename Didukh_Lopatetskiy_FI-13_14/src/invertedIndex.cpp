@@ -46,15 +46,17 @@ void Collections::printCollectionIndex(const std::string &collectionName) {
     collections[collectionName].print_index();
 }
 
-bool Collections::searchInCollection(const std::string& collectionName) {
-    if(collections.find(collectionName) != collections.end()) {
+std::vector<std::set<int>> Collections::searchInCollection(const std::string& collectionName) {
+    std::vector<std::set<int>> resultSets;
+
+    if (collections.find(collectionName) != collections.end()) {
         std::cout << "Collection '" << collectionName << "' exists in collections\n";
-        return true;
-    }
-    else {
+        resultSets = collections[collectionName].getSets();
+    } else {
         std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
-        return false;
     }
+
+    return resultSets;
 }
 
 bool Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {

@@ -30,7 +30,7 @@ public:
     void insertSet(const std::string& collecntionName, const std::set<int>& set);
     bool containsCollection(const std::string& collectionName, const std::set<int>& set);
     void createCollection(const std::string& collecntionName);
-    bool searchInCollection(const std::string& collectionName);
+    std::vector<std::set<int>> searchInCollection(const std::string& collectionName);
     void printCollectionIndex(const std::string& collectionName);
 
     void parse(const std::string& inputString);
