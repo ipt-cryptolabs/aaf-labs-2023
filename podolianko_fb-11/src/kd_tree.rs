@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
+use std::ops::Add;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct LineSegment {
@@ -24,48 +25,52 @@ impl LSNode {
         }
     }
 
-    fn add_left(&mut self, node: LSNodePointer) {
+    fn set_left(&mut self, node: LSNodePointer) {
         self.left = node;
     }
 
-    fn add_right(&mut self, node: LSNodePointer) {
+    fn set_right(&mut self, node: LSNodePointer) {
         self.right = node;
+    }
+
+    fn print(&self, mut buffer: &mut String, prefix: &str, children_prefix: &str){
+        // https://stackoverflow.com/questions/4965335/how-to-print-binary-tree-diagram-in-java/8948691#8948691
+        buffer.push_str(prefix);
+        buffer.push_str(format!("{}", &self.key).as_str());
+        buffer.push('\n');
+        if self.right.is_some(){
+            if let Some(child) = &self.left{
+                let mut p = String::from(children_prefix);
+                p.push_str("├── ");
+                let mut cp = String::from(children_prefix);
+                cp.push_str("│   ");
+                child.print(&mut buffer, &p, &cp);
+            }
+        } else {
+            if let Some(child) = &self.left{
+                let mut p = String::from(children_prefix);
+                p.push_str("└── ");
+                let mut cp = String::from(children_prefix);
+                cp.push_str("    ");
+                child.print(&mut buffer, &p, &cp);
+            }
+        }
+
+        if let Some(child) = &self.right{
+            let mut p = String::from(children_prefix);
+            p.push_str("└── ");
+            let mut cp = String::from(children_prefix);
+            cp.push_str("    ");
+            child.print(&mut buffer, &p, &cp);
+        }
     }
 }
 
 impl Display for LSNode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        // use sign flag to determine if self was left or right
-        let self_right = f.sign_plus();
-        let pad = f.width().unwrap_or(0);
-
-        if pad == 0 {
-            write!(f, "{}\n", self.key)?;
-        } else {
-            if !self_right {
-                write!(f, "{:>pad$}{}{}\n", "", "├", self.key, pad = pad)?;
-            } else {
-                write!(f, "{:>pad$}{}{}\n", "", "└", self.key, pad = pad)?;
-            }
-        }
-
-        let pad_increase = 2;
-        if let Some(ref node) = self.left {
-            // println!("Will pad: {}", pad);
-            write!(f, "{:pad$}", node.as_ref(), pad = pad + pad_increase)?;
-        } else {
-            // write!(f, "{:pad$}├\n", "", pad = pad + pad_increase)?;
-        }
-
-        if let Some(ref node) = self.right {
-            // println!("Will pad: {}", pad);
-            write!(f, "{:+pad$}", node.as_ref(), pad = pad + pad_increase)?;
-        } else {
-            // write!(f, "{:+pad$}└\n", "", pad = pad + pad_increase)?;
-        }
-
-        // preint the key of current node;
-        Ok(())
+        let mut buffer = String::new();
+        self.print(&mut buffer, "", "");
+        write!(f, "{}", buffer)
     }
 }
 
@@ -95,9 +100,9 @@ impl LSTree {
                     if key.l <= current_node.key.l {
                         if current_node.left.is_none() {
                             if current_node.key == key {
-                                return Some(&*current_node);
+                                return Some(current_node);
                             }
-                            current_node.add_left(Some(Box::new(LSNode::new(key))));
+                            current_node.set_left(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
                             current_node = current_node.left.as_mut().unwrap();
@@ -105,9 +110,9 @@ impl LSTree {
                     } else {
                         if current_node.right.is_none() {
                             if current_node.key == key {
-                                return Some(&*current_node);
+                                return Some(current_node);
                             }
-                            current_node.add_right(Some(Box::new(LSNode::new(key))));
+                            current_node.set_right(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
                             current_node = current_node.right.as_mut().unwrap();
@@ -117,9 +122,9 @@ impl LSTree {
                     if key.h <= current_node.key.h {
                         if current_node.left.is_none() {
                             if current_node.key == key {
-                                return Some(&*current_node);
+                                return Some(current_node);
                             }
-                            current_node.add_left(Some(Box::new(LSNode::new(key))));
+                            current_node.set_left(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
                             current_node = current_node.left.as_mut().unwrap();
@@ -127,9 +132,9 @@ impl LSTree {
                     } else {
                         if current_node.right.is_none() {
                             if current_node.key == key {
-                                return Some(&*current_node);
+                                return Some(current_node);
                             }
-                            current_node.add_right(Some(Box::new(LSNode::new(key))));
+                            current_node.set_right(Some(Box::new(LSNode::new(key))));
                             break;
                         } else {
                             current_node = current_node.right.as_mut().unwrap();
@@ -143,6 +148,7 @@ impl LSTree {
         // if we reach here, a new node has been inserted
         None
     }
+
     /// Returns Some(&LineSegment) is such line segment is present in the tree; None otherwise.
     pub fn get(&self, key: &LineSegment) -> Option<&LineSegment> {
         let mut current_node_ptr = self.root.as_ref();
@@ -174,6 +180,7 @@ impl LSTree {
         // reached here - no such line segment
         None
     }
+
     pub fn get_inorder(&self) -> Vec<LineSegment> {
         use std::collections::vec_deque::VecDeque;
 
@@ -372,19 +379,6 @@ impl From<(i64, i64)> for LineSegment {
     }
 }
 
-// impl TryFrom<(i64, i64)> for LineSegment {
-//     type Error = TryFromLineSegmentError;
-//     fn try_from(value: (i64, i64)) -> Result<Self, Self::Error> {
-//         if value.0 > value.1 {
-//             return Err(TryFromLineSegmentError);
-//         }
-//         Ok(Self {
-//             l: value.0,
-//             h: value.1,
-//         })
-//     }
-// }
-
 impl From<LSNode> for LineSegment {
     fn from(value: LSNode) -> Self {
         value.key
@@ -396,7 +390,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn print_test() {
+    fn display_test() {
         let mut tree = LSTree::new();
         tree.insert(LineSegment::from((3, 4)));
         tree.insert(LineSegment::from((2, 7)));
