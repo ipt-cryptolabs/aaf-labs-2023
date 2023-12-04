@@ -46,16 +46,21 @@ void Collections::printCollectionIndex(const std::string &collectionName) {
     collections[collectionName].print_index();
 }
 
-void Collections::searchInCollection(const std::string& collectionName) {
-    if(collections.find(collectionName) != collections.end())
+bool Collections::searchInCollection(const std::string& collectionName) {
+    if(collections.find(collectionName) != collections.end()) {
         std::cout << "Collection '" << collectionName << "' exists in collections\n";
-    else
+        return true;
+    }
+    else {
         std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
+        return false;
+    }
 }
 
-void Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
+bool Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
     if (collections.find(collectionName) == collections.end()) {
         std::cout << "Error: Contains method called in collection that doesn't exist '" << collectionName << "'" << std::endl;
+        return false;
     } else {
         Collection& currentCollection = collections[collectionName];
 
@@ -69,8 +74,10 @@ void Collections::containsCollection(const std::string &collectionName, const st
 
         if (found) {
             std::cout << "Collection '" << collectionName << "' contains the set." << std::endl;
+            return true;
         } else {
             std::cout << "Collection '" << collectionName << "' does not contain the set." << std::endl;
+            return false;
         }
     }
 }
