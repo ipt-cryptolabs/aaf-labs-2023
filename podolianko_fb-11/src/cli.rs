@@ -8,7 +8,7 @@ use std::io::{Write, stdout, BufRead};
 pub struct CLI;
 
 const PROMPT: &str = " > ";
-const PROMPT_CONT: &str = " ...\t";
+const PROMPT_CONT: &str = " ...     ";
 
 impl CLI {
     pub fn new() -> Self {
@@ -20,10 +20,10 @@ impl CLI {
         stdout().flush()
     }
 
-    pub fn start_repl(&self) -> Result<(), Box<dyn Error>>{
+    pub fn start_repl(&self) -> Result<(), Box<dyn Error>> {
         let mut interpr = interpreter::Interpreter::new();
         loop {
-            if let Err(err) = self.repl(&mut interpr) {
+            if let Err(err) = self.rep(&mut interpr) {
                 eprintln!("{}", err);
                 continue;
             } else {
@@ -33,39 +33,45 @@ impl CLI {
         Ok(())
     }
 
-    pub fn repl(&self, interpr: &mut interpreter::Interpreter) -> Result<(), Box<dyn Error>> {
-        Self::prompt(PROMPT)?;
+    pub fn rep(&self, interpr: &mut interpreter::Interpreter) -> Result<(), Box<dyn Error>> {
         let locked_stdin = io::stdin().lock();
         let mut lexer = lexer::Lexer::new();
         let parser = parser::Parser::new();
+
+        Self::prompt(PROMPT)?;
+
         for line in locked_stdin.lines() {
             // println!("Line: {:?}", line);
             match lexer.tokenize(&line?) {
                 Ok(state) => {
-                    if let lexer::LexingState::End = state {
-                        let lexed_input = lexer.collect();
-                        // println!("Lexer: {:?}", lexed_input);
-                        let parsed_command = parser.parse_command(lexed_input)?;
-                        // println!("Parser: {:?}", parsed_command);
-                        match interpr.interpret_command(parsed_command) {
-                            Ok(mesg) => {
-                                println!("{}", mesg)
+                    match state{
+                        lexer::LexingState::End =>{
+                            let lexed_input = lexer.collect();
+                            // println!("Lexer: {:?}", lexed_input);
+                            let parsed_command = parser.parse_command(lexed_input)?;
+                            // println!("Parser: {:?}", parsed_command);
+                            match interpr.interpret_command(parsed_command) {
+                                Ok(mesg) => {
+                                    println!("{}", mesg)
+                                }
+                                Err(err) => {
+                                    eprintln!("{}", err)
+                                }
                             }
-                            Err(err) => {
-                                eprintln!("{}", err)
-                            }
+                            Self::prompt(PROMPT)?;
+                        },
+                        lexer::LexingState::Empty =>{
+                            Self::prompt(PROMPT)?;
+                            continue;
                         }
-
-
-                        Self::prompt(PROMPT)?;
-                    } else {
-                        Self::prompt(PROMPT_CONT)?;
-                        continue;
+                        _ => {
+                            Self::prompt(PROMPT_CONT)?;
+                            continue;
+                        }
                     }
                 }
                 Err(err) => {
-                    // TODO implement a valid convertible Error yet
-                    eprintln!("Lexer errored: {:?}", err);
+                    eprintln!("{}", err);
                     lexer.collect(); // clear lexer, current command is done for anyway...
                     Self::prompt(PROMPT)?;
                 }

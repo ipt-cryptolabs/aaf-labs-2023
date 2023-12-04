@@ -13,8 +13,10 @@ pub enum Token {
     EndOfCommand,
 }
 
+#[derive(PartialEq, PartialOrd, Eq)]
 pub enum LexingState {
     Continue,
+    Empty,
     End,
 }
 
@@ -61,6 +63,10 @@ impl Lexer {
 
     /// tokenize input and push tokens to state. Last non-erroneous state is preserved on error.
     pub fn tokenize(&mut self, input: &str) -> Result<LexingState, LexerError> {
+        if self.state == LexingState::End && input.is_empty() {
+            return Ok(LexingState::Empty);
+        }
+
         let mut str_b_index = 0;
 
         // If tokenization was interrupted, insert an implicit whitespace
