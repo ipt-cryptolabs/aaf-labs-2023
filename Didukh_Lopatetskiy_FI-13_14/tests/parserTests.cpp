@@ -1,4 +1,4 @@
-#include <invertedIndex.hpp>
+#include <parser.hpp>
 #include <gtest/gtest.h>
 
 class ParserTest : public ::testing::Test {
@@ -101,9 +101,4 @@ TEST_F(ParserTest, NegativeValueTest) {
     ASSERT_EQ(tokens.at(3), "2248");
     ASSERT_EQ(tokens.at(4), "-66");
     ASSERT_EQ(tokens.at(5), "999");
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

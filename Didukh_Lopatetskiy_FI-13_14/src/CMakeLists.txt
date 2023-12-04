@@ -1,5 +1,6 @@
 add_library(InvertedIndex
     invertedIndex.cpp
+    parser.cpp
 )
 
 target_include_directories(InvertedIndex
