@@ -82,6 +82,7 @@ void insertRecord(const Command& command, std::vector<Command>& collection, Sele
 }
 
 
+//Веа не працює з буквами та перезаписує таблицю
 void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result) {
     for (const Command& item : collection) {
         if (item.table_name == command.table_name) {
