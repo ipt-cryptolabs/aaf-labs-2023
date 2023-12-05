@@ -157,7 +157,6 @@ class Table:
                     f"Column '{where_column}' does not exist in table '{self.tableName}'."
                 )
             
-            #print(order_by_column)      sort of debug?
             if needs_ordering and len(order_by_column):
                 results = self.custom_sort(results, order_by_column)
 
@@ -241,21 +240,6 @@ class Node:
         self.right = None
         self.parent = parent
         self.data = []
-
-    #def insert(self, value, data):
-    #    if self.value is None:
-    #        self.value = value
-    #        self.data.append(data)
-    #    elif value < self.value:
-    #        if self.left is None:
-    #            self.left = Node(value, parent = self, root = self.root)
-    #        self.left.insert(value, data)
-    #    elif value > self.value:
-    #        if self.right is None:
-    #            self.right = Node(value, parent = self, root = self.root)
-    #        self.right.insert(value, data)
-    #    else:
-    #        self.data.append(data)
 
     def search(self, value):
         if self.value == value:
