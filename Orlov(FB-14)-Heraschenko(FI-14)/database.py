@@ -3,8 +3,6 @@ from typing import Dict
 from prettytable import PrettyTable
 from functools import cmp_to_key
 from typing import Optional
-from colorama import Back
-from PrettyPrint import PrettyPrintTree
 
 class Database:
     def __init__(self) -> None:
@@ -159,7 +157,7 @@ class Table:
                     f"Column '{where_column}' does not exist in table '{self.tableName}'."
                 )
             
-            print(order_by_column)
+            #print(order_by_column)      sort of debug?
             if needs_ordering and len(order_by_column):
                 results = self.custom_sort(results, order_by_column)
 
