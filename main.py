@@ -101,12 +101,11 @@ class InputProcessor:
         print(";" in without_quotes)
         return ";" in without_quotes
 
-    def check_last_input(self):
-        if self.new_string.count("\"") % 2:
-            self.output_device.output("Error: Unfinished string literals are not allowed!")
-            self.clear()
-        else:
-            self.text += self.new_string + " "
+    def is_last_input_good(self) -> bool:
+        return self.new_string.count("\"") % 2 == 0
+
+    def append_line(self):
+        self.text += self.new_string + " "
 
     def extract_tokens(self):
         text_divided_by_quotes = self.text.split(sep="\"")  # count("\"") % 2 == 0
@@ -178,18 +177,29 @@ class InputProcessor:
     def get_command(self) -> Query:
         while not self.query.is_finished:  # Until the correct input is given
 
+            # Would be cool if Python had do-whiles
             self.user_input()
-            self.check_last_input()
+            if self.is_last_input_good():
+                self.append_line()
+            else:
+                self.output_device.output("Error: Unfinished string literals are not allowed!")
+                self.clear()
+                continue
+
             if not self.is_keyword_valid():
                 print("Invalid keyword")
                 self.clear()
                 continue
-            while not self.is_input_finished():
-                print("Input not finished")
-                self.user_input()
-                self.check_last_input()
 
-            print("Input finished")
+            while not self.is_input_finished():
+                self.user_input()
+                if self.is_last_input_good():
+                    self.append_line()
+                else:
+                    self.output_device.output("Error: Unfinished string literals are not allowed!")
+                    self.clear()  # TODO Make this prettier
+                    continue
+
             self.extract_tokens()
             self.lexical_analysis()
             self.syntax_analysis()
