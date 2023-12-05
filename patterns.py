@@ -118,7 +118,7 @@ class LiteralOrIdentifierPattern(Pattern):
 class AggregationFunctionPattern(Pattern):
 
     def is_matching(self, token: str) -> bool:
-        return token in AGGREGATION_FUNCTIONS
+        return token.lower() in AGGREGATION_FUNCTIONS
 
     def match(self, token) -> bool:
         return self.is_matching(token)
