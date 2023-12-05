@@ -10,11 +10,14 @@ class DB:
     def __init__(self) -> None:
         self._collections = {}
 
-    def CREATE(self, collection_name: str) -> None:
+    def CREATE(self, collection_name: str) -> None: 
+        if collection_name in self._collections:
+            print(f"Collection {collection_name} already exists")
+            return
         self._collections.update({collection_name : Collection(collection_name)})
 
     def INSERT(self, collection_name: str, value: str) -> None:
-        if collection_name in self._collections:
+        if collection_name in self._collections: 
             self._collections[collection_name].insert(value.lower())
         else:
             print(f"No collection named f{collection_name}")
@@ -115,7 +118,7 @@ class Collection:
         
 
 
-
+'''
 db = DB()
 
 db.CREATE("col")
@@ -128,7 +131,7 @@ db.CREATE("col2")
 db.INSERT("col2", "hello wrold hi")
 #db.PRINT_INDEX("col2")
 #db.PRINT_INDEX("col")
-print(db.SEARCH_WHERE("col", "nxfgn", True))
+print(db.SEARCH_WHERE("col", "nxfgn", True))'''
 
 
     
