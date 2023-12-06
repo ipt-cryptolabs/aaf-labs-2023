@@ -5,13 +5,12 @@ from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORD
 class Query:
 
     def __init__(self):
-        self.unnamed_params = list()
         self.named_params = dict()
         self.is_finished = False
 
-    def add(self, param_value, param_name=None):
+    def add(self, param_value, param_name: str):
         if param_name is None:
-            self.unnamed_params.append(param_value)
+            return  # If a param doesn't have name, it is not needed.
         elif param_name not in self.named_params.keys():
             self.named_params[param_name] = [param_value]
         else:
@@ -155,7 +154,7 @@ class InputProcessor:
         self.query.add(self.command, param_name="command")
         pattern = PATTERNS[self.command]
         tokens = self.tokens[1:].copy()
-        while tokens:
+        while tokens and pattern:
             compare = Compare(pattern[0], tokens[0])
             print(f"Comparing: {pattern[0]} {tokens[0]}")
             if compare.to_save_in_query():
@@ -218,7 +217,7 @@ class Database:
     def run(self):
         while self.running:
             query = self.input_processor.get_command()
-            print(query.unnamed_params, query.named_params)
+            print(query.named_params)
             self.running = False
 
 
