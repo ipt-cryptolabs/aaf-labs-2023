@@ -210,7 +210,7 @@ class OptionalNonRepeatedPattern(Pattern):
         return True  # TODO might be a bug here too
 
     def can_go_to_next_pattern(self) -> bool:
-        return True
+        return self.finished
 
 
 PATTERNS = {"create": [IdentifierPattern(name="table_name"),
