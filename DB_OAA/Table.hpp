@@ -9,6 +9,7 @@ using namespace std;
 class Table {
 private:
 	fstream csv_file;
+	string csv_file_path;
 	vector<string> names;
 	vector<vector<string>> data;
 public:
@@ -17,24 +18,23 @@ public:
 	void insert(vector<string> cells);
 	void toCSV(string csv_file_path);
 	void select();
-	void select(vector<string> names);
-	void join(Table& table, string name);
+	void select(vector<string> namess);
+	Table join(Table& table, string name1, string name2);
 };
 
-Table::Table(string csv_file_path) {
+Table::Table(string csv_file_path) : csv_file_path(csv_file_path){
 	csv_file.open(csv_file_path, ios::in);
 
 	string buff, word;
 	bool zerorow = true;
-	size_t i = 0;
-	size_t j = 0;
+	int i = 0;
+	int j = 0;
 	while (getline(csv_file, buff)) {
 		stringstream s(buff);
 		while (getline(s, word, ';')) {
 			if (zerorow) {
 				names.push_back(word);
-			}
-			else {
+			} else {
 				if (j == i) {
 					data.push_back(vector<string>());
 					j++;
@@ -53,37 +53,40 @@ Table::Table(string csv_file_path) {
 
 void Table::create(vector<string> names) {
 	this->names = names;
+	data.clear();
+	for (int i = 0; i < names.size(); i++)
+		data.push_back(vector<string>());
+	toCSV(csv_file_path);
 }
 
 void Table::insert(vector<string> cells) {
-	for (size_t i = 0; i < names.size(); i++) {
-		if (i < cells.size())
+	if (names.size() == cells.size())
+		for (int i = 0; i < names.size(); i++)
 			data[i].push_back(cells[i]);
-		else
-			data[i].push_back(" ");
-	}
+	else
+		cerr << "count of cells not correct!\n";
+	toCSV(csv_file_path);
 }
 
 
 void Table::toCSV(string csv_file_path) {
-	csv_file.open(csv_file_path, ios::out | ios::trunc);
+	csv_file.open(csv_file_path, ios::out|ios::trunc);
 
-	for (size_t i = 0; i < names.size(); i++) {
+	for (int i = 0; i < names.size(); i++) {
 		csv_file << names[i];
 		if (i != names.size() - 1)
 			csv_file << ";";
 		else
 			csv_file << "\n";
 	}
-	size_t i = 0;
-	size_t j = 0;
+	int i = 0;
+	int j = 0;
 	while (j < data[i].size()) {
 		csv_file << data[i][j];
 		if (i != data.size() - 1) {
 			csv_file << ";";
 			i++;
-		}
-		else {
+		} else {
 			csv_file << "\n";
 			i = 0;
 			j++;
@@ -110,7 +113,7 @@ int MxSz(vector<string> strs) {
 
 void Table::select() {
 	vector<int> max_sizes;
-	for (size_t i = 0; i < names.size(); i++) {
+	for (int i = 0; i < names.size(); i++) {
 		vector<string> strs;
 		strs.push_back(names[i]);
 		strs.insert(strs.end(), data[i].begin(), data[i].end());
@@ -119,12 +122,11 @@ void Table::select() {
 	string str1 = "";
 	string str2 = "";
 	bool firstrow = true;
-	for (size_t i = 0; i < 2; i++) {
-		for (size_t j = 0; j < names.size(); j++) {
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < names.size(); j++) {
 			if (firstrow) {
 				str1 += "+" + mlStr("-", max_sizes[j]) + "-";
-			}
-			else {
+			} else {
 				str2 += "|" + mlStr(" ", max_sizes[j] - names[j].size()) + names[j] + " ";
 			}
 		}
@@ -132,14 +134,13 @@ void Table::select() {
 			str1 += "+\n";
 			cout << str1;
 			firstrow = false;
-		}
-		else {
+		} else {
 			str2 += "|\n";
 			cout << str2 << str1;
 		}
 	}
-	size_t i = 0;
-	size_t j = 0;
+	int i = 0;
+	int j = 0;
 	string str = "";
 	bool kostyl = true;
 	while (j < data[i].size()) {
@@ -149,8 +150,7 @@ void Table::select() {
 				i++;
 			else
 				kostyl = false;
-		}
-		else {
+		} else {
 			str += "|\n";
 			cout << str;
 			str = "";
@@ -164,9 +164,9 @@ void Table::select() {
 
 void Table::select(vector<string> namess) {
 	vector<int> columnID;
-	for (size_t i = 0; i < namess.size(); i++) {
+	for (int i = 0; i < namess.size(); i++) {
 		bool exsist = false;
-		for (size_t j = 0; j < names.size(); j++) {
+		for (int j = 0; j < names.size(); j++) {
 			if (namess[i] == names[j]) {
 				exsist = true;
 				columnID.push_back(j);
@@ -174,12 +174,12 @@ void Table::select(vector<string> namess) {
 			}
 		}
 		if (!exsist) {
-			cerr << namess[i] << " does't exsist\n";
+			cerr << namess[i] << " doesn't exsist\n";
 		}
 	}
 
 	vector<int> max_sizes;
-	for (size_t i = 0; i < names.size(); i++) {
+	for (int i = 0; i < names.size(); i++) {
 		vector<string> strs;
 		strs.push_back(names[i]);
 		strs.insert(strs.end(), data[i].begin(), data[i].end());
@@ -189,12 +189,11 @@ void Table::select(vector<string> namess) {
 	string str1 = "";
 	string str2 = "";
 	bool firstrow = true;
-	for (size_t i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		for (int j : columnID) {
 			if (firstrow) {
 				str1 += "+" + mlStr("-", max_sizes[j]) + "-";
-			}
-			else {
+			} else {
 				str2 += "|" + mlStr(" ", max_sizes[j] - names[j].size()) + names[j] + " ";
 			}
 		}
@@ -202,14 +201,13 @@ void Table::select(vector<string> namess) {
 			str1 += "+\n";
 			cout << str1;
 			firstrow = false;
-		}
-		else {
+		} else {
 			str2 += "|\n";
 			cout << str2 << str1;
 		}
 	}
-	size_t i = 0;
-	size_t j = 0;
+	int i = 0;
+	int j = 0;
 	string str = "";
 	bool kostyl = true;
 	while (j < data[columnID[i]].size()) {
@@ -219,8 +217,7 @@ void Table::select(vector<string> namess) {
 				i++;
 			else
 				kostyl = false;
-		}
-		else {
+		} else {
 			str += "|\n";
 			cout << str;
 			str = "";
@@ -232,33 +229,41 @@ void Table::select(vector<string> namess) {
 	cout << str1;
 }
 
-void Table::join(Table& table, string name) {
+Table Table::join(Table& table, string name1, string name2) {
 	int nameID = -1, table_nameID = -1;
-	for (size_t i = 0; i < names.size(); i++) {
-		if (names[i] == name)
+	for (int i = 0; i < names.size(); i++) {
+		if (names[i] == name1)
 			nameID = i;
 	}
 	if (nameID == -1) {
-		cerr << name << " not found in table1\n";
-		return;
+		cerr << name1 << " not found in table1\n";
+		return Table("");
 	}
-	for (size_t i = 0; i < table.names.size(); i++) {
-		if (table.names[i] == name)
+	for (int i = 0; i < table.names.size(); i++) {
+		if (table.names[i] == name2)
 			table_nameID = i;
 	}
 	if (table_nameID == -1) {
-		cerr << name << " not found in table2\n";
-		return;
+		cerr << name2 << " not found in table2\n";
+		return Table("");
 	}
 
 	vector<vector<string>> new_data(table.data.size(), vector<string>(data[0].size()));
 
-	for (size_t j = 0; j < data[nameID].size(); j++)
-		for (size_t tj = 0; tj < table.data[table_nameID].size(); tj++)
+	for (int j = 0; j < data[nameID].size(); j++)
+		for (int tj = 0; tj < table.data[table_nameID].size(); tj++)
 			if (data[nameID][j] == table.data[table_nameID][tj])
-				for (size_t ti = 0; ti < table.data.size(); ti++)
+				for (int ti = 0; ti < table.data.size(); ti++)
 					new_data[ti][j] = table.data[ti][tj];
 
-	names.insert(names.end(), table.names.begin(), table.names.end());
-	data.insert(data.end(), new_data.begin(), new_data.end());
+	Table result("");
+	result.names = names;
+	result.data = data;
+	result.names.insert(result.names.end(), table.names.begin(), table.names.end());
+	result.data.insert(result.data.end(), new_data.begin(), new_data.end());
+	return result;
 }
+
+
+
+
