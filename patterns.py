@@ -207,7 +207,7 @@ class OptionalNonRepeatedPattern(Pattern):
             return False
 
     def is_optional(self) -> bool:
-        return True  # TODO might be a bug here too
+        return self.index == 0
 
     def can_go_to_next_pattern(self) -> bool:
         return self.finished
