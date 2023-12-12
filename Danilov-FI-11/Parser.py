@@ -24,9 +24,6 @@ token_re = re.compile(combined_pattern, re.IGNORECASE)
 
 
 def tokenize(text):
-    """
-    Tokenizes the given SQL-like text into a list of tokens.
-    """
     tokens = []
     for match in token_re.finditer(text):
         for name, value in match.groupdict().items():
@@ -38,15 +35,11 @@ def tokenize(text):
     return tokens
 
 
-CreateTable = namedtuple('CreateTable', ['table_name', 'columns'])  # columns is a list of (column_name, is_indexed)
-InsertInto = namedtuple('InsertInto', ['table_name', 'values'])  # values is a list of strings
-Select = namedtuple('Select', ['agg_functions', 'table_name', 'where_condition', 'group_by_columns'])  # agg_functions is a list of (function, column)
+CreateTable = namedtuple('CreateTable', ['table_name', 'columns']) 
+InsertInto = namedtuple('InsertInto', ['table_name', 'values'])  
+Select = namedtuple('Select', ['agg_functions', 'table_name', 'where_condition', 'group_by_columns'])  
 
 def parse_create(tokens):
-    """
-    Parses a CREATE table command from the list of tokens.
-    Assumes that the first token is 'CREATE'.
-    """
     assert tokens[0].value.upper() == 'CREATE'
     
     # Get table name
@@ -95,10 +88,6 @@ def parse_create(tokens):
     return CreateTable(table_name, columns)
 
 def parse_insert(tokens):
-    """
-    Parses an INSERT INTO table command from the list of tokens.
-    Assumes that the first token is 'INSERT'.
-    """
     assert tokens[0].value.upper() == 'INSERT'
     
     # Check for optional 'INTO' keyword
@@ -147,10 +136,6 @@ def parse_insert(tokens):
     return InsertInto(table_name, values)
 
 def parse_select(tokens):
-    """
-    Parses a SELECT command from the list of tokens.
-    Assumes that the first token is 'SELECT'.
-    """
     assert tokens[0].value.upper() == 'SELECT'
     
     i = 1  # Start parsing after 'SELECT'
@@ -199,7 +184,6 @@ def parse_select(tokens):
     if i < len(tokens) and tokens[i].value.upper() not in ('WHERE', 'GROUP_BY') and tokens[i].value != ';':
         raise ValueError(f"Unexpected text after table name: {tokens[i].value}")
     
-    # Initialize optional parts
     where_condition = None
     group_by_columns = []
     
@@ -227,7 +211,7 @@ def parse_select(tokens):
         elif tokens[i].value.upper() == 'GROUP_BY' and not group_by:
             group_by = True
             # Parse GROUP_BY columns
-            i += 1  # Move to first column
+            i += 1
             while i < len(tokens) and tokens[i].type == 'IDENTIFIER':
                 group_by_columns.append(tokens[i].value)
                 
@@ -241,5 +225,8 @@ def parse_select(tokens):
     # Ensure there is a ';' at the end
     if tokens[-1].value != ';':
         raise ValueError("Expected ';' at the end of SELECT command")
+    
+    if agg_functions and not(group_by_columns):
+        raise ValueError("Aggregate functions require a GROUP BY clause")
     
     return Select(agg_functions, table_name, where_condition, group_by_columns)

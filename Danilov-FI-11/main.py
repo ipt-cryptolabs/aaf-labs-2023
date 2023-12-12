@@ -7,8 +7,8 @@ def main():
     buffer = []
     while True:
         prompt = '...  ' if buffer else '> '
-        cmd = input(prompt)
-        
+        cmd = input(prompt)  
+              
         if cmd.strip().lower() == 'exit':
             break
 
