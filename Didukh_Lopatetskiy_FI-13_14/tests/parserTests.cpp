@@ -62,7 +62,7 @@ TEST_F(ParserTest, StringValueTest) {
 }
 
 TEST_F(ParserTest, SingleValueSetTest) {
-    std::string userInput = "INSERT Another_Collection { 333 };";
+    std::string userInput = "INSERT Another_Collection { 1 };";
     parser.lexer(userInput);    
 
     auto tokens = parser.getTokens();
@@ -70,7 +70,7 @@ TEST_F(ParserTest, SingleValueSetTest) {
     ASSERT_EQ(tokens.size(), 3);
     ASSERT_EQ(tokens.at(0), "INSERT");
     ASSERT_EQ(tokens.at(1), "Another_Collection");
-    ASSERT_EQ(tokens.at(2), "333");
+    ASSERT_EQ(tokens.at(2), "1");
 }
 
 TEST_F(ParserTest, NewLineSymbolHandlingTest) {
