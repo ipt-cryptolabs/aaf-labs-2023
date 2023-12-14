@@ -62,7 +62,7 @@ TEST_F(ParserTest, StringValueTest) {
 }
 
 TEST_F(ParserTest, SingleValueSetTest) {
-    std::string userInput = "INSERT Another_Collection {333};";
+    std::string userInput = "INSERT Another_Collection { 333 };";
     parser.lexer(userInput);    
 
     auto tokens = parser.getTokens();

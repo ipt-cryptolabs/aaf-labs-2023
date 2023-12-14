@@ -56,6 +56,12 @@ std::vector<std::set<int>> Collections::searchInCollection(const std::string& co
         std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
     }
 
+    for(const auto set : resultSets) {
+        for(const auto el : set)
+            std::cout << el << " " << std::endl;
+        std::cout << std::endl;
+    }
+
     return resultSets;
 }
 
