@@ -40,7 +40,17 @@ int main() {
         }
     }
 
-
     return 0;
+
+
+    /*
+    Приклад вводу команд:
+    CREATE cats id name age food
+    INSERT INTO cats 1 Snizhok 5 meat
+    SELECT FROM cats
+    SELECT FROM cats WHERE age > 5
+    SELECT FROM cats OBDER_BY age DESC
+    SELECT FROM cats ORDER_BY name ASC
+    */
 
 }
