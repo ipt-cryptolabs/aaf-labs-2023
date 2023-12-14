@@ -38,7 +38,7 @@ class Compare:
 
     def match(self):
         if self.pattern.match(self.token):
-            print("aclehwelifhwleifhwfe!")
+            #print("aclehwelifhwleifhwfe!")
             self.matched = True
             self.go_to_next_token = self.pattern.can_go_to_next_token()
             self.go_to_next_pattern = self.pattern.can_go_to_next_pattern()
@@ -95,9 +95,9 @@ class InputProcessor:
         return True
 
     def is_input_finished(self) -> bool:
-        print(self.text)
+        #print(self.text)
         without_quotes = sub("\"(.*?)\"", "", self.text)
-        print(";" in without_quotes)
+        #print(";" in without_quotes)
         return ";" in without_quotes
 
     def is_last_input_good(self) -> bool:
@@ -111,7 +111,7 @@ class InputProcessor:
 
         # remove_text_after_first_semicolon
         for i in range(0, len(text_divided_by_quotes), 2):
-            print(i, text_divided_by_quotes[i])
+            #print(i, text_divided_by_quotes[i])
             if ";" in text_divided_by_quotes[i]:
                 text_divided_by_quotes = list(text_divided_by_quotes[:i+1])
                 text_divided_by_quotes[-1] = text_divided_by_quotes[-1].split(sep=";", maxsplit=1)[0]
@@ -120,7 +120,7 @@ class InputProcessor:
             self.clear()
             raise ImplementationError("Could not find semicolon by unknown reason. "
                                       "Please send your input to the developer")
-        print(text_divided_by_quotes)
+        #print(text_divided_by_quotes)
 
         for i in range(0, len(text_divided_by_quotes), 2):
             for char in SPECIAL_CHARS:
@@ -132,7 +132,7 @@ class InputProcessor:
             self.tokens.append(f"\"{text_divided_by_quotes[i]}\"")  # Just put everything in brackets as a single token
             self.tokens += text_divided_by_quotes[i+1].split()
 
-        print(self.tokens)
+        #print(self.tokens)
 
 
     def lexical_analysis(self):
@@ -156,7 +156,7 @@ class InputProcessor:
         tokens = self.tokens[1:].copy()
         while tokens and pattern:
             compare = Compare(pattern[0], tokens[0])
-            print(f"Comparing: {pattern[0]} {tokens[0]}")
+            #print(f"Comparing: {pattern[0]} {tokens[0]}")
             if compare.to_save_in_query():
                 self.query.add(tokens[0], param_name=pattern[0].name)
             compare.match()
@@ -167,7 +167,7 @@ class InputProcessor:
             if compare.go_to_next_pattern:
                 pattern = pattern[1:]
             if compare.go_to_next_token:
-                print("Going to next token")
+                #print("Going to next token")
                 tokens = tokens[1:]
         else:
             if pattern:
@@ -186,7 +186,7 @@ class InputProcessor:
                 continue
 
             if not self.is_keyword_valid():
-                print("Invalid keyword")
+                #print("Invalid keyword")
                 self.clear()
                 continue
 
@@ -207,12 +207,40 @@ class InputProcessor:
         return self.query
 
 
+class Entry:
+
+    def __init__(self, *values):
+        self.values = values
+
+
+class Table:
+
+    def __init__(self, name: str, columns: list):
+        self.name = name
+        self.columns = columns
+
 
 class Database:
 
     def __init__(self):
+        self.tables = []
+
+
+class DatabaseProcessor:
+
+    def __init__(self):
+        self.database = Database()
+
+    def process_query(self):
+        pass  # TODO This is what we will do today
+
+
+class DatabaseApp:
+
+    def __init__(self):
         self.running = True
         self.input_processor = InputProcessor()
+        self.database_processor = DatabaseProcessor()
 
     def run(self):
         while self.running:
@@ -222,5 +250,5 @@ class Database:
 
 
 if __name__ == "__main__":
-    database = Database()
+    database = DatabaseApp()
     database.run()
