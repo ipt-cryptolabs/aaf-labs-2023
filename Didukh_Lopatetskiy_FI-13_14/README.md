@@ -37,5 +37,5 @@ cmake .. && make
 ```
   - To run the test program (if applicable):
 ```
-./tests/tests
+./tests/runTests
 ```

@@ -1,100 +1,5 @@
 #include "invertedIndex.hpp"
 
-void Parser::processCommand(const std::smatch& match, const std::string& commandName) {
-    std::string collectionName = match[1];
-
-    if (std::regex_match(collectionName, identifierPattern)) {
-        tokens.push_back(commandName);
-        tokens.push_back(collectionName);
-    } else {
-        std::cout << "Error: Invalid collection name." << std::endl << std::endl;
-    }
-}
-
-void Parser::processCreateCommand(const std::smatch& match) {
-    processCommand(match, "CREATE");
-}
-
-void Parser::processPrintIndexCommand(const std::smatch& match) {
-    processCommand(match, "PRINT_INDEX");
-}
-
-void Parser::processCommandWithValues(const std::smatch& match, const std::string& commandName) {
-    std::string collectionName = match[1];
-    std::string values = match[2];
-
-    if (std::regex_match(collectionName, identifierPattern)) {
-        tokens.push_back(commandName);
-        tokens.push_back(collectionName);
-
-        std::sregex_iterator it(values.begin(), values.end(), numberPattern);
-        std::sregex_iterator end;
-
-        while (it != end) {
-            std::smatch numberMatch = *it;
-            std::string numberToken = numberMatch[1];
-            tokens.push_back(numberToken);
-            ++it;
-        }
-    } else {
-        std::cout << "Invalid collection name." << std::endl << std::endl;
-    }
-}
-
-void Parser::processInsertCommand(const std::smatch& match) {
-    processCommandWithValues(match, "INSERT");
-}
-
-void Parser::processSearchCommand(const std::smatch& match) {
-    processCommandWithValues(match, "SEARCH");
-}
-
-void Parser::processContainsCommand(const std::smatch& match) {
-    processCommandWithValues(match, "CONTAINS");
-}
-
-void Parser::lexer(std::string inputString) {
-    clearTokens();
-    std::smatch match;
-
-    if(std::regex_match(inputString, match, createPattern))
-        processCreateCommand(match);
-
-    if (std::regex_match(inputString, match, insertPattern)) 
-        processInsertCommand(match);
-
-    if (std::regex_match(inputString, match, printIndexPattern))
-        processPrintIndexCommand(match);
-
-    if (std::regex_match(inputString, match, searchPattern))
-        processSearchCommand(match);
-
-    if (std::regex_match(inputString, match, containsPattern))
-        processContainsCommand(match);
-}
-
-std::vector<std::string> Parser::getTokens() {
-    return tokens;
-}
-
-void Parser::clearTokens() {
-    if(tokens.size())
-        tokens.clear();
-}
-
-std::set<int> Collections::getSetFromTokens(const std::vector<std::string>& tokens) {
-    std::set<int> setToInsert;
-    for(int j = 2; j < tokens.size(); j++) {
-        try{
-            setToInsert.emplace(std::stoi(tokens.at(j)));
-        } catch(const std::invalid_argument& e) {
-        
-        }
-    } 
-
-    return setToInsert;
-}
-
 void Collections::parse(const std::string& inputString) {
     parser.lexer(inputString);
     auto tokens = parser.getTokens(); 
@@ -112,7 +17,7 @@ void Collections::parse(const std::string& inputString) {
             printCollectionIndex(tokens.at(1));
 
         if(tokens.at(0) == "SEARCH") 
-            searchInCollection(collectionName, getSetFromTokens(tokens));
+            searchInCollection(collectionName);
 
         if(tokens.at(0) == "CONTAINS") 
             containsCollection(collectionName, getSetFromTokens(tokens));
@@ -141,27 +46,41 @@ void Collections::printCollectionIndex(const std::string &collectionName) {
     collections[collectionName].print_index();
 }
 
-void Collections::searchInCollection(const std::string& collectionName, const std::set<int>& set) {
-    if (collections.find(collectionName) == collections.end()) {
-        std::cout << "Error: Searching in collection that doesn't exist '" << collectionName << "'" << std::endl;
-    } else {
-        std::cout << "search in collection will be executed with this input: " << collectionName << ", ";
-        for(const auto& num : set)
-            std::cout << num << " ";
+std::vector<std::set<int>> Collections::searchInCollection(const std::string& collectionName) {
+    std::vector<std::set<int>> resultSets;
 
-        std::cout << std::endl;
+    if (collections.find(collectionName) != collections.end()) {
+        std::cout << "Collection '" << collectionName << "' exists in collections\n";
+        resultSets = collections[collectionName].getSets();
+    } else {
+        std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
     }
+
+    return resultSets;
 }
 
-void Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
+bool Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
     if (collections.find(collectionName) == collections.end()) {
         std::cout << "Error: Contains method called in collection that doesn't exist '" << collectionName << "'" << std::endl;
+        return false;
     } else {
-        std::cout << "search in collection will be executed with this input: " << collectionName << ", ";
-        for(const auto& num : set)
-            std::cout << num << " ";
+        Collection& currentCollection = collections[collectionName];
 
-        std::cout << std::endl;
+        bool found = false;
+        for (const auto& existingSet : currentCollection.getSets()) {
+            if (existingSet == set) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            std::cout << "Collection '" << collectionName << "' contains the set." << std::endl;
+            return true;
+        } else {
+            std::cout << "Collection '" << collectionName << "' does not contain the set." << std::endl;
+            return false;
+        }
     }
 }
 
