@@ -1,3 +1,4 @@
+from typing import List
 from re import sub
 from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS
 
@@ -107,7 +108,7 @@ class InputProcessor:
         self.text += self.new_string + " "
 
     def extract_tokens(self):
-        text_divided_by_quotes = self.text.split(sep="\"")  # count("\"") % 2 == 0
+        text_divided_by_quotes: List[str] = self.text.split(sep="\"")  # count("\"") % 2 == 0
 
         # remove_text_after_first_semicolon
         for i in range(0, len(text_divided_by_quotes), 2):
@@ -207,6 +208,17 @@ class InputProcessor:
         return self.query
 
 
+class Column:
+
+    def __init__(self, name):
+        self.name = name
+
+
+class IndexedColumn(Column):
+
+    pass  # TODO
+
+
 class Entry:
 
     def __init__(self, *values):
@@ -215,9 +227,10 @@ class Entry:
 
 class Table:
 
-    def __init__(self, name: str, columns: list):
+    def __init__(self, name: str, columns: List[Column]):
         self.name = name
         self.columns = columns
+        self.len = len(columns)
 
 
 class Database:
@@ -225,14 +238,46 @@ class Database:
     def __init__(self):
         self.tables = []
 
+    def create(self, name: str, columns: List[Column]):
+        self.tables.append(Table(name, columns))
+
 
 class DatabaseProcessor:
 
     def __init__(self):
         self.database = Database()
 
-    def process_query(self):
-        pass  # TODO This is what we will do today
+    def create(self, query):
+        table_name = query["table_name"]
+        columns_list: List[Column] = []
+        keywords: List[str] = query["columns"]
+        length = len(keywords)
+        for i in range(length):
+            if keywords[i].lower() in (",", "indexed"):
+                continue  # Commas are trash
+            elif i+1 < length and keywords[i+1].lower() == "indexed":
+                columns_list.append(IndexedColumn(keywords[i]))
+            else:
+                columns_list.append(Column(keywords[i]))
+
+        self.database.create(table_name, columns_list)
+
+
+    def insert(self, query):
+        pass  # TODO
+
+    def select(self, query):
+        pass  # TODO
+
+    def process_query(self, query):
+        if query["command"] == ["create"]:
+            self.create(query)
+        elif query["command"] == ["insert"]:
+            self.insert(query)
+        elif query["command"] == ["select"]:
+            self.select(query)
+        else:
+            raise ValueError(f"Unknown command: {query['command']}")
 
 
 class DatabaseApp:
