@@ -52,9 +52,8 @@ std::vector<std::set<int>> Collections::searchInCollection(const std::string& co
     if (collections.find(collectionName) != collections.end()) {
         std::cout << "Collection '" << collectionName << "' exists in collections\n";
         resultSets = collections[collectionName].getSets();
-    } else {
+    } else 
         std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
-    }
 
     for(const auto& set : resultSets) {
         for(auto it = set.begin(); it != set.end(); ++it) 

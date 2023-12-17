@@ -26,6 +26,7 @@ private:
 
 private:    
     std::set<int> getSetFromTokens(const std::vector<std::string>& tokens);
+
 public:
     void insertSet(const std::string& collecntionName, const std::set<int>& set);
     bool containsCollection(const std::string& collectionName, const std::set<int>& set);
