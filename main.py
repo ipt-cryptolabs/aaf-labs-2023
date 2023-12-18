@@ -36,18 +36,24 @@ class Compare:
         self.matched = False
         self.go_to_next_pattern = False
         self.go_to_next_token = False
+        self.expected_pattern = ""
 
     def match(self):
         if self.pattern.match(self.token):
             self.matched = True
             self.go_to_next_token = self.pattern.can_go_to_next_token()
             self.go_to_next_pattern = self.pattern.can_go_to_next_pattern()
+            self.expected_pattern = ""
         elif self.pattern.is_optional():
             self.matched = True
             self.go_to_next_pattern = True
+            self.expected_pattern = f"{self.pattern}"
 
     def to_save_in_query(self):
         return self.pattern.is_matching(self.token)
+
+    def get_expected_pattern(self):
+        return self.expected_pattern
 
 
 class StandardInputDevice:
@@ -149,13 +155,17 @@ class InputProcessor:
         self.query.add(self.command, param_name="command")
         pattern = PATTERNS[self.command]
         tokens = self.tokens[1:].copy()
+        expected_pattern = ""
         while tokens and pattern:
             compare = Compare(pattern[0], tokens[0])
             if compare.to_save_in_query():
                 self.query.add(tokens[0], param_name=pattern[0].name)
             compare.match()
-            if not compare.matched:
-                self.output_device.output(f"Expected {pattern[0]}, got: '{tokens[0]}'")
+            if compare.matched:
+                expected_pattern = compare.get_expected_pattern()
+            else:
+                expected_pattern = expected_pattern + f" or {pattern[0]}" if expected_pattern else f"{pattern[0]}"
+                self.output_device.output(f"Expected {expected_pattern}, got: '{tokens[0]}'")
                 self.clear()
                 break
             if compare.go_to_next_pattern:
