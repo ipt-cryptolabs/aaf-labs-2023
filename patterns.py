@@ -32,6 +32,10 @@ class Pattern(ABC):
     def can_go_to_next_token(self) -> bool:
         return True
 
+    @abstractmethod
+    def __repr__(self):
+        pass
+
 
 class StringPattern(Pattern):
 
@@ -68,9 +72,7 @@ class IdentifierPattern(Pattern):
 
     def is_matching(self, token: str) -> bool:
         if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
-            print("Matched!")
             return True
-        print("Unmatched!")
         return False
 
     def match(self, token) -> bool:
@@ -81,6 +83,9 @@ class IdentifierPattern(Pattern):
 
     def can_go_to_next_pattern(self) -> bool:
         return True
+
+    def __repr__(self):
+        return "Identifier"
 
 
 class LiteralPattern(Pattern):
@@ -96,6 +101,9 @@ class LiteralPattern(Pattern):
 
     def can_go_to_next_pattern(self) -> bool:
         return True
+
+    def __repr__(self):
+        return "Literal"
 
 
 class LiteralOrIdentifierPattern(Pattern):
@@ -114,6 +122,9 @@ class LiteralOrIdentifierPattern(Pattern):
     def can_go_to_next_pattern(self) -> bool:
         return True
 
+    def __repr__(self):
+        return "Literal or Identifier"
+
 
 class AggregationFunctionPattern(Pattern):
 
@@ -129,6 +140,9 @@ class AggregationFunctionPattern(Pattern):
     def can_go_to_next_pattern(self) -> bool:
         return True
 
+    def __repr__(self):
+        return "Aggregation function"
+
 
 class RepeatedPattern(Pattern):
 
@@ -141,7 +155,7 @@ class RepeatedPattern(Pattern):
         self.finished = False
 
     def __repr__(self):
-        return f"RepeatedPattern with {self.patterns[self.index]}"
+        return f"{self.patterns[self.index]}"
 
     def is_matching(self, token: str) -> bool:
         return self.patterns[self.index].match(token)
@@ -187,7 +201,7 @@ class OptionalNonRepeatedPattern(Pattern):
     def is_matching(self, token: str) -> bool:
         return self.patterns[self.index].match(token)
 
-    def match(self, token: str) -> bool:  # TODO better not forget to test this
+    def match(self, token: str) -> bool:
         if self.is_matching(token):
             self.index = self.index + 1
             self.finished = self.index == self.last_index
@@ -203,6 +217,9 @@ class OptionalNonRepeatedPattern(Pattern):
 
     def can_go_to_next_pattern(self) -> bool:
         return self.finished
+
+    def __repr__(self):
+        return f"{self.patterns[self.index]}"
 
 
 PATTERNS = {"create": [IdentifierPattern(name="table_name"),
