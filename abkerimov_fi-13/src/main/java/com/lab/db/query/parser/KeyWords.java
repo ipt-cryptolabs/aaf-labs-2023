@@ -6,4 +6,7 @@ public enum KeyWords {
     PRINT_TREE,
     CONTAINS,
     SEARCH,
-    }
+    WHERE,
+    INTERSECTS,
+    LEFT_OF,
+}

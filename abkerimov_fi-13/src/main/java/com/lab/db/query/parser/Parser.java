@@ -1,5 +1,5 @@
 package com.lab.db.query.parser;
-import java.io.SyncFailedException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +29,7 @@ public class Parser {
     private Character currentChar;
 
     private boolean checkText(String text) {
-        return Pattern.matches("([a-zA-Z][a-zA-Z0-9_]* *(\\[\\s*\\d+\\s*,\\s*\\d+\\s*\\])? *)*;", text);
+        return Pattern.matches("([a-zA-Z][a-zA-Z0-9_]* *(\\[\\s*-?\\d+\\s*,\\s*-?\\d+\\s*\\])? *)*;", text);
     }
     public Parser(String text) {
         if (checkText(text)) {
@@ -74,7 +74,7 @@ public class Parser {
 
     private int integer() {
         String result = "";
-        while (this.currentChar != ';' && Character.isDigit(this.currentChar) ) {
+        while (Character.isDigit(this.currentChar) || this.currentChar == '-') {
             result += this.currentChar;
             this.advance();
         }
@@ -104,7 +104,7 @@ public class Parser {
             if (this.currentChar == ' ') {
                 skipWhitespace();
             }
-            if (Character.isDigit(this.currentChar)) {
+            if (Character.isDigit(this.currentChar) || this.currentChar == '-') {
                 if (isFirstNumber) {
                     a = integer();
                     isFirstNumber = false;
@@ -119,8 +119,6 @@ public class Parser {
         return aAndB;
     }
     public List<Token> tokenize() {
-        // i will fix this bad code
-
         List<Token> tokens = new ArrayList<>();
         if (this.currentChar == ' ') {
             this.skipWhitespace();
