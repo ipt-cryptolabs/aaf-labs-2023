@@ -147,21 +147,16 @@ class RepeatedPattern(Pattern):
         return self.patterns[self.index].match(token)
 
     def match(self, token):
-        print(f"Matching {token} to pattern {self.patterns[self.index]}")
         if self.is_matching(token):
-            print(f"Matched! (index={self.index})")
             self.index = self.repeat_from if self.index == self.last_index else self.index + 1
             return True
         elif self.index == self.last_index:
-            print("Kind of matched...")
             self.finished = True
             return True
         elif self.patterns[self.index].is_optional():
-            print("Skipping optional...")
             self.index += 1
             return self.match(token)
         else:
-            print("Not matched!")
             return False
 
     def is_optional(self) -> bool:
@@ -194,16 +189,13 @@ class OptionalNonRepeatedPattern(Pattern):
 
     def match(self, token: str) -> bool:  # TODO better not forget to test this
         if self.is_matching(token):
-            print("Matched!")
             self.index = self.index + 1
             self.finished = self.index == self.last_index
             return True
         elif self.patterns[self.index].is_optional():
-            print("Skipping optional...")
             self.index += 1
             return self.match(token)
         else:
-            print("Not matched!")
             return False
 
     def is_optional(self) -> bool:
