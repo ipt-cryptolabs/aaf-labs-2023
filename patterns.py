@@ -72,7 +72,7 @@ class IdentifierPattern(Pattern):
 
     def is_matching(self, token: str) -> bool:
         if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
-            return True
+            return token not in KEYWORDS
         return False
 
     def match(self, token) -> bool:
@@ -85,7 +85,7 @@ class IdentifierPattern(Pattern):
         return True
 
     def __repr__(self):
-        return "Identifier"
+        return "Identifier (keywords are not valid Identifiers)"
 
 
 class LiteralPattern(Pattern):
@@ -110,7 +110,7 @@ class LiteralOrIdentifierPattern(Pattern):
 
     def is_matching(self, token: str) -> bool:
         if fullmatch("[a-zA-Z][a-zA-Z0-9_]*", token):
-            return True
+            return token not in KEYWORDS
         return token[0] == token[-1] == "\""
 
     def match(self, token) -> bool:
@@ -123,7 +123,7 @@ class LiteralOrIdentifierPattern(Pattern):
         return True
 
     def __repr__(self):
-        return "Literal or Identifier"
+        return "Literal or Identifier (keywords are not valid Identifiers)"
 
 
 class AggregationFunctionPattern(Pattern):
