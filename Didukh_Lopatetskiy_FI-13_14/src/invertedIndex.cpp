@@ -84,14 +84,12 @@ bool Collections::containsCollection(const std::string &collectionName, const st
 void Collection::insert(const std::set<int> &set) {
     sets.push_back(set);
     
-    for(auto it = set.begin(); it != set.end(); ++it) {
-        invertedIndex[*it].insert("set" + std::to_string(sets.size()));
-    }
+    for(auto it = set.begin(); it != set.end(); ++it) 
+        invertedIndex[*it].insert(sets.size());
 }
 
-
 bool Collection::contains(const std::set<int> &set) {
-    std::set<std::string> intersection;
+    std::set<int> intersection;
     bool first = true;
 
     for (int num : set) {
@@ -101,7 +99,7 @@ bool Collection::contains(const std::set<int> &set) {
                 intersection = it->second;
                 first = false;
             } else {
-                std::set<std::string> temp_intersection;
+                std::set<int> temp_intersection;
                 std::set_intersection(
                     intersection.begin(), intersection.end(),
                     it->second.begin(), it->second.end(),
@@ -115,16 +113,12 @@ bool Collection::contains(const std::set<int> &set) {
         }
     }
 
-    const int inputSetSize = set.size();
     for(auto it = intersection.begin(); it != intersection.end(); ++it) {
-
+        if(sets.at(*it - 1).size() != set.size())
+            return false;
     }
 
-    for(auto it = intersection.begin(); it != intersection.end(); it++)
-        std::cout << *it << " ";
-
     return !intersection.empty();
-
 }
 
 void Collection::print_index() {

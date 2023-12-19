@@ -11,7 +11,7 @@
 
 class Collection {
 private: 
-    std::map<int, std::set<std::string>> invertedIndex;
+    std::map<int, std::set<int>> invertedIndex;
     std::vector<std::set<int>> sets;
 
 public:
