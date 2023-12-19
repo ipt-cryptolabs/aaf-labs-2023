@@ -24,8 +24,6 @@ void Collections::parse(const std::string &inputString) {
     } else {
         std::cout << "Error: Invalid command syntaxis, try again.\n";
     }
-
-
 }
 
 void Collections::createCollection(const std::string &collectionName) {

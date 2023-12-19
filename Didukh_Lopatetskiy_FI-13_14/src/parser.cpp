@@ -24,6 +24,18 @@ void Parser::processSearchCommand(const std::smatch& match) {
     processCommand(match, "SEARCH");
 }
 
+void Parser::processIntersectsCommand(const std::smatch& match) {
+    processCommandWithValues(match, "SEARCH_INTERSECTS");
+}
+
+void Parser::processContainsSetCommand(const std::smatch& match) {
+    processCommandWithValues(match, "SEARCH_CONTAINS");
+}
+
+void Parser::processContainedByCommand(const std::smatch& match) {
+    processCommandWithValues(match, "SEARCH_CONTAINED_BY");
+}
+
 void Parser::processCommandWithValues(const std::smatch& match, const std::string& commandName) {
     std::string collectionName = match[1];
     std::string values = match[2];
@@ -72,6 +84,15 @@ void Parser::lexer(std::string inputString) {
 
     if (std::regex_match(inputString, match, containsPattern))
         processContainsCommand(match);
+
+    if(std::regex_match(inputString, match, intersectsPattern))
+        processIntersectsCommand(match);
+
+    if(std::regex_match(inputString, match, containsSetPattern))
+        processContainsSetCommand(match);
+
+    if(std::regex_match(inputString, match, containedByPattern))
+        processContainedByCommand(match);
 }
 
 std::vector<std::string> Parser::getTokens() {
