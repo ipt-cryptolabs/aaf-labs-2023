@@ -18,11 +18,20 @@ void Collections::parse(const std::string &inputString) {
 
         if(tokens.at(0) == "SEARCH") 
             searchInCollection(collectionName);
+        
+        if(tokens.at(0) == "SEARCH_INTERSECTS")
+            intersectsSearch(collectionName, getSetFromTokens(tokens));
+        
+        if(tokens.at(0) == "SEARCH_CONTAINS")
+            intersectsSearch(collectionName, getSetFromTokens(tokens));
+        
+        if(tokens.at(0) == "SEARCH_CONTAINED_BY")
+            intersectsSearch(collectionName, getSetFromTokens(tokens));
 
         if(tokens.at(0) == "CONTAINS") 
             containsCollection(collectionName, getSetFromTokens(tokens));
     } else {
-        std::cout << "Error: Invalid command syntaxis, try again.\n";
+        std::cout << "Error: Invalid command syntax, try again.\n";
     }
 }
 
@@ -54,13 +63,16 @@ std::vector<std::set<int>> Collections::searchInCollection(const std::string &co
     } else 
         std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
 
-    for(const auto& set : resultSets) {
+    printsSets(resultSets);
+    return resultSets;
+}
+
+void Collections::printsSets(const std::vector<std::set<int>> &sets) {
+    for(const auto& set : sets) {
         for(auto it = set.begin(); it != set.end(); ++it) 
             std::cout << *it << " ";
         std::cout << std::endl;
     }
-
-    return resultSets;
 }
 
 bool Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
@@ -129,4 +141,30 @@ void Collection::print_index() {
         
         std::cout << std::endl;
     }
+}
+
+std::vector<std::set<int>> Collections::intersectsSearch(const std::string &collectionName, const std::set<int> &set) {
+    std::vector<std::set<int>> resultSets;
+
+    if (collections.find(collectionName) == collections.end()) {
+        std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
+        return resultSets;
+    }
+
+    Collection& currentCollection = collections[collectionName];
+
+    for (const auto& existingSet : currentCollection.getSets()) {
+        std::set<int> intersection;
+        std::set_intersection(
+            set.begin(), set.end(),
+            existingSet.begin(), existingSet.end(),
+            std::inserter(intersection, intersection.begin())
+        );
+
+        if (!intersection.empty()) 
+            resultSets.push_back(existingSet);
+    }
+
+    printsSets(resultSets);
+    return resultSets;
 }

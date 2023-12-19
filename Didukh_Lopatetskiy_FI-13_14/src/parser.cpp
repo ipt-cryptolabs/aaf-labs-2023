@@ -7,9 +7,8 @@ void Parser::processCommand(const std::smatch& match, const std::string& command
     if (std::regex_match(collectionName, identifierPattern)) {
         tokens.push_back(commandName);
         tokens.push_back(collectionName);
-    } else {
+    } else 
         std::cout << "Error: Invalid collection name." << std::endl << std::endl;
-    }
 }
 
 void Parser::processCreateCommand(const std::smatch& match) {
@@ -109,9 +108,7 @@ std::set<int> Collections::getSetFromTokens(const std::vector<std::string>& toke
     for(int j = 2; j < tokens.size(); j++) {
         try{
             setToInsert.emplace(std::stoi(tokens.at(j)));
-        } catch(const std::invalid_argument& e) {
-        
-        }
+        } catch(const std::invalid_argument& e) {}
     } 
 
     return setToInsert;
