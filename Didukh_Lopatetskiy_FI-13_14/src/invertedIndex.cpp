@@ -168,3 +168,49 @@ std::vector<std::set<int>> Collections::intersectsSearch(const std::string &coll
     printsSets(resultSets);
     return resultSets;
 }
+
+std::vector<std::set<int>> Collections::containsSearch(const std::string &collectionName, const std::set<int> &set) {
+    std::vector<std::set<int>> resultSets;
+
+    if (collections.find(collectionName) == collections.end()) {
+        std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
+        return resultSets;
+    }
+
+    /*
+        u should change Collection::contains method, so it will return std::vector<std::set<int>>
+        
+        than in Collections:containsCollection
+            return intersection.empty();
+        
+        and in continsSearch just print those sets :))
+
+    */
+
+    printsSets(resultSets);
+    return resultSets;
+}
+
+std::vector<std::set<int>> Collections::containedBySearch(const std::string &collectionName, const std::set<int> &set) {
+    std::vector<std::set<int>> resultSets;
+
+    if (collections.find(collectionName) == collections.end()) {
+        std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
+        return resultSets;
+    }
+
+    Collection& currentCollection = collections[collectionName];
+
+    // i guess this could be done using sinilar idea to collection::contains
+    // but this implementation works fine 
+    // mb will change if there will be some time 
+
+    for (const auto& existingSet : currentCollection.getSets()) {
+        if (std::includes(set.begin(), set.end(), existingSet.begin(), existingSet.end())) {
+            resultSets.push_back(existingSet);
+        }
+    }
+
+    printsSets(resultSets);
+    return resultSets;
+}
