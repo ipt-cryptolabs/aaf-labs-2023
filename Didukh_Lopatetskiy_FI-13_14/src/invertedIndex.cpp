@@ -1,6 +1,6 @@
 #include "invertedIndex.hpp"
 
-void Collections::parse(const std::string& inputString) {
+void Collections::parse(const std::string &inputString) {
     parser.lexer(inputString);
     auto tokens = parser.getTokens(); 
     
@@ -27,7 +27,7 @@ void Collections::parse(const std::string& inputString) {
 
 }
 
-void Collections::createCollection(const std::string& collectionName) {
+void Collections::createCollection(const std::string &collectionName) {
     if (collections.find(collectionName) != collections.end()) {
         std::cout << "Error: Creating collection with existing name '" << collectionName << "'" << std::endl;
     } else {
@@ -36,7 +36,7 @@ void Collections::createCollection(const std::string& collectionName) {
     }
 }
 
-void Collections::insertSet(const std::string& collecntionName, const std::set<int>& set) {
+void Collections::insertSet(const std::string &collecntionName, const std::set<int> &set) {
     collections[collecntionName].insert(set);
     std::cout << "Set has been added to " << collecntionName << std::endl;
 }
@@ -46,14 +46,19 @@ void Collections::printCollectionIndex(const std::string &collectionName) {
     collections[collectionName].print_index();
 }
 
-std::vector<std::set<int>> Collections::searchInCollection(const std::string& collectionName) {
+std::vector<std::set<int>> Collections::searchInCollection(const std::string &collectionName) {
     std::vector<std::set<int>> resultSets;
 
     if (collections.find(collectionName) != collections.end()) {
         std::cout << "Collection '" << collectionName << "' exists in collections\n";
         resultSets = collections[collectionName].getSets();
-    } else {
+    } else 
         std::cout << "Collection '" << collectionName << "' doesn't exist in collections\n";
+
+    for(const auto& set : resultSets) {
+        for(auto it = set.begin(); it != set.end(); ++it) 
+            std::cout << *it << " ";
+        std::cout << std::endl;
     }
 
     return resultSets;
@@ -61,35 +66,59 @@ std::vector<std::set<int>> Collections::searchInCollection(const std::string& co
 
 bool Collections::containsCollection(const std::string &collectionName, const std::set<int> &set) {
     if (collections.find(collectionName) == collections.end()) {
-        std::cout << "Error: Contains method called in collection that doesn't exist '" << collectionName << "'" << std::endl;
+        std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
         return false;
+    }
+
+    Collection& currentCollection = collections[collectionName];
+
+    if (currentCollection.contains(set)) {
+        std::cout << "Collection '" << collectionName << "' contains the set." << std::endl;
+        return true;
     } else {
-        Collection& currentCollection = collections[collectionName];
-
-        bool found = false;
-        for (const auto& existingSet : currentCollection.getSets()) {
-            if (existingSet == set) {
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            std::cout << "Collection '" << collectionName << "' contains the set." << std::endl;
-            return true;
-        } else {
-            std::cout << "Collection '" << collectionName << "' does not contain the set." << std::endl;
-            return false;
-        }
+        std::cout << "Collection '" << collectionName << "' does not contain the set." << std::endl;
+        return false;
     }
 }
 
-void Collection::insert(const std::set<int>& set) {
+void Collection::insert(const std::set<int> &set) {
     sets.push_back(set);
     
-    for(auto it = set.begin(); it != set.end(); ++it) {
-        invertedIndex[*it].push_back("set" + std::to_string(sets.size()));
+    for(auto it = set.begin(); it != set.end(); ++it) 
+        invertedIndex[*it].insert(sets.size());
+}
+
+bool Collection::contains(const std::set<int> &set) {
+    std::set<int> intersection;
+    bool first = true;
+
+    for (int num : set) {
+        auto it = invertedIndex.find(num);
+        if (it != invertedIndex.end()) {
+            if (first) {
+                intersection = it->second;
+                first = false;
+            } else {
+                std::set<int> temp_intersection;
+                std::set_intersection(
+                    intersection.begin(), intersection.end(),
+                    it->second.begin(), it->second.end(),
+                    std::inserter(temp_intersection, temp_intersection.begin())
+                );
+                intersection = temp_intersection;
+            }
+        } else {
+            intersection.clear();
+            break;
+        }
     }
+
+    for(auto it = intersection.begin(); it != intersection.end(); ++it) {
+        if(sets.at(*it - 1).size() != set.size())
+            return false;
+    }
+
+    return !intersection.empty();
 }
 
 void Collection::print_index() {

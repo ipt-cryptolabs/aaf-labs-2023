@@ -8,11 +8,10 @@
 #include <regex>
 
 namespace {
-    std::regex insertPattern(R"(^\s*INSERT\s+([a-zA-Z][a-zA-Z0-9_]*)\s+\{((?:\s*[-+]?[0-9]+\s*,\s*)*[-+]?[0-9]+)\s*};)", std::regex::icase);
-
+    std::regex insertPattern(R"(^\s*INSERT\s+([a-zA-Z][a-zA-Z0-9_]*)\s+\{((?:\s*[-+]?[0-9]+(?:\s*,\s*[-+]?[0-9]+)*)?)\s*};)", std::regex::icase);
     std::regex createPattern("^\\s*CREATE\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*;\\s*$", std::regex::icase);
     std::regex printIndexPattern("^\\s*PRINT_INDEX\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*;\\s*$", std::regex::icase);
-    std::regex containsPattern(R"(^\s*CONTAINS\s+([a-zA-Z][a-zA-Z0-9_]*)\s+\{((?:\s*[-+]?[0-9]+\s*,\s*)*[-+]?[0-9]+)\s*};)", std::regex::icase);
+    std::regex containsPattern(R"(^\s*CONTAINS\s+([a-zA-Z][a-zA-Z0-9_]*)\s+\{((?:\s*[-+]?[0-9]+(?:\s*,\s*[-+]?[0-9]+)*)?)\s*};)", std::regex::icase);
     std::regex searchPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*;\\s*$", std::regex::icase);
 
     std::regex identifierPattern("[a-zA-Z][a-zA-Z0-9_]*");
@@ -36,7 +35,6 @@ private:
     void processContainsCommand(const std::smatch& match);
 
 public:
-    // add method to get string from user 
     void lexer(std::string inputString);
     std::vector<std::string> getTokens();
     void clearTokens();

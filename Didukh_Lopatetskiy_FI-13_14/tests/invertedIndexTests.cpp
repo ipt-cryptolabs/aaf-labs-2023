@@ -37,3 +37,15 @@ TEST_F(InvertedIndexTests, SearchInExistingCollectionTest) {
     std::vector<std::set<int>> resultSets = collections.searchInCollection("TestCollection");
     EXPECT_EQ(resultSets.size(), 0);
 }
+
+TEST_F(InvertedIndexTests, ContainsTest) {
+    collections.createCollection("TestCollection");
+    std::set<int> testSet1 = {11, 22, 33};
+    std::set<int> testSet2 = {11, 22, 44};
+    std::set<int> testSet3 = {11, 22};
+
+    collections.insertSet("TestCollection", testSet1);
+    collections.insertSet("TestCollection", testSet2);
+    EXPECT_FALSE(collections.containsCollection("TestCollection", testSet3));
+    EXPECT_TRUE(collections.containsCollection("TestCollection", testSet1));
+}
