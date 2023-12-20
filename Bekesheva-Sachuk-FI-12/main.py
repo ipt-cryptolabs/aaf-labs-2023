@@ -37,6 +37,7 @@ while READ:
                 if keyword2:
                     if N:
                         print(f'searching collection \'{collection_name} with keywords \'{keyword1}\', \'{keyword2}\' separated by {N} words...')
+                        #print(db.SEARCH_WHERE_WORD(collection_name, keyword1, keyword2))
                     else:
                         print(f'searching collection \'{collection_name} with keywords \'{keyword1}\', \'{keyword2}\'...')
                 else:

@@ -126,7 +126,8 @@ t = Trie()
 t.insert("sdsd", {"1": [1, 2]})
 t.insert("sdsdss", {"2": [1, 5]})
 print("searching")
-print(t.search("sds"))'''
+print(t.search("sdsd"))
+print(t.get_all_values())'''
 
 
  

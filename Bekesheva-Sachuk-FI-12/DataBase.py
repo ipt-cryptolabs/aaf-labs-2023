@@ -36,9 +36,56 @@ class DB:
         
     def SEARCH_WHERE(self, collection_name: str, keyword: str, prefix) -> list:
         if collection_name in self._collections:
-            return self._collections[collection_name].search_where(keyword.lower(), prefix)
+            values = self._collections[collection_name].search_where(keyword.lower(), prefix)
+            unique_keys = set()
+
+            for dictionary in values:
+                print(dictionary)
+                unique_keys.update(dictionary.keys())
+
+            return list(unique_keys)
         else:
             print(f"No collection named '{collection_name}")
+
+    def SEARCH_WHERE_WORD(self, collection_name: str, keyword1: str, keyword2: str) -> list:
+        if collection_name in self._collections:
+            collections = []
+            for collection in self._collections:
+                values = collection.get_values()
+                for value in values:
+                    if value >= keyword1 and value <= keyword2:
+                        collections.append(collection)
+                        pass
+
+            return collections
+        else:
+            print(f"No collection named '{collection_name}")
+
+    '''def SEARCH_WHERE_WORD_N(self, collection_name: str, keyword1: str, keyword2: str, N:int) -> list:
+        if collection_name in self._collections:
+            word1 = self._collections[collection_name].search_where(keyword1.lower(), False)
+            word2 = self._collections[collection_name].search_where(keyword2.lower(), False)
+
+            keys_w1 = [set(d.keys()) for d in word1]
+            keys_w2 = [set(d.keys()) for d in word2]
+            keys = list(set.intersection(*keys_w1, *keys_w2))
+
+            res = []
+
+            for key in keys:
+                w1 = [d[key] for d in word1 if key in d]
+                w2 = [d[key] for d in word2 if key in d]
+
+                flattened_w1 = [value for sublist in w1 for value in sublist]
+                flattened_w2 = [value for sublist in w2 for value in sublist]
+
+                for i in flattened_w1:
+                    for j in flattened_w2:
+                        if abs(i - j) == N:
+                            desired_dict = next((d for d in word1 if d.get(keys) == desired_value), None)
+
+        else:
+            print(f"No collection named '{collection_name}")'''
 
 
 
@@ -48,6 +95,17 @@ class Collection:
         self._name = name
         self._size = 0
 
+    def get_values(self):
+        values = self._trie.get_all_values
+        words = []
+
+        for i in values:
+            for j in i:
+                for k in j.keys():
+                    words.append(k)
+
+        return list(set(words))
+    
 
     def insert(self, value: str) -> None:
         self._size += 1
@@ -71,32 +129,10 @@ class Collection:
         return list(unique_keys)
 
     def search_where(self, keyword: str, prefix) -> list:
-        
-        '''
-        if res == []:
-            return None
-
-        if prefix == True:
-            values = res[0]._value
-        else:
-            res_docs = []
-            for i in res:
-                res_docs.append(i._value)
-            values = [item for sublist in res_docs for item in sublist]
-        
-        unique_keys = set()
-
-        for dictionary in values:
-            unique_keys.update(dictionary.keys())'''
-        
         if prefix == False:
             res = self._trie.search(keyword)
             if res:
                 values = res._value
-                unique_keys = set()
-
-                for dictionary in values:
-                    unique_keys.update(dictionary.keys())
 
             else:
                 return None
@@ -108,13 +144,9 @@ class Collection:
             for i in res:
                 res_docs.append(i._value)
             values = [item for sublist in res_docs for item in sublist]
-            
-            unique_keys = set()
 
-            for dictionary in values:
-                unique_keys.update(dictionary.keys()) 
-
-        return list(unique_keys)
+        return values
+    
         
 
 
