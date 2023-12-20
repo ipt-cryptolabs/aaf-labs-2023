@@ -14,10 +14,9 @@ namespace {
     std::regex containsPattern(R"(^\s*CONTAINS\s+([a-zA-Z][a-zA-Z0-9_]*)\s+\{((?:\s*[-+]?[0-9]+(?:\s*,\s*[-+]?[0-9]+)*)?)\s*};)", std::regex::icase);
 
     std::regex searchPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*;\\s*$", std::regex::icase);
-    std::regex intersectsPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+WHERE\\s+INTERSECTS\\s+\\{((?:\\s*[-+]?[0-9]+(?:\\s*,\\s*[-+]?[0-9]+)*)?)\\s*\\};", std::regex::icase);
-    std::regex containsSetPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+WHERE\\s+CONTAINS\\s+\\{((?:\\s*[-+]?[0-9]+(?:\\s*,\\s*[-+]?[0-9]+)*)?)\\s*\\};", std::regex::icase);
-    std::regex containedByPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+WHERE\\s+CONTAINED_BY\\s+\\{((?:\\s*[-+]?[0-9]+(?:\\s*,\\s*[-+]?[0-9]+)*)?)\\s*\\};", std::regex::icase);
-
+    std::regex intersectsSearchPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+WHERE\\s+INTERSECTS\\s+\\{((?:\\s*[-+]?[0-9]+(?:\\s*,\\s*[-+]?[0-9]+)*)?)\\s*\\};", std::regex::icase);
+    std::regex containsSearchPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+WHERE\\s+CONTAINS\\s+\\{((?:\\s*[-+]?[0-9]+(?:\\s*,\\s*[-+]?[0-9]+)*)?)\\s*\\};", std::regex::icase);
+    std::regex containedBySearchPattern("^\\s*SEARCH\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s+WHERE\\s+CONTAINED_BY\\s+\\{((?:\\s*[-+]?[0-9]+(?:\\s*,\\s*[-+]?[0-9]+)*)?)\\s*\\};", std::regex::icase);
 
     std::regex identifierPattern("[a-zA-Z][a-zA-Z0-9_]*");
     std::regex numberPattern("\\s*([^,]+)\\s*,?");

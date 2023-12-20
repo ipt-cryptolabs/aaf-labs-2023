@@ -84,13 +84,13 @@ void Parser::lexer(std::string inputString) {
     if (std::regex_match(inputString, match, containsPattern))
         processContainsCommand(match);
 
-    if(std::regex_match(inputString, match, intersectsPattern))
+    if(std::regex_match(inputString, match, intersectsSearchPattern))
         processIntersectsCommand(match);
 
-    if(std::regex_match(inputString, match, containsSetPattern))
+    if(std::regex_match(inputString, match, containsSearchPattern))
         processContainsSetCommand(match);
 
-    if(std::regex_match(inputString, match, containedByPattern))
+    if(std::regex_match(inputString, match, containedBySearchPattern))
         processContainedByCommand(match);
 }
 
