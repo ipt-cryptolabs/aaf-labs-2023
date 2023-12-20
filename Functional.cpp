@@ -420,3 +420,14 @@ public:
 
     }
 }
+
+class Database {
+private:
+    std::unordered_map<std::string, Table> tables;
+
+public:
+    Database() {}
+    void create_table(const std::string& name, const std::vector<std::pair<std::string, bool>>& columns);
+
+
+};
