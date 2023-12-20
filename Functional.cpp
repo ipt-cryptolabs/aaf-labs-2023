@@ -85,3 +85,49 @@ public:
     }
 };
 
+class Table {
+
+private:
+
+    std::string name;
+    std::vector<std::string> columns;
+    std::vector<std::vector<int>> data;
+    std::unordered_map<std::string, Index> indexed_columns;
+
+public:
+
+    Table(const std::string& name, const std::vector<std::string>& columns) {     // Class constructor Table
+
+        // Use the isValidTableName function to check the correctness of the table name from the parser
+
+        if (Parser::isValidTableName(name)) {
+
+            this->name = name;
+            this->columns = columns;
+            std::vector<int> data;
+            std::unordered_map<int, int> indexed_columns;
+
+        }
+        else {
+            cout << "Invalid table name !" << endl;
+        }
+    }
+
+    // Verify the correctness of column names. We use the isValidColumnName function from the parser.
+
+    void checkColumnNamesValidity() {
+        for (const auto& col : columns) {
+            const std::string& col_name = col.first;
+            if (!(Parser::isValidColumnName(col_name))) {
+                std::cout << "Invalid column name: " << col_name << std::endl;
+                return;
+            }
+        }
+    }
+
+
+
+
+
+
+}
