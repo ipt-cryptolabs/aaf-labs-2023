@@ -514,6 +514,36 @@ public:
         std::cout << format_string << std::endl;
     }
 
+    void create_index(const std::string& table_name, const std::string& column_name) {
+        if (tables.find(table_name) != tables.end()) {
+            Table& table = tables[table_name];
+            table.create_index(column_name);
+        }
+        else {
+            std::cout << "Table " << table_name << " does not exist" << std::endl;
+        }
+    }
+
+    void insert_into_table(const std::string& table_name, const std::vector<std::string>& values) {
+        if (tables.find(table_name) != tables.end()) {
+            Table& table = tables[table_name];
+            table.insert(values);
+        }
+        else {
+            std::cout << "Table " << table_name << " does not exist" << std::endl;
+        }
+    }
+
+    std::vector<std::vector<int>> select_from_table(const std::string& table_name, const std::vector<std::string>& select_columns, const std::string& where_condition, const std::vector<std::string>& group_by_columns) {
+        if (tables.find(table_name) != tables.end()) {
+            Table& table = tables[table_name];
+            return table.select(select_columns, where_condition, group_by_columns);
+        }
+        else {
+            std::cout << "Table " << table_name << " does not exist" << std::endl;
+            return std::vector<std::vector<int>>(); // Return an empty vector as a placeholder for the non-existent table
+        }
+    }
 
 
 };
