@@ -463,6 +463,57 @@ public:
         }
     }
 
+    // Display the result of the query
+    void display_result(const std::vector<std::string>& column_names, const std::vector<std::vector<std::string>>& data) {
+        if (data.empty() || data[0].empty()) {
+            std::cout << "No results to display" << std::endl;
+            return;
+        }
+
+        // Calculate column widths based on the length of the column names and data
+        std::vector<std::size_t> column_widths(column_names.size());
+        for (std::size_t i = 0; i < column_names.size(); ++i) {
+            column_widths[i] = std::max(column_names[i].size(),
+                static_cast<std::size_t>(std::max_element(data.begin(), data.end(),
+                    [i](const auto& row1, const auto& row2) {
+                        return row1[i].size() < row2[i].size();
+                    })->at(i).size()));
+        }
+
+        // Create a format string for formatting the table
+        std::string format_string = "+";
+        for (std::size_t width : column_widths) {
+            format_string += std::string(width, '-') + "+";
+        }
+
+        // Display the frame line
+        std::cout << format_string << std::endl;
+
+        // Display the table header
+        std::string table_header;
+        for (std::size_t i = 0; i < column_names.size(); ++i) {
+            table_header += "|" + std::string((column_widths[i] - column_names[i].size()) / 2, ' ')
+                + column_names[i] + std::string((column_widths[i] - column_names[i].size() + 1) / 2, ' ');
+        }
+        std::cout << "|" << table_header << "|" << std::endl;
+
+        // Display the frame line
+        std::cout << format_string << std::endl;
+
+        // Display the data rows
+        for (const auto& row : data) {
+            std::string row_str;
+            for (std::size_t i = 0; i < column_names.size(); ++i) {
+                row_str += "|" + std::string((column_widths[i] - row[i].size()) / 2, ' ')
+                    + row[i] + std::string((column_widths[i] - row[i].size() + 1) / 2, ' ');
+            }
+            std::cout << "|" << row_str << "|" << std::endl;
+        }
+
+        // Display the frame line
+        std::cout << format_string << std::endl;
+    }
+
 
 
 };
