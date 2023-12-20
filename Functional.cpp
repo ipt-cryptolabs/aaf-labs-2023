@@ -125,6 +125,36 @@ public:
         }
     }
 
+    void create_index(const std::string& column_name) {
+       
+        if (!(Parser::isValidColumnName(column_name))) {
+            std::cout << "Invalid column name" << std::endl;
+            return;
+        }
+
+        // Check for the existence of a column
+        auto col_it = std::find_if(columns.begin(), columns.end(), [column_name](const auto& col) {
+            return col.first == column_name;
+            });
+
+        if (col_it != columns.end()) {
+            // Check if the column is indexed
+            if (indexed_columns.find(column_name) == indexed_columns.end()) {
+                indexed_columns[column_name] = Index(); 
+                std::cout << "Index created for column " << column_name << std::endl;
+            }
+            else {
+                std::cout << "Index already exists for column " << column_name << std::endl;
+            }
+        }
+        else {
+            std::cout << "Column does not exist in the table" << std::endl;
+        }
+    }
+
+
+
+
 
 
 
