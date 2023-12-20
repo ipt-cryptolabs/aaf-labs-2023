@@ -152,6 +152,45 @@ public:
         }
     }
 
+    void insert(const std::vector<std::string>& values) {
+        // Check if the number of values matches the number of columns
+        if (values.size() != columns.size()) {
+            std::cout << "Number of values doesn't match the number of columns" << std::endl;
+            return;
+        }
+
+        try {
+            // Convert string values to integers
+            std::vector<int> numeric_values;
+            for (const auto& value : values) {
+                numeric_values.push_back(std::stoi(value));
+            }
+
+            // Add the row of numeric values to the data of the table
+            data.push_back(numeric_values);
+            std::cout << "1 row has been inserted into " << name << "." << std::endl;
+
+            // Update the indexes for indexed columns
+            for (const auto& indexed_column : indexed_columns) {
+                const auto& col_name = indexed_column.first;
+                const auto& indexed = indexed_column.second;
+
+                // Check if the column is indexed
+                if (indexed) {
+                    auto col_index = std::find(columns.begin(), columns.end(), col_name) - columns.begin();
+                    auto col_value = std::stoi(values[col_index]);
+
+                    // Insert the value into the index
+                    indexed_columns[col_name].insert(col_value, data.size() - 1);
+                }
+            }
+        }
+        catch (const std::invalid_argument& e) {
+            std::cout << "All values must be integers" << std::endl;
+        }
+    }
+
+
 
 
 
