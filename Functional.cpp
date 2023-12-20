@@ -429,5 +429,40 @@ public:
     Database() {}
     void create_table(const std::string& name, const std::vector<std::pair<std::string, bool>>& columns);
 
+    void create_table(const std::string& name, const std::vector<std::pair<std::string, bool>>& columns) {
+        // Validate the table name using a regular expression
+        if (!std::regex_match(name, std::regex("^[a-zA-Z][a-zA-Z0-9_]*$"))) {
+            std::cout << "Invalid table name" << std::endl;
+            return;
+        }
+
+        // Check if the table already exists
+        if (tables.find(name) != tables.end()) {
+            std::cout << "Table already exists" << std::endl;
+            return;
+        }
+
+        // Check column names for validity using a regular expression
+        for (const auto& [col_name, _] : columns) {
+            if (!std::regex_match(col_name, std::regex("^[a-zA-Z][a-zA-Z0-9_]*$"))) {
+                std::cout << "Invalid column name: " << col_name << std::endl;
+                return;
+            }
+        }
+
+        // Create a new table with the specified name and columns
+        tables[name] = Table(name, columns);
+
+        std::cout << "Table " << name << " has been created" << std::endl;
+
+        // Check if there are INDEXED flags for columns and create corresponding indexes
+        for (const auto& [column_name, indexed] : columns) {
+            if (indexed) {
+                tables[name].create_index(column_name);
+            }
+        }
+    }
+
+
 
 };
