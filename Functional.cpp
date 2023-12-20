@@ -190,6 +190,11 @@ public:
         }
     }
 
+    std::vector<std::vector<int>> select(const std::vector<std::string>& select_columns, const std::string& where_condition, const std::vector<std::string>& group_by) {
+
+        std::vector<std::pair<std::string, bool>> full_columns = this->columns;
+        bool selected_manually = true;
+        std::vector<std::vector<int>> filtered_data;
 
 
 
@@ -198,5 +203,6 @@ public:
 
 
 
+    }
 
 }
