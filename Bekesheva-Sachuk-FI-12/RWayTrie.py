@@ -1,5 +1,5 @@
 class Node:
-    def __init__(self, key=" ", children={}, value={}):
+    def __init__(self, key=" ", children={}, value=[]):
         self._key = key
         self._children = children # map key - value --{"key": next nodes letters}-- 
         self._value = value # non-None if it's the last letter in word, {}
@@ -15,43 +15,64 @@ class Node:
     
     
 class Trie:
-    def __init__(self):
-        self._root = Node() # root is always empty
+    def __init__(self) -> None:
+        self._root = Node(key="", children={}, value=[]) # root is always empty
 
-    def insert(self, key: str, value: dict):
-        x = self._root
-        self.__insert__(x, key, value)
+    def insert(self, key: str, value: dict) -> None:
+        self.__insert__(self._root, key, value)
 
-    def __insert__(self, x: Node, key: str, value: dict):
+    def __insert__(self, x: Node, key: str, value: dict) -> None:
         for i in range(len(key)):
             if key[i] not in x._children.keys():
-                x._children[key[i]] = Node(key[i], children={})
+                x._children[key[i]] = Node(key[i], children={},  value = [])
             x = x._children[key[i]]
 
-        x._value = value
+        x._value.append(value)
 
-    def search(self, key: str) -> Node:
-        x = self._root
-        return self.__search__(x, key)
+    def search(self, key1: str, prefix = False) -> list:
+        if prefix == False:
+            return self.__search__(self._root, key1)
+        else:
+            return self.__search_prefix__(self._root, key1)
 
     def __search__(self, x: Node, key: str) -> Node:
         for i in range(len(key)):
-            try:  # x might exist but have None values, thus the overloaded = won't work and it's probably cheaper to use try/catch rather than check if values exist in Node and then compare 
-                if x != None and key[i] not in x._children:
-                    return None
-            except:
-                pass
-                
+            if key[i].lower() not in x._children:
+                return None
+            
             x = x._children[key[i]]
 
         return x
+
+    def __search_prefix__(self, x: Node, key: str) -> list:
+        matches = []
+        nodes_stack = [(x, key, 0)]
+
+        while nodes_stack:
+            x, sub_key, i = nodes_stack.pop()
+            while i < len(sub_key):
+                if sub_key[i].lower() not in x._children:
+                    break  # Key not found, so break out of the loop
+                x = x._children[sub_key[i].lower()]
+                i += 1
+
+            if i == len(sub_key):
+                self.__collect_matches__(x, matches)
+            nodes_stack.extend((child, sub_key, i) for child in x._children.values())
+
+        return matches
+
+    def __collect_matches__(self, x: Node, matches: list) -> None:
+        if x._value:
+            matches.append(x)  # Add the current node to the list of matches
+
+
     
-    def delete(self, key: str):
-        x = self._root
-        self.__delete__(x, key)
+    def delete(self, key: str) -> None:
+        self.__delete__(self._root, key)
 
 
-    def __delete__(self, x: Node, key: str):
+    def __delete__(self, x: Node, key: str) -> None:
         nodes_stack = [] 
 
         for i in range(len(key)):
@@ -59,9 +80,11 @@ class Trie:
                 return  # key not found, nothing to delete
             x = x._children[key[i]]
             nodes_stack.append(x)
-
-
-        x._value = None  # mark the node as deleted
+       
+        if all(child._value is None for child in x._children.values()): # mark the node as deleted only if it has no children
+            x._value = None
+        else:
+            x._value = []
 
         while nodes_stack:
             x = nodes_stack.pop()
@@ -71,44 +94,40 @@ class Trie:
                     del parent._children[x._key]
 
     def __repr__(self) -> str:
-        level = 0
-        key = {}
-        x = self._root
-        return self.__display__(x, key, level)
-    
-    def __display__(self, x: Node, key: dict, level: int) -> str:
+        return self.__display__()
+
+    def __display__(self) -> str:
         res = ""
-        nodes_stack = [(x, key, level)]
+        stack = [(self._root, "")]
+        while stack:
+            x, prefix = stack.pop()
+            if x._value:
+                res += f"{prefix} - {x._value}\n"
+            for child in x._children.values():
+                stack.append((child, prefix + child._key))
+        return res
+    
+    def get_all_values(self) -> list:
+        return self.__get_all_values__(self._root)
+    
+    def __get_all_values__(self, x: Node):
+        values = []
+        nodes_stack = [x]
     
         while nodes_stack:
-            x, x_key, x_level = nodes_stack.pop()
-            if len(x._children) == 0:
-                x_key[x_level] = f' - {x._value}\n'
-                res += "".join(x_key.values())
-            else:
-                for child in x._children.values():
-                    child_key = x_key.copy()
-                    child_key[x_level] = child._key
-                    nodes_stack.append((child, child_key, x_level + 1))
-
-        return res
-
- 
-    
-
-
-
-
-
+            x = nodes_stack.pop()
+            if x._value != [] and x._value != None:
+                values.append(x._value)
+            for child in x._children.values():
+                nodes_stack.append(child)
+        return values
+'''
 t = Trie()
 t.insert("sdsd", {"1": [1, 2]})
-#print(t.search("sdsd"))
-t.delete("sdsd")
-t.insert("sdsd", {"1": [1, 2]})
-t.insert("sdioesdsd", {"2": [3, 2]})
-t.insert("sdtwe", {"3": [3, 2]})
-#print(t.search("sdsd"))
-#print(t.search("sdioesdsd"))
-t.insert("qwwqwq", {"4": [5, 3, 2]})
-print(t)
+t.insert("sdsdss", {"2": [1, 5]})
+print("searching")
+print(t.search("sdsd"))
+print(t.get_all_values())'''
 
+
+ 
