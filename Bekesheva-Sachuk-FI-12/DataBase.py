@@ -49,43 +49,52 @@ class DB:
 
     def SEARCH_WHERE_WORD(self, collection_name: str, keyword1: str, keyword2: str) -> list:
         if collection_name in self._collections:
-            collections = []
-            for collection in self._collections:
-                values = collection.get_values()
-                for value in values:
-                    if value >= keyword1 and value <= keyword2:
-                        collections.append(collection)
+            docs = []
+            values = self._collections[collection_name]._trie.get_words()
+            for doc, words in values.items():
+                for word in words:
+                    if word >=keyword1 and word <= keyword2:
+                        if doc not in docs:
+                            docs.append(doc)
                         pass
 
-            return collections
+
+            return docs
         else:
             print(f"No collection named '{collection_name}")
 
-    '''def SEARCH_WHERE_WORD_N(self, collection_name: str, keyword1: str, keyword2: str, N:int) -> list:
+    def SEARCH_WHERE_WORD_N(self, collection_name: str, keyword1: str, keyword2: str, N:int) -> list:
         if collection_name in self._collections:
-            word1 = self._collections[collection_name].search_where(keyword1.lower(), False)
-            word2 = self._collections[collection_name].search_where(keyword2.lower(), False)
+            word1 = self._collections[collection_name].search_where(keyword1, False)
+            word2 = self._collections[collection_name].search_where(keyword2, False)
 
-            keys_w1 = [set(d.keys()) for d in word1]
-            keys_w2 = [set(d.keys()) for d in word2]
-            keys = list(set.intersection(*keys_w1, *keys_w2))
+            docs_res = []
 
-            res = []
+            #sorry(((
+            for dic1 in word1:
+                for dic2 in word2:
+                    for docs1 in list(dic1.keys()):
+                        for docs2 in list(dic2.keys()):
+                            if docs1 != docs2:
+                                pass
+                            else:
+                                ind1 = dic1[docs1]
+                                ind2 = dic2[docs1]
+                                for i1 in ind1:
+                                    for i2 in ind2:
+                                        if abs(i1-i2) == N:
+                                            if docs1 not in docs_res:
+                                                docs_res.append(docs1)
+                                                pass
+                                
+            return docs_res
 
-            for key in keys:
-                w1 = [d[key] for d in word1 if key in d]
-                w2 = [d[key] for d in word2 if key in d]
-
-                flattened_w1 = [value for sublist in w1 for value in sublist]
-                flattened_w2 = [value for sublist in w2 for value in sublist]
-
-                for i in flattened_w1:
-                    for j in flattened_w2:
-                        if abs(i - j) == N:
-                            desired_dict = next((d for d in word1 if d.get(keys) == desired_value), None)
 
         else:
-            print(f"No collection named '{collection_name}")'''
+            print(f"No collection named '{collection_name}")
+
+
+
 
 
 
@@ -96,7 +105,8 @@ class Collection:
         self._size = 0
 
     def get_values(self):
-        values = self._trie.get_all_values
+        values = self._trie.get_all_values()
+        print(values)        
         words = []
 
         for i in values:
@@ -148,22 +158,5 @@ class Collection:
         return values
     
         
-
-
-'''
-db = DB()
-
-db.CREATE("col")
-db.INSERT("col", "There is no place for blalbal, also non= is - no, dsd , sd.")
-db.INSERT("col", " is no place for blalbal, nxfgns")
-#db.PRINT_INDEX("col")
-#print(db.SEARCH_WHERE("col", "no"))
-#db.SEARCH("col")
-db.CREATE("col2")
-db.INSERT("col2", "hello wrold hi")
-#db.PRINT_INDEX("col2")
-#db.PRINT_INDEX("col")
-print(db.SEARCH_WHERE("col", "nxfgn", True))'''
-
 
     

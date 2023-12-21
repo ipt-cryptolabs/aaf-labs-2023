@@ -103,6 +103,7 @@ class Trie:
             x, prefix = stack.pop()
             if x._value:
                 res += f"{prefix} - {x._value}\n"
+                print(x._value)
             for child in x._children.values():
                 stack.append((child, prefix + child._key))
         return res
@@ -121,13 +122,26 @@ class Trie:
             for child in x._children.values():
                 nodes_stack.append(child)
         return values
-'''
-t = Trie()
-t.insert("sdsd", {"1": [1, 2]})
-t.insert("sdsdss", {"2": [1, 5]})
-print("searching")
-print(t.search("sdsd"))
-print(t.get_all_values())'''
+    
+    def get_words(self) -> list:
+        return self.__get_words__(self._root)
+    
+    def __get_words__(self, x: Node):
+        res = {}
+        stack = [(self._root, "")]
+        while stack:
+            x, prefix = stack.pop()
+            if x._value:
+                #res += f"{prefix} - {x._value}\n"
+                for dic in x._value:
+                    for key, value in dic.items():
+                        try:
+                            res[key].append(prefix)
+                        except KeyError:
+                            res.update({key: [prefix]})
+            for child in x._children.values():
+                stack.append((child, prefix + child._key))
+        return res
 
 
  
