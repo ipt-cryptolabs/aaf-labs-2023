@@ -1,17 +1,5 @@
 #include "parser.h"
 
-std::string toLowerStr(const std::string& str)
-{
-	std::string res;
-
-	for (int i = 0; i < str.length(); i++)
-	{
-		res += (tolower(str[i]));
-	}
-
-	return res;
-}
-
 void QueryBuilder::lexer(const std::string& str)
 {
 	wordDividedString.clear();
@@ -92,41 +80,41 @@ QueryBuilder::~QueryBuilder()
 
 Query* QueryBuilder::getQueryFromString(const std::string& str)
 {
-	if (query != nullptr) delete query;
-	query = nullptr;
-	lexer(str);
+    if (query != nullptr) delete query;
+    query = nullptr;
+    lexer(str);
 
-	if (wordDividedString.size() >= 3)
-	{
-		if (wordDividedString.front() == SEARCH)
-		{
-			query = new SearchQuery(wordDividedString[1], wordDividedString[2]);
-		}
-		else if (wordDividedString.front() == INSERT)
-		{
-			query = new InsertQuery(wordDividedString[1], wordDividedString[2]);
-		}
-	}
-	else if (wordDividedString.size() == 2)
-	{
-		if (wordDividedString.front() == CREATE)
-		{
-			query = new CreateQuery(wordDividedString[1]);
-		}
-		else if (wordDividedString.front() == PRINT_INDEX)
-		{
-			query = new PrintIndexQuery(wordDividedString[1]);
-		}
-		else if (wordDividedString.front() == SEARCH)
-		{
-			query = new SearchQuery(wordDividedString[1]);
-		}
-	}
-	else
-	{
-		// TODO: Detailed error message?
-	}
-	
-	return query;
+    if (wordDividedString.size() >= 3)
+    {
+        if (wordDividedString.front() == SEARCH)
+        {
+            query = new SearchQuery(wordDividedString[1], WhereExpression(toLowerStr(wordDividedString[2])));
+        }
+        else if (wordDividedString.front() == INSERT)
+        {
+            query = new InsertQuery(wordDividedString[1], wordDividedString[2]);
+        }
+    }
+    else if (wordDividedString.size() == 2)
+    {
+        if (wordDividedString.front() == CREATE)
+        {
+            query = new CreateQuery(wordDividedString[1]);
+        }
+        else if (wordDividedString.front() == PRINT_INDEX)
+        {
+            query = new PrintIndexQuery(wordDividedString[1]);
+        }
+        else if (wordDividedString.front() == SEARCH)
+        {
+            query = new SearchQuery(wordDividedString[1]);
+        }
+    }
+    else
+    {
+        // TODO: Detailed error message?
+    }
+
+    return query;
 }
 

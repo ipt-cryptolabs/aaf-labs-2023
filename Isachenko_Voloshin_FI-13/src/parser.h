@@ -4,8 +4,7 @@
 #include <string>
 #include <vector>
 #include "queries.h"
-
-std::string toLowerStr(const std::string& str);
+#include "utils.h"
 
 class QueryBuilder
 {
