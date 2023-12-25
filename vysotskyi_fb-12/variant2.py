@@ -220,11 +220,6 @@ class Column:
         self.name = name
 
 
-class IndexedColumn(Column):
-
-    pass  # TODO
-
-
 class Entry:
 
     def __init__(self, *values):
@@ -268,12 +263,7 @@ class DatabaseProcessor:
         keywords: List[str] = query["columns"]
         length = len(keywords)
         for i in range(length):
-            if keywords[i].lower() in (",", "indexed"):
-                continue  # Commas are trash
-            elif i+1 < length and keywords[i+1].lower() == "indexed":
-                columns_list.append(IndexedColumn(keywords[i]))
-            else:
-                columns_list.append(Column(keywords[i]))
+            columns_list.append(Column(keywords[i]))
 
         self.database.create(table_name, columns_list)
 

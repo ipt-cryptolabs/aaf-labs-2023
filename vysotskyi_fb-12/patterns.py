@@ -5,7 +5,7 @@ from re import fullmatch
 SPECIAL_CHARS = ("(", ")", "<", ",")
 INITIAL_KEYWORDS = ("create", "insert", "select")
 AGGREGATION_FUNCTIONS = ("count", "max", "longest")
-KEYWORDS = INITIAL_KEYWORDS + AGGREGATION_FUNCTIONS + ("into", "from", "where", "group_by", "indexed")
+KEYWORDS = INITIAL_KEYWORDS + AGGREGATION_FUNCTIONS + ("into", "from", "where", "group_by")  # , "indexed")
 
 
 class Pattern(ABC):
@@ -250,7 +250,7 @@ class OptionalNonRepeatedPattern(Pattern):
 PATTERNS = {"create": [IdentifierPattern(name="table_name"),
                        StringPattern("("),
                        RepeatedPattern([IdentifierPattern(),
-                                        OptionalStringPattern("indexed"),
+                                        # OptionalStringPattern("indexed"),
                                         StringPattern(",")], 0, name="columns"),
                        StringPattern(")")],
             "insert": [OptionalStringPattern("into"),
