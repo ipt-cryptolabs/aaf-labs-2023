@@ -50,7 +50,7 @@ class Compare:
             self.expected_pattern = f"{self.pattern}"
 
     def to_save_in_query(self):
-        return self.pattern.is_matching(self.token)
+        return self.pattern.is_matching(self.token) and self.pattern.should_be_saved()
 
     def get_expected_pattern(self):
         return self.expected_pattern
@@ -263,7 +263,6 @@ class DatabaseProcessor:
                 columns_list.append(Column(keywords[i]))
 
         self.database.create(table_name, columns_list)
-
 
     def insert(self, query):
         pass  # TODO

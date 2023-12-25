@@ -36,6 +36,10 @@ class Pattern(ABC):
     def __repr__(self):
         pass
 
+    @abstractmethod
+    def should_be_saved(self) -> bool:
+        pass
+
 
 class StringPattern(Pattern):
 
@@ -57,6 +61,9 @@ class StringPattern(Pattern):
 
     def can_go_to_next_pattern(self) -> bool:
         return True
+
+    def should_be_saved(self) -> bool:
+        return False
 
 
 class OptionalStringPattern(StringPattern):
@@ -87,6 +94,9 @@ class IdentifierPattern(Pattern):
     def __repr__(self):
         return "Identifier (keywords are not valid Identifiers)"
 
+    def should_be_saved(self) -> bool:
+        return True
+
 
 class LiteralPattern(Pattern):
 
@@ -104,6 +114,9 @@ class LiteralPattern(Pattern):
 
     def __repr__(self):
         return "Literal"
+
+    def should_be_saved(self) -> bool:
+        return True
 
 
 class LiteralOrIdentifierPattern(Pattern):
@@ -125,6 +138,9 @@ class LiteralOrIdentifierPattern(Pattern):
     def __repr__(self):
         return "Literal or Identifier (keywords are not valid Identifiers)"
 
+    def should_be_saved(self) -> bool:
+        return True
+
 
 class AggregationFunctionPattern(Pattern):
 
@@ -142,6 +158,9 @@ class AggregationFunctionPattern(Pattern):
 
     def __repr__(self):
         return "Aggregation function"
+
+    def should_be_saved(self) -> bool:
+        return True
 
 
 class RepeatedPattern(Pattern):
@@ -182,6 +201,9 @@ class RepeatedPattern(Pattern):
     def can_go_to_next_token(self) -> bool:
         return not self.finished
 
+    def should_be_saved(self) -> bool:
+        return self.patterns[self.index].should_be_saved()
+
 
 class OptionalRepeatedPattern(RepeatedPattern):
 
@@ -220,6 +242,9 @@ class OptionalNonRepeatedPattern(Pattern):
 
     def __repr__(self):
         return f"{self.patterns[self.index]}"
+
+    def should_be_saved(self) -> bool:
+        return self.patterns[self.index].should_be_saved()
 
 
 PATTERNS = {"create": [IdentifierPattern(name="table_name"),
