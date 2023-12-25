@@ -240,7 +240,11 @@ class Table:
         self.entries = []
 
     def insert(self, values):
-        self.entries.append(values)
+        entry = dict()
+        for index in range(len(values)):
+            entry[index] = values[index]
+            entry[self.columns[index].name] = values[index]
+        self.entries.append(entry)
 
 
 class Database:
