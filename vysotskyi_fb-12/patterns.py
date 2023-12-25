@@ -208,7 +208,7 @@ class RepeatedPattern(Pattern):
 class OptionalRepeatedPattern(RepeatedPattern):
 
     def is_optional(self) -> bool:
-        return True  # TODO might be a bug here
+        return self.index == 0
 
 
 class OptionalNonRepeatedPattern(Pattern):
@@ -216,7 +216,7 @@ class OptionalNonRepeatedPattern(Pattern):
     def __init__(self, patterns: List[Pattern], name=None):
         super().__init__(name)
         self.patterns = patterns
-        self.last_index = len(patterns) - 1
+        self.last_index = len(patterns)
         self.index = 0
         self.finished = False
 

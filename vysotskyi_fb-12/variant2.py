@@ -1,6 +1,6 @@
 from typing import List
 from re import sub
-from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS
+from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS, RepeatedPattern
 
 
 class Query:
@@ -158,6 +158,7 @@ class InputProcessor:
         expected_pattern = ""
         while tokens and pattern:
             compare = Compare(pattern[0], tokens[0])
+            # print(pattern[0], tokens[0])
             if compare.to_save_in_query():
                 self.query.add(tokens[0], param_name=pattern[0].name)
             compare.match()
@@ -173,7 +174,10 @@ class InputProcessor:
             if compare.go_to_next_token:
                 tokens = tokens[1:]
         else:
-            if pattern:
+            if len(pattern) > 1:
+                self.output_device.output(f"Expected {pattern[0]}, got nothing")
+            elif len(pattern) == 1 and not (isinstance(pattern[0], RepeatedPattern) and
+                                            pattern[0].index == pattern[0].last_index):
                 self.output_device.output(f"Expected {pattern[0]}, got nothing")
 
     def get_command(self) -> Query:
@@ -233,20 +237,25 @@ class Table:
         self.name = name
         self.columns = columns
         self.len = len(columns)
+        self.entries = []
+
+    def insert(self, values):
+        self.entries.append(values)
 
 
 class Database:
 
     def __init__(self):
-        self.tables = []
+        self.tables = dict()
 
     def create(self, name: str, columns: List[Column]):
-        self.tables.append(Table(name, columns))
+        self.tables["name"] = Table(name, columns)
 
 
 class DatabaseProcessor:
 
     def __init__(self):
+        self.output_device = StandardOutputDevice()
         self.database = Database()
 
     def create(self, query):
@@ -265,7 +274,13 @@ class DatabaseProcessor:
         self.database.create(table_name, columns_list)
 
     def insert(self, query):
-        pass  # TODO
+        table_name = query["table_name"][0]
+        table = self.database.tables[table_name]
+        values = query["values"]
+        if len(values) != table.len:
+            self.output_device.output(f"Expected {table.len} arguments, got {len(values)}")
+        else:
+            table.insert(values)
 
     def select(self, query):
         pass  # TODO
