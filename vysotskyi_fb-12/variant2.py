@@ -249,14 +249,13 @@ class Database:
         self.tables = dict()
 
     def create(self, name: str, columns: List[Column]):
-        self.tables["name"] = Table(name, columns)
+        self.tables[name] = Table(name, columns)
 
 
 class AggregatedFunction(ABC):
 
     def __init__(self, column: str):
         self.column = column
-
 
     @abstractmethod
     def update(self, old_value, entry):
@@ -304,7 +303,10 @@ class DatabaseProcessor:
         self.database = Database()
 
     def create(self, query):
-        table_name = query["table_name"]
+        table_name = query["table_name"][0]
+        if table_name in self.database.tables:
+            self.output_device.output(f"Table {table_name} already exists")
+            return
         columns_list: List[Column] = []
         keywords: List[str] = query["columns"]
         length = len(keywords)
@@ -312,6 +314,7 @@ class DatabaseProcessor:
             columns_list.append(Column(keywords[i]))
 
         self.database.create(table_name, columns_list)
+        self.output_device.output(f"Table {table_name} is successfully created")
 
     def insert(self, query):
         table_name = query["table_name"][0]
@@ -321,6 +324,7 @@ class DatabaseProcessor:
             self.output_device.output(f"Expected {table.len} arguments, got {len(values)}")
         else:
             table.insert(values)
+            self.output_device.output("Values inserted!")
 
     def __get_all(self, table: Table) -> list:
         return table.entries
@@ -385,7 +389,10 @@ class DatabaseProcessor:
 
             entries = self.__group(entries, query["group_by"], functions)
 
-        self.output_device.output(*query["group_by"], *functions)
+        #self.output_device.output(*query["group_by"], *functions)
+        for entry in entries:
+            l = len(entry)//2
+            self.output_device.output(*[entry[i] for i in range(l)])
 
 
 
@@ -410,6 +417,7 @@ class DatabaseApp:
     def run(self):
         while self.running:
             query = self.input_processor.get_command()
+            self.input_processor.clear()
             print(query.named_params)
             self.database_processor.process_query(query.named_params)
 
