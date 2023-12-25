@@ -63,7 +63,7 @@ class StringPattern(Pattern):
         return True
 
     def should_be_saved(self) -> bool:
-        return False
+        return len(self.string_value) > 1
 
 
 class OptionalStringPattern(StringPattern):
