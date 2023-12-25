@@ -1,4 +1,5 @@
-from typing import List
+from abc import ABC, abstractmethod
+from typing import List, Dict, Type
 from re import sub
 from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS, RepeatedPattern
 
@@ -66,8 +67,8 @@ class StandardInputDevice:
 class StandardOutputDevice:
 
     @staticmethod
-    def output(s: str):
-        print(s)
+    def output(*args):
+        print(*args)
 
 
 
@@ -251,6 +252,51 @@ class Database:
         self.tables["name"] = Table(name, columns)
 
 
+class AggregatedFunction(ABC):
+
+    def __init__(self, column: str):
+        self.column = column
+
+
+    @abstractmethod
+    def update(self, old_value, entry):
+        pass
+
+    @abstractmethod
+    def default_value(self):
+        pass
+
+
+class Count(AggregatedFunction):
+
+    def update(self, old_value, entry):
+        return old_value + 1
+
+    def default_value(self):
+        return 0
+
+
+class Max(AggregatedFunction):
+
+    def update(self, old_value, entry):
+        return old_value if old_value > entry[self.column] else entry[self.column]
+
+    def default_value(self):
+        return ""
+
+
+class Longest(AggregatedFunction):
+
+    def update(self, old_value, entry):
+        return old_value if len(old_value) > len(entry[self.column]) else entry[self.column]
+
+    def default_value(self):
+        return ""
+
+
+AGGREGATED_FUNCTIONS: Dict[str, Type] = {"count": Count, "max": Max, "longest": Longest}
+
+
 class DatabaseProcessor:
 
     def __init__(self):
@@ -276,8 +322,72 @@ class DatabaseProcessor:
         else:
             table.insert(values)
 
+    def __get_all(self, table: Table) -> list:
+        return table.entries
+
+    def __get_where(self, table: Table, identifier: str, lower_than: str) -> list:
+        valid_entries = []
+        if lower_than[0] == "\"":
+            for entry in self.__get_all(table):
+                if entry[identifier] < lower_than[1:-1]:
+                    valid_entries.append(entry)
+
+        else:
+            for entry in self.__get_all(table):
+                if entry[identifier] < entry[lower_than]:
+                    valid_entries.append(entry)
+
+        return valid_entries
+
+
+    def __group(self, entries, groups, aggregated_functions: List[AggregatedFunction]) -> list:
+        new_entries: Dict[list, list] = dict()
+        ret = []
+        for entry in entries:
+            new_entry = []
+            for group in groups:
+                new_entry.append(entry[group])
+
+            if new_entry not in new_entries.keys():
+                aggregated_values = []
+                for func in aggregated_functions:
+                    aggregated_values.append(func.default_value())
+                new_entries[new_entry] = aggregated_values
+
+            for func_index in range(len(aggregated_functions)):
+                old_value = new_entries[new_entry][func_index]
+                new_entries[new_entry][func_index] = aggregated_functions[func_index].update(old_value, entry)
+
+        for new_entry in new_entries:
+            ret.append(new_entry + new_entries[new_entry])
+
+        return ret
+
+
     def select(self, query):
-        pass  # TODO
+        if "functions" in query and "group_by" not in query:
+            self.output_device.output("Can't use Aggregated functions if you don't use GROUP_BY")
+            return
+        # TODO Check if all identifiers are in table
+
+        table: Table = self.database.tables[query["table_name"][0]]
+        functions: List[AggregatedFunction] = []
+        if "where" in query:
+            entries = self.__get_where(table, query["where"][0], query["where"][1])
+        else:
+            entries = self.__get_all(table)
+
+        if "group_by" in query:
+            if "functions" in query:
+                while query["functions"]:
+                    functions.append(AGGREGATED_FUNCTIONS[query["functions"][0].lower()](query["functions"][1]))
+                    query["functions"] = query["functions"][2:]
+
+            entries = self.__group(entries, query["group_by"], functions)
+
+        self.output_device.output(*query["group_by"], *functions)
+
+
 
     def process_query(self, query):
         if query["command"] == ["create"]:
@@ -301,7 +411,7 @@ class DatabaseApp:
         while self.running:
             query = self.input_processor.get_command()
             print(query.named_params)
-            self.running = False
+            self.database_processor.process_query(query.named_params)
 
 
 if __name__ == "__main__":
