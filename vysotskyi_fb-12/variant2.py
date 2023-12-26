@@ -68,7 +68,7 @@ class StandardOutputDevice:
 
     @staticmethod
     def output(*args):
-        print(*args, sep="\t")
+        print(*args, sep="\t"*5)
 
 
 
@@ -321,6 +321,9 @@ class DatabaseProcessor:
         columns_list: List[Column] = []
         keywords: List[str] = query["columns"]
         length = len(keywords)
+        if length != len(set(keywords)):
+            self.output_device.output("Can't create a table with dublicate columns")
+            return
         for i in range(length):
             columns_list.append(Column(keywords[i]))
 
