@@ -167,7 +167,7 @@ class RepeatedPattern(Pattern):
 
     def __init__(self, patterns: List[Pattern], repeat_from: int, name=None):
         super().__init__(name)
-        self.patterns = patterns
+        self.patterns = patterns.copy()
         self.last_index = len(patterns)-1
         self.repeat_from = repeat_from
         self.index = 0
@@ -215,7 +215,7 @@ class OptionalNonRepeatedPattern(Pattern):
 
     def __init__(self, patterns: List[Pattern], name=None):
         super().__init__(name)
-        self.patterns = patterns
+        self.patterns = patterns.copy()
         self.last_index = len(patterns)
         self.index = 0
         self.finished = False
@@ -247,29 +247,45 @@ class OptionalNonRepeatedPattern(Pattern):
         return self.patterns[self.index].should_be_saved()
 
 
-PATTERNS = {"create": [IdentifierPattern(name="table_name"),
-                       StringPattern("("),
-                       RepeatedPattern([IdentifierPattern(),
-                                        # OptionalStringPattern("indexed"),
-                                        StringPattern(",")], 0, name="columns"),
-                       StringPattern(")")],
-            "insert": [OptionalStringPattern("into"),
-                       IdentifierPattern(name="table_name"),
-                       StringPattern("("),
-                       RepeatedPattern([LiteralPattern(),
-                                        StringPattern(",")], 0, name="values"),
-                       StringPattern(")")],
-            "select": [OptionalRepeatedPattern([AggregationFunctionPattern(),
-                                                StringPattern("("),
-                                                IdentifierPattern(),
-                                                StringPattern(")"),
-                                                StringPattern(",")], 0, name="functions"),
-                       StringPattern("from"),
-                       IdentifierPattern(name="table_name"),
-                       OptionalNonRepeatedPattern([StringPattern("where"),
-                                                   IdentifierPattern(),
-                                                   StringPattern("<"),
-                                                   LiteralOrIdentifierPattern()], name="where"),
-                       OptionalRepeatedPattern([StringPattern("group_by"),
-                                                IdentifierPattern(),
-                                                StringPattern(",")], 1, name="group_by")]}
+def pattern_create():
+    return [IdentifierPattern(name="table_name"),
+            StringPattern("("),
+            RepeatedPattern([IdentifierPattern(),
+                            # OptionalStringPattern("indexed"),
+                            StringPattern(",")], 0, name="columns"),
+            StringPattern(")")]
+
+
+def pattern_insert():
+    return [OptionalStringPattern("into"),
+            IdentifierPattern(name="table_name"),
+            StringPattern("("),
+            RepeatedPattern([LiteralPattern(),
+                            StringPattern(",")], 0, name="values"),
+            StringPattern(")")]
+
+
+def pattern_select():
+    return [OptionalRepeatedPattern([AggregationFunctionPattern(),
+                                    StringPattern("("),
+                                    IdentifierPattern(),
+                                    StringPattern(")"),
+                                    StringPattern(",")], 0, name="functions"),
+            StringPattern("from"),
+            IdentifierPattern(name="table_name"),
+            OptionalNonRepeatedPattern([StringPattern("where"),
+                                        IdentifierPattern(),
+                                        StringPattern("<"),
+                                        LiteralOrIdentifierPattern()], name="where"),
+            OptionalRepeatedPattern([StringPattern("group_by"),
+                                    IdentifierPattern(),
+                                    StringPattern(",")], 1, name="group_by")]
+
+
+def get_pattern(key):
+    if key == "create":
+        return pattern_create()
+    elif key == "insert":
+        return pattern_insert()
+    elif key == "select":
+        return pattern_select()

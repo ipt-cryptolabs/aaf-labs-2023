@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Type
 from re import sub
-from patterns import Pattern, PATTERNS, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS, RepeatedPattern
+from patterns import Pattern, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS, RepeatedPattern, get_pattern
 
 
 class Query:
@@ -150,11 +150,10 @@ class InputProcessor:
                 self.clear()
                 break
 
-
     def syntax_analysis(self):
         self.command = self.tokens[0].lower()
         self.query.add(self.command, param_name="command")
-        pattern = PATTERNS[self.command]
+        pattern = get_pattern(self.command)
         tokens = self.tokens[1:].copy()
         expected_pattern = ""
         while tokens and pattern:
@@ -417,9 +416,9 @@ class DatabaseApp:
     def run(self):
         while self.running:
             query = self.input_processor.get_command()
+            if "command" in query.named_params:
+                self.database_processor.process_query(query.named_params)
             self.input_processor.clear()
-            print(query.named_params)
-            self.database_processor.process_query(query.named_params)
 
 
 if __name__ == "__main__":
