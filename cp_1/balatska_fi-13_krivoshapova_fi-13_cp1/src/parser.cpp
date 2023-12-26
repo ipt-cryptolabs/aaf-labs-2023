@@ -66,8 +66,7 @@ Command parseCommand(std::string input) {
             ss >> command.table_name;
 
             // Ignore everything until an opening parenthesis "(" is found
-            ss.ignore(std::numeric_limits<std::streamsize>::max(), '(');
-
+            ss.ignore(100, '(');
             // Read values inside parentheses
             std::string value;
             while (ss >> value) {
@@ -94,8 +93,7 @@ Command parseCommand(std::string input) {
             command.table_name = token;
 
             // Ignore everything until an opening parenthesis "(" is found
-            ss.ignore(std::numeric_limits<std::streamsize>::max(), '(');
-
+            ss.ignore(100, '(');
             // Read values inside parentheses
             std::string value;
             while (ss >> value) {
