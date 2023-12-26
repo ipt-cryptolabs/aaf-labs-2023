@@ -68,7 +68,7 @@ class StandardOutputDevice:
 
     @staticmethod
     def output(*args):
-        print(*args)
+        print(*args, sep="\t")
 
 
 
@@ -241,6 +241,9 @@ class Table:
             entry[self.columns[index].name] = values[index]
         self.entries.append(entry)
 
+    def columns_as_strings(self):
+        return [column.name for column in self.columns]
+
 
 class Database:
 
@@ -273,6 +276,9 @@ class Count(AggregatedFunction):
     def default_value(self):
         return 0
 
+    def __repr__(self):
+        return f"Count({self.column})"
+
 
 class Max(AggregatedFunction):
 
@@ -282,6 +288,9 @@ class Max(AggregatedFunction):
     def default_value(self):
         return ""
 
+    def __repr__(self):
+        return f"Max({self.column})"
+
 
 class Longest(AggregatedFunction):
 
@@ -290,6 +299,9 @@ class Longest(AggregatedFunction):
 
     def default_value(self):
         return ""
+
+    def __repr__(self):
+        return f"Longest({self.column})"
 
 
 AGGREGATED_FUNCTIONS: Dict[str, Type] = {"count": Count, "max": Max, "longest": Longest}
@@ -342,30 +354,31 @@ class DatabaseProcessor:
 
         return valid_entries
 
-
     def __group(self, entries, groups, aggregated_functions: List[AggregatedFunction]) -> list:
-        new_entries: Dict[list, list] = dict()
+        entries_groups = []
+        entries_functions = []
         ret = []
         for entry in entries:
             new_entry = []
             for group in groups:
                 new_entry.append(entry[group])
 
-            if new_entry not in new_entries.keys():
+            if new_entry not in entries_groups:
                 aggregated_values = []
                 for func in aggregated_functions:
                     aggregated_values.append(func.default_value())
-                new_entries[new_entry] = aggregated_values
+                entries_groups.append(new_entry)
+                entries_functions.append(aggregated_values)
 
             for func_index in range(len(aggregated_functions)):
-                old_value = new_entries[new_entry][func_index]
-                new_entries[new_entry][func_index] = aggregated_functions[func_index].update(old_value, entry)
+                old_value = entries_functions[entries_groups.index(new_entry)][func_index]
+                entries_functions[entries_groups.index(new_entry)][func_index] =\
+                    aggregated_functions[func_index].update(old_value, entry)
 
-        for new_entry in new_entries:
-            ret.append(new_entry + new_entries[new_entry])
+        for entry_index in range(len(entries_groups)):
+            ret.append(entries_groups[entry_index] + entries_functions[entry_index])
 
         return ret
-
 
     def select(self, query):
         if "functions" in query and "group_by" not in query:
@@ -387,11 +400,14 @@ class DatabaseProcessor:
                     query["functions"] = query["functions"][2:]
 
             entries = self.__group(entries, query["group_by"], functions)
-
-        #self.output_device.output(*query["group_by"], *functions)
-        for entry in entries:
-            l = len(entry)//2
-            self.output_device.output(*[entry[i] for i in range(l)])
+            self.output_device.output(*query["group_by"], *functions)
+            for entry in entries:
+                self.output_device.output(*entry)
+        else:
+            self.output_device.output(*table.columns_as_strings())
+            for entry in entries:
+                l = len(entry)//2
+                self.output_device.output(*[entry[i] for i in range(l)])
 
 
 
