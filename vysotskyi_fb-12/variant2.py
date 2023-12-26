@@ -384,9 +384,25 @@ class DatabaseProcessor:
         if "functions" in query and "group_by" not in query:
             self.output_device.output("Can't use Aggregated functions if you don't use GROUP_BY")
             return
-        # TODO Check if all identifiers are in table
 
         table: Table = self.database.tables[query["table_name"][0]]
+        # Checking if all identifiers are in table
+        if "functions" in query:
+            for param in query["functions"][1::2]:
+                if param not in table.columns_as_strings():
+                    self.output_device.output(f"{param} is not {table.name}'s column")
+                    return
+        if "group_by" in query:
+            for param in query["group_by"]:
+                if param not in table.columns_as_strings():
+                    self.output_device.output(f"{param} is not {table.name}'s column")
+                    return
+        if "where" in query:
+            for param in query["where"]:
+                if param not in table.columns_as_strings() and param[0] != "\"":
+                    self.output_device.output(f"{param} is not {table.name}'s column")
+                    return
+
         functions: List[AggregatedFunction] = []
         if "where" in query:
             entries = self.__get_where(table, query["where"][0], query["where"][1])
