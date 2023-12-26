@@ -208,7 +208,7 @@ class RepeatedPattern(Pattern):
 class OptionalRepeatedPattern(RepeatedPattern):
 
     def is_optional(self) -> bool:
-        return self.index == 0
+        return self.index in (0, len(self.patterns) - 1)
 
 
 class OptionalNonRepeatedPattern(Pattern):
@@ -235,7 +235,7 @@ class OptionalNonRepeatedPattern(Pattern):
             return False
 
     def is_optional(self) -> bool:
-        return self.index == 0
+        return self.index in (0, len(self.patterns) - 1)
 
     def can_go_to_next_pattern(self) -> bool:
         return self.finished

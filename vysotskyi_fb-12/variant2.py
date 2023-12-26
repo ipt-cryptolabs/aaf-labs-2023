@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Type
 from re import sub
-from patterns import Pattern, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS, RepeatedPattern, get_pattern
+from patterns import Pattern, SPECIAL_CHARS, INITIAL_KEYWORDS, KEYWORDS, get_pattern
 
 
 class Query:
@@ -153,32 +153,32 @@ class InputProcessor:
     def syntax_analysis(self):
         self.command = self.tokens[0].lower()
         self.query.add(self.command, param_name="command")
-        pattern = get_pattern(self.command)
+        patterns = get_pattern(self.command)
         tokens = self.tokens[1:].copy()
         expected_pattern = ""
-        while tokens and pattern:
-            compare = Compare(pattern[0], tokens[0])
+        while tokens and patterns:
+            compare = Compare(patterns[0], tokens[0])
             # print(pattern[0], tokens[0])
             if compare.to_save_in_query():
-                self.query.add(tokens[0], param_name=pattern[0].name)
+                self.query.add(tokens[0], param_name=patterns[0].name)
             compare.match()
             if compare.matched:
                 expected_pattern = compare.get_expected_pattern()
             else:
-                expected_pattern = expected_pattern + f" or {pattern[0]}" if expected_pattern else f"{pattern[0]}"
+                expected_pattern = expected_pattern + f" or {patterns[0]}" if expected_pattern else f"{patterns[0]}"
                 self.output_device.output(f"Expected {expected_pattern}, got: '{tokens[0]}'")
                 self.clear()
                 break
             if compare.go_to_next_pattern:
-                pattern = pattern[1:]
+                patterns = patterns[1:]
             if compare.go_to_next_token:
                 tokens = tokens[1:]
         else:
-            if len(pattern) > 1:
-                self.output_device.output(f"Expected {pattern[0]}, got nothing")
-            elif len(pattern) == 1 and not (isinstance(pattern[0], RepeatedPattern) and
-                                            pattern[0].index == pattern[0].last_index):
-                self.output_device.output(f"Expected {pattern[0]}, got nothing")
+            for pattern in patterns:
+                if not pattern.is_optional():
+                    self.output_device.output(f"Expected {pattern}, got nothing")
+                    self.clear()
+                    return
 
     def get_command(self) -> Query:
         while not self.query.is_finished:  # Until the correct input is given
