@@ -21,6 +21,7 @@ class DB_Handler:
         if table_name in self.tables:
             if not left_join_table:
                 if where_condition:
+                    # print(123)
                     where_column, where_value = where_condition.split(' < ')
                     column_values = self.tables[table_name][where_column]
                     filtered_indices = [idx for idx, val in enumerate(column_values) if val < where_value]
@@ -70,34 +71,38 @@ class DB_Handler:
 
     def parse_command(self, command):
 
-        create_match = re.match(r'CREATE (\w+) \((.*)\);', command)
+        create_match = re.match(r'(?i)CREATE (\w+) \((.*)\);', command)
         if create_match:
             table_name = create_match.group(1)
             columns = [col.strip() for col in create_match.group(2).split(',')]
             self.create(table_name, columns)
             return
 
-        insert_match = re.match(r'INSERT INTO (\w+)\((.*)\);', command)
+        insert_match = re.match(r'(?i)INSERT INTO (\w+)\((.*)\);', command)
         if insert_match:
             table_name = insert_match.group(1)
-            values = [val.strip() for val in insert_match.group(2).split(',')]
-            self.insert(table_name, values)
+            matches = re.findall(r'"([^"]*)"', insert_match.group(2))
+
+            # values = [val.strip() for val in insert_match.group(2).replace('"', '').split(',')]
+            self.insert(table_name, matches)
             return
 
-        insert_match = re.match(r'INSERT (\w+) \((.*)\);', command)
+        insert_match = re.match(r'(?i)INSERT (\w+) \((.*)\);', command)
         if insert_match:
             table_name = insert_match.group(1)
-            values = [val.strip() for val in insert_match.group(2).split(',')]
-            self.insert(table_name, values)
+            matches = re.findall(r'"([^"]*)"', insert_match.group(2))
+
+            # values = [val.strip() for val in insert_match.group(2).replace('"', '').split(',')]
+            self.insert(table_name, matches)
             return
 
-        select_match = re.match(r'SELECT FROM (\w+);', command)
+        select_match = re.match(r'(?i)SELECT FROM (\w+);', command)
         if select_match:
             table_name = select_match.group(1)
             self.select(table_name)
             return
 
-        select_where_match = re.match(r'SELECT FROM (\w+) WHERE (\w+) INDEXED < “(.*?)”;', command)
+        select_where_match = re.match(r'(?i)SELECT FROM (\w+) WHERE (\w+) < "(.*?)";', command)
         if select_where_match:
             table_name = select_where_match.group(1)
             where_column = select_where_match.group(2)
@@ -114,7 +119,7 @@ class DB_Handler:
                 self.select(table_name, where_condition=where_condition)
                 return
 
-        select_join_match = re.match(r'SELECT FROM (\w+)\s+LEFT_JOIN (\w+)\s+ON (\w+) INDEXED\s*=\s*(\w+) INDEXED;', command)
+        select_join_match = re.match(r'(?i)SELECT FROM (\w+) LEFT_JOIN (\w+) ON (\w+) = (\w+);', command)
         if select_join_match:
             table_name = select_join_match.group(1)
             join_table = select_join_match.group(2)
