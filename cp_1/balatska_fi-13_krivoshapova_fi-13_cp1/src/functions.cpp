@@ -125,58 +125,69 @@ void performSelect(const Command& command, const std::vector<Command>& collectio
 
 
                 // Sort the result data if ORDER BY is specified
-                if (!command.order_by_column.empty()) {
-                    std::vector<std::string> order_by_columns;  // Store the columns to sort by
-                    std::vector<bool> is_descending;  // Store the sorting order for each column
+            if (!command.order_by_column.empty()) {
+                std::vector<std::pair<std::string, bool>> order_by_columns; // Pair of column name and sorting order
+                std::stringstream order_by_ss(command.order_by_column);
+                std::string column;
 
-                    std::stringstream order_by_ss(command.order_by_column);
-                    std::string column;
-                    while (getline(order_by_ss, column, ',')) {
-                        size_t pos = column.find_last_not_of(" \t\n\r\f\v");
-                        if (pos != std::string::npos) {
-                            column.erase(pos + 1);
-                        }
-                        size_t space_pos = column.find_last_of(" \t\n\r\f\v");
-                        if (space_pos != std::string::npos) {
-                            std::string order = column.substr(space_pos + 1);
-                            if (order == "ASC") {
-                                is_descending.push_back(false);
-                            }
-                            else if (order == "DESC") {
-                                is_descending.push_back(true);
-                            }
-                            else {
-                                // Default to ASC if no explicit order is specified
-                                is_descending.push_back(false);
-                                column += " " + order;  // Append "ASC" for consistent parsing
-                            }
-                            column.erase(space_pos);
-                        }
-                        else {
-                            // Default to ASC if no explicit order is specified
-                            is_descending.push_back(false);
-                        }
-
-                        order_by_columns.push_back(column);
+                while (getline(order_by_ss, column, ',')) {
+                    size_t pos = column.find_last_not_of(" \t\n\r\f\v");
+                    if (pos != std::string::npos) {
+                        column.erase(pos + 1);
                     }
 
+                    size_t space_pos = column.find_last_of(" \t\n\r\f\v");
+                    bool is_descending = false;
+
+                    if (space_pos != std::string::npos) {
+                        std::string order = column.substr(space_pos + 1);
+                        if (order == "ASC") {
+                            is_descending = false;
+                        }
+                        else if (order == "DESC") {
+                            is_descending = true;
+                        }
+                        // Remove the order specification from the column name
+                        column.erase(space_pos);
+                    }
+
+                    order_by_columns.emplace_back(column, is_descending);
+                }
+
+                // Sort the result data based on the specified columns
+                if (!order_by_columns.empty()) {
                     std::sort(result.data.begin(), result.data.end(), [&](const std::vector<std::string>& a, const std::vector<std::string>& b) {
-                        for (size_t i = 0; i < order_by_columns.size(); ++i) {
-                            size_t column_index = std::find(result.columns.begin(), result.columns.end(), order_by_columns[i]) - result.columns.begin();
+                        for (const auto& order_info : order_by_columns) {
+                            const std::string& order_by_column = order_info.first;
+                            bool is_descending = order_info.second;
+
+                            size_t column_index = std::find(result.columns.begin(), result.columns.end(), order_by_column) - result.columns.begin();
                             if (column_index < result.columns.size()) {
                                 if (a[column_index] != b[column_index]) {
-                                    if (is_descending[i]) {
-                                        return a[column_index] > b[column_index];
+                                    // Compare based on the sorting order
+                                    int comparisonResult = a[column_index].compare(b[column_index]);
+
+                                    if (is_descending) {
+                                        // Sort in descending order
+                                        return comparisonResult > 0;
                                     }
                                     else {
-                                        return a[column_index] < b[column_index];
+                                        // Sort in ascending order
+                                        return comparisonResult < 0;
                                     }
                                 }
                             }
                         }
-                    return false;  // Rows are considered equal if all columns are equal
+                    // Default to ascending order if no explicit order is specified
+                    return a < b;
                         });
+
+                    // If DESC is specified, reverse the order
+                    if (order_by_columns.front().second) {
+                        std::reverse(result.data.begin(), result.data.end());
+                    }
                 }
+            }
         }
     }
 }
