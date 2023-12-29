@@ -43,7 +43,10 @@ class DB_Handler:
             elif left_join_table and join_condition:
                 table_1, table_2 = table_name, left_join_table
                 t1_column, t2_column = join_condition.split(' = ')
-                t1_values, t2_values = self.tables[table_1][t1_column+' INDEXED'], self.tables[table_2][t2_column+' INDEXED']
+                try:
+                    t1_values, t2_values = self.tables[table_1][t1_column+' INDEXED'], self.tables[table_2][t2_column+' INDEXED']
+                except KeyError:
+                    t1_values, t2_values = self.tables[table_1][t1_column], self.tables[table_2][t2_column]
                 result_table = []
 
                 for t1_idx, t1_val in enumerate(t1_values):
@@ -103,6 +106,23 @@ class DB_Handler:
             return
 
         select_where_match = re.match(r'(?i)SELECT FROM (\w+) WHERE (\w+) < "(.*?)";', command)
+        if select_where_match:
+            table_name = select_where_match.group(1)
+            where_column = select_where_match.group(2)
+            # print(where_column)
+            where_value = select_where_match.group(3)
+            try:
+                if self.tables[table_name][where_column]:
+                    where_condition = f"{where_column} < {where_value}"
+                    self.select(table_name, where_condition=where_condition)
+                    return
+            except KeyError:
+                where_column += ' INDEXED'
+                where_condition = f"{where_column} < {where_value}"
+                self.select(table_name, where_condition=where_condition)
+                return
+
+        select_where_match = re.match(r'(?i)SELECT FROM (\w+) WHERE (\w+) < (\w+);', command)
         if select_where_match:
             table_name = select_where_match.group(1)
             where_column = select_where_match.group(2)
