@@ -1,4 +1,4 @@
-package com.lab.db.query.parser;
+package com.lab.db.parser;
 import java.util.List;
 import java.util.Scanner;
 
@@ -11,7 +11,6 @@ public class Interface {
             "enter EXIT to stop the program.\n";
     private final Scanner scanner = new Scanner(System.in);
 
-    // it's only to test parser
     public Interface() {
         System.out.println("The database stores line segments using R-trees ");
         System.out.println(instruction);

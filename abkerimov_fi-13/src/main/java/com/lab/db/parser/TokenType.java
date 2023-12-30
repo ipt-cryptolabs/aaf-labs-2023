@@ -1,4 +1,4 @@
-package com.lab.db.query.parser;
+package com.lab.db.parser;
 
 public enum TokenType {
     COMMAND,
