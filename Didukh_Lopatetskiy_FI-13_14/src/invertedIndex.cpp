@@ -74,16 +74,15 @@ void Collections::parse(const std::string &inputString) {
             intersectsSearch(collectionName, getSetFromTokens(tokens));
         
         if(tokens.at(0) == "SEARCH_CONTAINS")
-            intersectsSearch(collectionName, getSetFromTokens(tokens));
+            containsSearch(collectionName, getSetFromTokens(tokens));
         
         if(tokens.at(0) == "SEARCH_CONTAINED_BY")
-            intersectsSearch(collectionName, getSetFromTokens(tokens));
+            containedBySearch(collectionName, getSetFromTokens(tokens));
 
         if(tokens.at(0) == "CONTAINS") 
             containsCollection(collectionName, getSetFromTokens(tokens));
-    } else {
+    } else 
         std::cout << "Error: Invalid command syntax, try again.\n";
-    }
 }
 
 void Collections::createCollection(const std::string &collectionName) {
