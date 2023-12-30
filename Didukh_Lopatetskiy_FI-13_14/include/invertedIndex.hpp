@@ -19,6 +19,9 @@ public:
     bool contains(const std::set<int> &set);
     void print_index();
     std::vector<std::set<int>> getSets() { return sets; }
+
+    std::vector<std::set<int>> containsSearch(const std::set<int> &set) const;
+    std::vector<std::set<int>> intersectsSearch(const std::set<int> &set) const;
 };
 
 class Collections {
@@ -39,7 +42,7 @@ public:
     bool containsCollection(const std::string &collectionName, const std::set<int> &set);
    
     std::vector<std::set<int>> searchInCollection(const std::string &collectionName);
-    std::vector<std::set<int>>  intersectsSearch(const std::string &collecntionName, const std::set<int> &set);
-    std::vector<std::set<int>>  containsSearch(const std::string &collecntionName, const std::set<int> &set);
-    std::vector<std::set<int>>  containedBySearch(const std::string &collecntionName, const std::set<int> &set);
+    std::vector<std::set<int>> intersectsSearch(const std::string &collecntionName, const std::set<int> &set);
+    std::vector<std::set<int>> containsSearch(const std::string &collecntionName, const std::set<int> &set);
+    std::vector<std::set<int>> containedBySearch(const std::string &collecntionName, const std::set<int> &set);
 };

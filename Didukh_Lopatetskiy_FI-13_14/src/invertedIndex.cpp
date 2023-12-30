@@ -51,6 +51,47 @@ void Collection::print_index() {
     }
 }
 
+std::vector<std::set<int>> Collection::containsSearch(const std::set<int> &set) const {
+    std::vector<std::set<int>> resultSets;
+    std::set<int> intersection;
+
+    for (int num : set) {
+        auto it = invertedIndex.find(num);
+        if (it != invertedIndex.end()) {
+            if (intersection.empty()) {
+                intersection = it->second;
+            } else {
+                std::set<int> temp_intersection;
+                std::set_intersection(
+                    intersection.begin(), intersection.end(),
+                    it->second.begin(), it->second.end(),
+                    std::inserter(temp_intersection, temp_intersection.begin())
+                );
+                intersection = temp_intersection;
+            }
+        } else {
+            intersection.clear();
+            break;
+        }
+    }
+
+    for (int index : intersection) {
+        const std::set<int>& existingSet = sets.at(index - 1);
+        std::set<int> temp_intersection;
+        std::set_intersection(
+            set.begin(), set.end(),
+            existingSet.begin(), existingSet.end(),
+            std::inserter(temp_intersection, temp_intersection.begin())
+        );
+
+        if (temp_intersection == set) {
+            resultSets.push_back(existingSet);
+        }
+    }
+
+    return resultSets;
+}
+
 void Collections::parse(const std::string &inputString) {
     parser.lexer(inputString);
     auto tokens = parser.getTokens(); 
@@ -169,26 +210,13 @@ std::vector<std::set<int>> Collections::intersectsSearch(const std::string &coll
 }
 
 std::vector<std::set<int>> Collections::containsSearch(const std::string &collectionName, const std::set<int> &set) {
-    std::vector<std::set<int>> resultSets;
-
     if (collections.find(collectionName) == collections.end()) {
         std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
-        return resultSets;
+        return {};
     }
 
     Collection& currentCollection = collections[collectionName];
-
-    for (const auto& existingSet : currentCollection.getSets()) {
-        std::set<int> intersection;
-        std::set_intersection(
-            set.begin(), set.end(),
-            existingSet.begin(), existingSet.end(),
-            std::inserter(intersection, intersection.begin())
-        );
-
-        if (intersection == set) 
-            resultSets.push_back(existingSet);
-    }
+    std::vector<std::set<int>> resultSets = currentCollection.containsSearch(set);
 
     printsSets(resultSets);
     return resultSets;
