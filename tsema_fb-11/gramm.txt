@@ -1,0 +1,25 @@
+SEARCH grades;
+SEARCH grades WHERE INTERSECTS {82, 90, 92};
+SEARCH grades WHERE CONTAINS {85, 90};
+SEARCH grades WHERE CONTAINED_BY {75, 80, 85, 90, 95, 100};
+
+
+PRINT_TREE collection_name;             collection_name : {1, 2, 3}, {2, 5}, {1, 4, 8}, {1, 4, 9}
+{1, 2, 3, 4, 5, 6, 8, 9}
+├── {1, 2, 3, 5}
+│   ├── {1, 2, 3}
+│   └── {2, 5}
+└── {1, 4, 8, 9}
+    ├── {1, 4, 8}
+    └── {1, 4, 9}
+
+
+CONTAINS collection_name {val_1, val_2, ..., val_N};
+
+
+INSERT collection_name {val_1, val_2, ..., val_N};
+INSERT grades {90, 85, 95};
+
+
+CREATE collection_name;
+CREATE grades;
