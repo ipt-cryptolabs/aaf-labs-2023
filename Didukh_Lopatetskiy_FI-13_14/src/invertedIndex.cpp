@@ -84,9 +84,44 @@ std::vector<std::set<int>> Collection::containsSearch(const std::set<int> &set) 
             std::inserter(temp_intersection, temp_intersection.begin())
         );
 
-        if (temp_intersection == set) {
+        if (temp_intersection == set)
             resultSets.push_back(existingSet);
-        }
+    }
+
+    return resultSets;
+}
+
+std::vector<std::set<int>> Collection::intersectsSearch(const std::set<int> &set) const {
+    std::vector<std::set<int>> resultSets;
+
+    for (const auto& existingSet : sets) {
+        std::set<int> intersection;
+        std::set_intersection(
+            set.begin(), set.end(),
+            existingSet.begin(), existingSet.end(),
+            std::inserter(intersection, intersection.begin())
+        );
+
+        if (!intersection.empty()) 
+            resultSets.push_back(existingSet);
+    }
+
+    return resultSets;
+}
+
+std::vector<std::set<int>> Collection::containedBySearch(const std::set<int> &set) const {
+    std::vector<std::set<int>> resultSets;
+
+    for (const auto& existingSet : sets) {
+        std::set<int> intersection;
+        std::set_intersection(
+            set.begin(), set.end(),
+            existingSet.begin(), existingSet.end(),
+            std::inserter(intersection, intersection.begin())
+        );
+
+        if (intersection == existingSet) 
+            resultSets.push_back(existingSet);
     }
 
     return resultSets;
@@ -183,32 +218,6 @@ std::vector<std::set<int>> Collections::searchInCollection(const std::string &co
     return resultSets;
 }
 
-std::vector<std::set<int>> Collections::intersectsSearch(const std::string &collectionName, const std::set<int> &set) {
-    std::vector<std::set<int>> resultSets;
-
-    if (collections.find(collectionName) == collections.end()) {
-        std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
-        return resultSets;
-    }
-
-    Collection& currentCollection = collections[collectionName];
-
-    for (const auto& existingSet : currentCollection.getSets()) {
-        std::set<int> intersection;
-        std::set_intersection(
-            set.begin(), set.end(),
-            existingSet.begin(), existingSet.end(),
-            std::inserter(intersection, intersection.begin())
-        );
-
-        if (!intersection.empty()) 
-            resultSets.push_back(existingSet);
-    }
-
-    printsSets(resultSets);
-    return resultSets;
-}
-
 std::vector<std::set<int>> Collections::containsSearch(const std::string &collectionName, const std::set<int> &set) {
     if (collections.find(collectionName) == collections.end()) {
         std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
@@ -217,6 +226,19 @@ std::vector<std::set<int>> Collections::containsSearch(const std::string &collec
 
     Collection& currentCollection = collections[collectionName];
     std::vector<std::set<int>> resultSets = currentCollection.containsSearch(set);
+
+    printsSets(resultSets);
+    return resultSets;
+}
+
+std::vector<std::set<int>> Collections::intersectsSearch(const std::string &collectionName, const std::set<int> &set) {
+    if (collections.find(collectionName) == collections.end()) {
+        std::cout << "Error: Collection '" << collectionName << "' doesn't exist." << std::endl;
+        return {};
+    }
+
+    Collection& currentCollection = collections[collectionName];
+    std::vector<std::set<int>> resultSets = currentCollection.intersectsSearch(set);
 
     printsSets(resultSets);
     return resultSets;

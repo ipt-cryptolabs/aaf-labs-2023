@@ -21,6 +21,7 @@ public:
     std::vector<std::set<int>> getSets() { return sets; }
 
     std::vector<std::set<int>> containsSearch(const std::set<int> &set) const;
+    std::vector<std::set<int>> containedBySearch(const std::set<int> &set) const;
     std::vector<std::set<int>> intersectsSearch(const std::set<int> &set) const;
 };
 
