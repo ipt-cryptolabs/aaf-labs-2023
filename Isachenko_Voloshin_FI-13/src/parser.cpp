@@ -81,9 +81,9 @@ QueryBuilder::~QueryBuilder()
 
 Query* QueryBuilder::getQueryFromString(const std::string& str)
 {
-	if (query != nullptr) delete query;
-	query = nullptr;
-	lexer(str);
+    if (query != nullptr) delete query;
+    query = nullptr;
+    lexer(str);
 
 	if (wordDividedString.size() >= 3)
 	{
