@@ -2,6 +2,7 @@
 #include <string>
 
 #include "parser.h"
+#include "invindexdb.h"
 
 const char* const HELPSTR = "Laboratory work. 8 variant.\n"
 "Implementation of a collection of text documents with the possibility of full - text search using inverted indexes.\n"
@@ -17,7 +18,7 @@ const char* const HELPSTR = "Laboratory work. 8 variant.\n"
 "CREATE [table name];\n"
 "INSERT [table name] \"[TEXT]\";\n"
 "PRINT_INDEX [table_name];\n"
-"SELECT [table_name] WHERE [WHERE_EXPRESSION];\n"
+"SEARCH [table_name] WHERE [WHERE_EXPRESSION];\n"
 "! - for exit\n"
 "HELP - for the string to appear\n";
 
@@ -35,6 +36,7 @@ void cli()
     using namespace std;
     string input;
     QueryBuilder qb;
+    InvIndDB db;
 
     cout << HELPSTR << endl;
 
@@ -66,7 +68,7 @@ void cli()
             continue;
         }
 
-        QueryResult qRes = query->execute();
+        QueryResult qRes = query->execute(db);
 
         cout << qRes << endl;
     }
@@ -74,6 +76,6 @@ void cli()
 
 std::ostream& operator<<(std::ostream& out, const QueryResult& qRes)
 {
-    out << qRes.queryType << " query " << qRes.message;
+    out << qRes.queryType << " query:  " << qRes.message;
     return out;
 }

@@ -1,17 +1,5 @@
 #include "parser.h"
 
-std::string toLowerStr(const std::string& str)
-{
-	std::string res;
-
-	for (int i = 0; i < str.length(); i++)
-	{
-		res += (tolower(str[i]));
-	}
-
-	return res;
-}
-
 void QueryBuilder::lexer(const std::string& str)
 {
 	wordDividedString.clear();
@@ -62,6 +50,7 @@ void QueryBuilder::lexer(const std::string& str)
 				word.clear();
 				continue;
 			}
+			if (*i == '\'' || *i == '.') continue;
 			break;
 		case EXPRESSION_DELIMITER:
 			if (*i == ';')
@@ -100,7 +89,7 @@ Query* QueryBuilder::getQueryFromString(const std::string& str)
 	{
 		if (wordDividedString.front() == SEARCH)
 		{
-			query = new SearchQuery(wordDividedString[1], wordDividedString[2]);
+			query = new SearchQuery(wordDividedString[1], toLowerStr(wordDividedString[2]));
 		}
 		else if (wordDividedString.front() == INSERT)
 		{
