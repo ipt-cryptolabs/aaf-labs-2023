@@ -67,17 +67,17 @@ std::string Collection::getDocsByWordDistance(const std::string& word1, const st
 	std::vector<std::size_t> matchingVec;
 	std::string res;
 
-	for (auto& const kv : invIndex[word1])
+	for (const auto& kv : invIndex[word1])
 	{
 		crossingSet.insert(kv.first);
 	}
 
-	for (auto& const kv : invIndex[word2])
+	for (const auto& kv : invIndex[word2])
 	{
 		crossingSet.insert(kv.first);
 	}
 
-	for (auto& const d : crossingSet)
+	for (const auto& d : crossingSet)
 	{
 		auto &docVec1 = invIndex[word1][d];
 		auto &docVec2 = invIndex[word2][d];
