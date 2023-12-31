@@ -102,50 +102,84 @@ public class RTree {
         result[1] = Math.max(bounds1[1], bounds2[1]);
         return result;
     }
-//
-//    public List<int[]> search(int[] segment) {
-//        List<int[]> result = new ArrayList<>();
-//        search(root, segment, result);
-//        return result;
-//    }
-//
-//    private void search(Node node, int[] segment, List<int[]> result) {
-//        if (node.isLeaf()) {
-//            for (int[] s : node.segments) {
-//                if (intersect(s, segment)) {
-//                    result.add(s);
-//                }
-//            }
-//        } else {
-//            for (Node child : node.children) {
-//                if (intersect(child.bounds, segment)) {
-//                    search(child, segment, result);
-//                }
-//            }
-//        }
-//    }
+    private boolean in(int[] in, int[] out) {
+        return in[0] >= out[0] && in[1] <= out[1];
+    }
+    public boolean search(int[] segment) {
+        return search(root, segment);
+    }
+
+    private boolean search(Node node, int[] segment) {
+        if (Arrays.equals(node.segment, segment)) {
+            return true;
+        }
+        if (Arrays.equals(node.LeftChild.segment, segment)) {
+            return true;
+        }
+        if (Arrays.equals(node.RightChild.segment, segment)) {
+            return true;
+        }
+        if (in(node.RightChild.segment, segment)) {
+            return search(node.RightChild, segment);
+        }
+        else if (in(node.LeftChild.segment, segment)) {
+            return search(node.LeftChild. segment);
+        }
+        return false;
+    }
 
 
-//    public void print() {
-//        print(root, "");
-//    }
-//
-//    private void print(Node node, String prefix) {
-//        if (node.isLeaf()) {
-//            System.out.println(prefix + "└── " + Arrays.toString(node.bounds));
-//            for (int[] segment : node.segments) {
-//                System.out.println(prefix + "    ├── " + Arrays.toString(segment));
-//            }
-//        } else {
-//            System.out.println(prefix + "├── " + Arrays.toString(node.bounds));
-//
-//            int childCount = node.children.size();
-//            for (int i = 0; i < childCount - 1; i++) {
-//                print(node.children.get(i), prefix + "│   ");
-//            }
-//            if (childCount > 0) {
-//                print(node.children.get(childCount - 1), prefix + "    ");
-//            }
-//        }
-//    }
+    public void print() {
+        print(root, "");
+    }
+
+    private void print(Node node, String prefix) {
+        if (node.isLeaf()) {
+            System.out.println(prefix + "└── " + Arrays.toString(node.segment));
+        } else {
+            System.out.println(prefix + "├── " + Arrays.toString(node.segment));
+            print(node.LeftChild, prefix + "│    ");
+            print(node.RightChild, prefix + "│    ");
+        }
+    }
+    public void left_of(int l) {
+        left_of_helper(root, l);
+    }
+    private void left_of_helper(Node node, int l) {
+        if (node.segment[1] <= l) {
+            System.out.println(Arrays.toString(node.segment));
+        }
+        if (!node.isLeaf()) {
+            left_of_helper(node.LeftChild, l);
+            left_of_helper(node.RightChild, l);
+        }
+    }
+    public void contains(int[] segment) {
+        contains_helper(root, segment);
+    }
+    private void contains_helper(Node node,int[] segment) {
+        if (in( segment, node.segment)) {
+            System.out.println(Arrays.toString(node.segment));
+        }
+        if (!node.isLeaf()) {
+            contains_helper(node.LeftChild, segment);
+            contains_helper(node.RightChild, segment);
+        }
+    }
+    public void intersects(int[] segment) {
+        intersects_helper(root, segment);
+    }
+    private void intersects_helper(Node node, int[] segment) {
+        if (intersect(segment, node.segment)) {
+            System.out.println(Arrays.toString(node.segment));
+        }
+        if (!node.isLeaf()) {
+            if (intersect(node.LeftChild.segment, segment)) {
+                intersects_helper(node.LeftChild, segment);
+            }
+            if (intersect(node.LeftChild.segment, segment)) {
+                intersects_helper(node.RightChild, segment);
+            }
+        }
+    }
 }

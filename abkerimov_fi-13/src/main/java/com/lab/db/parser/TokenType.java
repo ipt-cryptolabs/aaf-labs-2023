@@ -4,5 +4,6 @@ public enum TokenType {
     COMMAND,
     ID,
     LINE_SEGMENT,
+    INT,
     EOF
 }
