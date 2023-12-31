@@ -122,7 +122,7 @@ def parse_select_command(command, table_data):
         if from_index != -1:
             table_name_start = from_index + len("from")
             where_index = command.find("where", from_index)
-            order_by_index = command.find("order by", from_index)
+            order_by_index = command.find("order_by", from_index)
 
             if where_index != -1 and order_by_index != -1:
                 table_name = command[table_name_start:where_index].strip()
@@ -150,7 +150,7 @@ def parse_select_command(command, table_data):
 
             order_by_columns = []
             if order_by_index != -1:
-                order_by_str = command[order_by_index + len("order by"):].strip()
+                order_by_str = command[order_by_index + len("order_by"):].strip()
                 order_by_parts = order_by_str.split(',')
                 for part in order_by_parts:
                     order_by_parts = part.split()
@@ -194,7 +194,6 @@ def parse_select_command(command, table_data):
             return "Error: FROM keyword not found in the SELECT command."
     else:
         return "Error: SELECT keyword not found in the command."
-
 
 
 def get_value(value_str, row):
