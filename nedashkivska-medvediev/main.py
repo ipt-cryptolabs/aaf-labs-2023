@@ -40,10 +40,9 @@ if __name__ == "__main__":
     tables_dict = {}
     
     print("Приклади команд:")
-    print(" > CREATE some_table (first_column, second_column);")
-    print(" > INSERT INTO some_table (\"1\", \"data\");")
-    print(" > SELECT * FROM some_table;")
-    print(" > SELECT FROM some_table WHERE second_column < \"data\";")
+    print(" > create some_table (first_column, second_column);")
+    print(" > insert into some_table (\"1\", \"data\");")
+    print(" > select from some_table where second_column < \"data\";")
     print("------------------")
     
     while True:
@@ -57,20 +56,25 @@ if __name__ == "__main__":
             
             table_name = result[1]
             
-            if command == "CREATE":
+            if command == "create":
                 column_names = result[2:]
                 handle_create_command(tables_dict, table_name, column_names)
                 
-            elif command == "INSERT INTO":
+            elif command == "insert into":
+                data = result[2:]
+                handle_insert_command(tables_dict, table_name, data)
+            
+            elif command == "insert":
+                data = result[2:]
+                handle_insert_command(tables_dict, table_name, data)
+
+            elif command == "insert into":
                 data = result[2:]
                 handle_insert_command(tables_dict, table_name, data)
                 
-            elif command == "SELECT FROM":
+            elif command == "select from":
                 data = result[2:]
                 handle_select_from_command(tables_dict, table_name, data)
-                
-            elif command == "SELECT * FROM":
-                handle_select_all_from_command(tables_dict, table_name)
                 
             else:
                 print("Невідома команда")
