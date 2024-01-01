@@ -1,10 +1,24 @@
 import re
 
 
+class BTreeIndex:
+    def __init__(self):
+        self.index = {}
+
+    def insert(self, key, row_id):
+        if key not in self.index:
+            self.index[key] = []
+        self.index[key].append(row_id)
+
+    def find(self, key):
+        return self.index.get(key, [])
+
+
 class DB_Handler:
     def __init__(self):
         self.tables = {}
         self.indexed_columns = {}
+        self.btree_indexes = {}
 
     def create(self, table_name: str, column_definitions: list):
         columns = {}
@@ -12,6 +26,7 @@ class DB_Handler:
             if 'INDEXED' in column_def:
                 column_name, _ = column_def.split(' INDEXED')
                 self.indexed_columns[f'{table_name}.{column_name}'] = True
+                self.btree_indexes[f'{table_name}.{column_name}'] = BTreeIndex()
             else:
                 column_name = column_def
             columns[column_name] = []
@@ -26,8 +41,11 @@ class DB_Handler:
                 print(f"Error: The number of values does not match the number of columns in {table_name}.")
                 return
 
+            row_id = len(next(iter(columns.values())))
             for (column, value), column_name in zip(zip(columns.values(), values), columns.keys()):
                 column.append(value)
+                if f'{table_name}.{column_name}' in self.indexed_columns:
+                    self.btree_indexes[f'{table_name}.{column_name}'].insert(value, row_id)
             print(f'1 row has been inserted into {table_name}.')
         else:
             print(f"Table '{table_name}' does not exist.")
@@ -46,9 +64,7 @@ class DB_Handler:
                 return
 
             join_table_columns = list(self.tables[left_join_table].keys())
-            # print(join_table_columns)
             result_keys.extend(join_table_columns)
-            # print(result_keys)
 
             if join_condition:
                 t1_column, t2_column = join_condition.split(' = ')
@@ -70,14 +86,21 @@ class DB_Handler:
         if where_condition:
             where_column, where_value = where_condition.split(' < ')
             where_value = where_value.strip('"')
-            if where_column in result_keys:
-                where_index = result_keys.index(where_column)
-                # print(type(where_index))
-                # print(result_table)
-                result_table = [row for row in result_table if str(row[where_index]) < where_value]
+            column_full_name = f"{table_name}.{where_column}"
+            if column_full_name in self.indexed_columns:
+                # Тут ми використовуємо індекс для оптимізації пошуку
+                indexed_rows = set()
+                for key in self.btree_indexes[column_full_name].index.keys():
+                    if key < where_value:
+                        indexed_rows.update(self.btree_indexes[column_full_name].find(key))
+                result_table = [result_table[i] for i in indexed_rows]
             else:
-                print(f"Column '{where_column}' not found in the table.")
-                return
+                if where_column in result_keys:
+                    where_index = result_keys.index(where_column)
+                    result_table = [row for row in result_table if str(row[where_index]) < where_value]
+                else:
+                    print(f"Column '{where_column}' not found in the table.")
+                    return
 
         print(', '.join(result_keys))
         for row in result_table:
@@ -158,7 +181,8 @@ class DB_Handler:
             self.select(table_name, left_join_table=join_table, join_condition=join_condition)
             return
 
-        select_join_where_match = re.match(r'(?i)SELECT FROM (\w+) LEFT_JOIN (\w+) ON (\w+) = (\w+) WHERE (\w+) < "(.*?)";', command)
+        select_join_where_match = re.match(
+            r'(?i)SELECT FROM (\w+) LEFT_JOIN (\w+) ON (\w+) = (\w+) WHERE (\w+) < "(.*?)";', command)
         if select_join_where_match:
             table_name = select_join_where_match.group(1)
             join_table = select_join_where_match.group(2)

@@ -1,7 +1,7 @@
-import db_handler
+import new_handler
 
 
-db = db_handler.DB_Handler()
+db = new_handler.DB_Handler()
 
 while True:
     command = input()

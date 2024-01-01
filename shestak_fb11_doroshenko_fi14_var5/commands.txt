@@ -7,4 +7,8 @@ INSERT cats ("10", "1", "Murzik");
 INSERT cats ("20", "1", "Pushok");
 SELECT FROM cats;
 SELECT FROM cats WHERE cat_id < "30";
+SELECT FROM cats WHERE cat_id < cat_owner_id;
 SELECT FROM owners LEFT_JOIN cats ON owner_id = cat_owner_id;
+select from owners left_join cats on owner_id = cat_owner_id where owner_id < "2";
+select from owners left_join cats on owner_id = cat_owner_id where owner_name < "Vasya";
+select from owners left_join cats on owner_id = cat_owner_id where cat_id < "20";
