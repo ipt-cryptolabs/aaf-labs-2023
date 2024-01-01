@@ -182,6 +182,7 @@ public class Parser {
                     String line_segment = lineSegment();
                     tokens.add(new Token(TokenType.COMMAND, _command));
                     tokens.add(new Token(TokenType.LINE_SEGMENT, line_segment));
+
                 }
                 else {
                     this.skipWhitespace();
@@ -190,7 +191,6 @@ public class Parser {
                         i += this.currentChar;
                         this.advance();
                     }
-                    System.out.println(i);
                     tokens.add(new Token(TokenType.COMMAND, _command));
                     tokens.add(new Token(TokenType.INT, i));
                 }

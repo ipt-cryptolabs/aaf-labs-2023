@@ -113,17 +113,20 @@ public class RTree {
         if (Arrays.equals(node.segment, segment)) {
             return true;
         }
-        if (Arrays.equals(node.LeftChild.segment, segment)) {
-            return true;
-        }
-        if (Arrays.equals(node.RightChild.segment, segment)) {
-            return true;
-        }
-        if (in(node.RightChild.segment, segment)) {
-            return search(node.RightChild, segment);
-        }
-        else if (in(node.LeftChild.segment, segment)) {
-            return search(node.LeftChild. segment);
+        if (!node.isLeaf()) {
+            if (Arrays.equals(node.LeftChild.segment, segment)) {
+                return true;
+            }
+
+            if (Arrays.equals(node.RightChild.segment, segment)) {
+                return true;
+            }
+            if (in(segment, node.RightChild.segment)) {
+                return search(node.RightChild, segment);
+            }
+            if (in(segment, node.LeftChild.segment)) {
+                return search(node.LeftChild, segment);
+            }
         }
         return false;
     }
@@ -143,47 +146,93 @@ public class RTree {
         }
     }
     public void left_of(int l) {
-        left_of_helper(root, l);
+        Set<String> set = new HashSet<>();
+        set = left_of_helper(set, root, l);
+        Iterator itr = set.iterator();
+        while (itr.hasNext()) {
+            System.out.println(itr.next());
+        }
     }
-    private void left_of_helper(Node node, int l) {
+    private Set<String> left_of_helper(Set<String> set, Node node, int l) {
         if (node.segment[1] <= l) {
-            System.out.println(Arrays.toString(node.segment));
+            set.add(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
             if (node.LeftChild.segment[0] <= l) {
-                left_of_helper(node.LeftChild, l);
+                left_of_helper(set, node.LeftChild, l);
             }
             if (node.RightChild.segment[0] <= l) {
-                left_of_helper(node.RightChild, l);
+                left_of_helper(set, node.RightChild, l);
             }
         }
+        return set;
+    }
+    public void _print() {
+        Set<String> set = new HashSet<>();
+        set = _print_helper(set, this.root);
+        Iterator itr = set.iterator();
+        while (itr.hasNext()) {
+            System.out.println(itr.next());
+        }
+    }
+    private Set<String> _print_helper(Set<String> set, Node node) {
+        set.add(Arrays.toString(node.segment));
+        if (!node.isLeaf()) {
+            _print_helper(set, node.LeftChild);
+            _print_helper(set, node.RightChild);
+        }
+        return set;
     }
     public void contains(int[] segment) {
-        contains_helper(root, segment);
+        Set<String> set = new HashSet<>();
+        set = contains_helper(set, root, segment);
+        Iterator itr = set.iterator();
+        while (itr.hasNext()) {
+            System.out.println(itr.next());
+        }
     }
-    private void contains_helper(Node node,int[] segment) {
-        if (in( segment, node.segment)) {
-            System.out.println(Arrays.toString(node.segment));
+    private Set<String> contains_helper(Set<String> set, Node node,int[] segment) {
+        if (in(segment, node.segment)) {
+            set.add(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
-            contains_helper(node.LeftChild, segment);
-            contains_helper(node.RightChild, segment);
+            if (in(segment, node.LeftChild.segment)) {
+                contains_helper(set, node.LeftChild, segment);
+            }
+            if (in(segment, node.RightChild.segment)) {
+                contains_helper(set, node.RightChild, segment);
+            }
         }
+        else {
+            set.add(Arrays.toString(node.segment));
+        }
+        return set;
     }
     public void intersects(int[] segment) {
-        intersects_helper(root, segment);
+        Set<String> set = new HashSet<>();
+        set = intersects_helper(set, root, segment);
+        Iterator itr = set.iterator();
+        while (itr.hasNext()) {
+            System.out.println(itr.next());
+        }
     }
-    private void intersects_helper(Node node, int[] segment) {
+    private Set<String> intersects_helper(Set<String> set, Node node, int[] segment) {
         if (intersect(segment, node.segment)) {
-            System.out.println(Arrays.toString(node.segment));
+            set.add(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
             if (intersect(node.LeftChild.segment, segment)) {
-                intersects_helper(node.LeftChild, segment);
+                intersects_helper(set, node.LeftChild, segment);
             }
-            if (intersect(node.LeftChild.segment, segment)) {
-                intersects_helper(node.RightChild, segment);
+            if (intersect(node.RightChild.segment, segment)) {
+                intersects_helper(set, node.RightChild, segment);
             }
         }
+        else {
+            if (intersect(node.segment, segment)) {
+                set.add(Arrays.toString(node.segment));
+            }
+        }
+        return set;
     }
 }

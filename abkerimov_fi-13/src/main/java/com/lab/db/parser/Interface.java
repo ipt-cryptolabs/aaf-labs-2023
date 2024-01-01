@@ -129,7 +129,17 @@ public class Interface {
         }
     }
     private void Search(String setName) {
-        this.Print(setName);
+        if (rTreesNames.contains(setName)) {
+            for (HashMap hp : rTrees) {
+                if (hp.containsKey(setName)) {
+                    RTree rt = (RTree)hp.get(setName);
+                    rt._print();
+                }
+            }
+        }
+        else {
+            System.out.println("Set was not found");
+        }
     }
     private void Search(String setName, String additional_command, String integer) {
         if (additional_command.equalsIgnoreCase("left_of")) {
