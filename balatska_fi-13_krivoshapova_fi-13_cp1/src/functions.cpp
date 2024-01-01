@@ -84,6 +84,7 @@ void insertRecord(const Command& command, std::vector<Command>& collection, Sele
 
 //Веа не працює з буквами та перезаписує таблицю
 void performSelect(const Command& command, const std::vector<Command>& collection, SelectionResult& result) {
+    std::vector<std::vector<std::string>> originalData = result.data;
     for (const Command& item : collection) {
         if (item.table_name == command.table_name) {
             if (result.columns.empty()) {
@@ -141,7 +142,7 @@ void performSelect(const Command& command, const std::vector<Command>& collectio
 
                     if (space_pos != std::string::npos) {
                         std::string order = column.substr(space_pos + 1);
-                        if (order == "ASC") {
+                        if (order == "ASC" || order == "") {
                             is_descending = false;
                         }
                         else if (order == "DESC") {
@@ -156,7 +157,7 @@ void performSelect(const Command& command, const std::vector<Command>& collectio
 
                 // Sort the result data based on the specified columns
                 if (!order_by_columns.empty()) {
-                    std::sort(result.data.begin(), result.data.end(), [&](const std::vector<std::string>& a, const std::vector<std::string>& b) {
+                    std::sort(originalData.begin(), originalData.end(), [&](const std::vector<std::string>& a, const std::vector<std::string>& b) {
                         for (const auto& order_info : order_by_columns) {
                             const std::string& order_by_column = order_info.first;
                             bool is_descending = order_info.second;
@@ -184,8 +185,9 @@ void performSelect(const Command& command, const std::vector<Command>& collectio
 
                     // If DESC is specified, reverse the order
                     if (order_by_columns.front().second) {
-                        std::reverse(result.data.begin(), result.data.end());
+                        std::reverse(originalData.begin(), originalData.end());
                     }
+                    result.data = originalData;
                 }
             }
         }
