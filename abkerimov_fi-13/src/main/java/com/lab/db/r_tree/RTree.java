@@ -150,8 +150,12 @@ public class RTree {
             System.out.println(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
-            left_of_helper(node.LeftChild, l);
-            left_of_helper(node.RightChild, l);
+            if (node.LeftChild.segment[0] <= l) {
+                left_of_helper(node.LeftChild, l);
+            }
+            if (node.RightChild.segment[0] <= l) {
+                left_of_helper(node.RightChild, l);
+            }
         }
     }
     public void contains(int[] segment) {
