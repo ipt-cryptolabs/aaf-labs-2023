@@ -16,6 +16,8 @@ select from owners left_join cats on owner_id = cat_owner_id where cat_id < "20"
 create nums (first INDEXED, second);
 insert nums ("1", "a");
 insert nums ("2", "b");
+insert nums ("2", "d");
 insert nums ("10", "c");
 select from nums;
 select from nums where first < "2";
+select from nums where first < "3";

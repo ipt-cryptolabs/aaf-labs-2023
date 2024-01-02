@@ -28,13 +28,26 @@ class DB_Handler:
                 print(f"Error: The number of values does not match the number of columns in {table_name}.")
                 return
 
-            row_id = len(next(iter(columns.values())))
+            # row_id = len(next(iter(columns.values())))
+            max_value = -1
+            # print(columns.values())
+
+            for i in list(columns.values()):
+                if len(i) == 0:
+                    row_id = 0
+                elif type(i) != type([]):
+                    max_value = max([max(x) if type(x) == type([]) else x for x in i.values()])
+            row_id = max_value+1
+
             for (column, value), column_name in zip(zip(columns.values(), values), columns.keys()):
                 if type(column) == type([]):
-                    column.append(value+f'${row_id}')
+                    column.append(value)
                     # print(1)
                 else:
-                    column.setdefault(value+f'${row_id}', row_id)
+                    if value in column:
+                        column[value] = [column[value]] + [row_id]
+                    else:
+                        column.setdefault(value, row_id)
                     # print(2)
 
             print(f'1 row has been inserted into {table_name}.')
@@ -47,9 +60,30 @@ class DB_Handler:
             return
 
         result_keys = list(self.tables[table_name].keys())
-        new_list = [sorted(x, key=lambda x: x.split('$')[-1]) if type(x)==type([]) else sorted(list(x.keys()), key=lambda x: x.split('$')[-1]) for x in self.tables[table_name].values()]
-        result_table = [list(map(lambda x: x.split('$')[0], row)) for row in zip(*new_list)]
-        # print(new_list)
+
+        fin_list = []
+        for i in list(self.tables[table_name].values()):
+            if type(i) == type([]):
+                fin_list.append(i)
+            else:
+                pairs = []
+                for k, v in i.items():
+                    if isinstance(v, list):
+                        for vv in v:
+                            pairs.append((k, vv))
+                    else:
+                        pairs.append((k, v))
+
+                sorted_pairs = sorted(pairs, key=lambda x: x[1])
+
+                sorted_keys = [k for k, v in sorted_pairs]
+                fin_list.append(sorted_keys)
+                # print(sorted_keys)
+
+        # print(fin_list)
+
+        result_table = [row for row in zip(*fin_list)]
+
 
         if left_join_table:
             if left_join_table not in self.tables:
@@ -83,14 +117,16 @@ class DB_Handler:
 
             if where_column in self.indexed:
                 column_data = self.tables[table_name][where_column]
-                filtered_keys = list(map(lambda x: x.split('$')[-1], column_data.irange(maximum=where_value, inclusive=(True, False))))
+                filtered_keys = list(column_data.irange(maximum=where_value, inclusive=(True, False)))
 
                 filtered_rows = []
 
-                for row in zip(*self.tables[table_name].values()):
-                    row_id = row[0].split('$')[-1]
-                    if row_id in filtered_keys:
-                        filtered_rows.append(map(lambda x: x.split('$')[0], row))
+                for i in filtered_keys:
+                    if type(column_data[i]) != type([]):
+                        filtered_rows.append(result_table[column_data[i]])
+                    else:
+                        for v in column_data[i]:
+                            filtered_rows.append(result_table[v])
 
                 result_table = filtered_rows
 
