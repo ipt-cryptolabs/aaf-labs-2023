@@ -31,7 +31,7 @@ public class Parser {
     private Character currentChar;
 
     private boolean checkText(String text) {
-        return Pattern.matches("([a-zA-Z][a-zA-Z0-9_]* *(\\[\\s*-?\\d+\\s*,\\s*-?\\d+\\s*\\])?\\d* *)*;", text);
+        return Pattern.matches("([a-zA-Z][a-zA-Z0-9_]* *(\\[\\s*-?\\d+\\s*,\\s*-?\\d+\\s*\\])?-?\\d* *)*;", text);
     }
     public Parser(String text) {
         if (checkText(text)) {
@@ -117,6 +117,9 @@ public class Parser {
             }
             this.advance();
         }
+        if (a > b) {
+            throw new SyntaxError("[a, b] : why a > b ");
+        }
         String aAndB = Integer.toString(a) + " " + Integer.toString(b);
         return aAndB;
     }
@@ -187,7 +190,7 @@ public class Parser {
                 else {
                     this.skipWhitespace();
                     String i = "";
-                    while (Character.isDigit(this.currentChar)) {
+                    while (Character.isDigit(this.currentChar) || this.currentChar == '-') {
                         i += this.currentChar;
                         this.advance();
                     }

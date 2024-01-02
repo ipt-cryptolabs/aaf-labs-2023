@@ -110,15 +110,14 @@ public class RTree {
     }
 
     private boolean search(Node node, int[] segment) {
-        if (Arrays.equals(node.segment, segment)) {
+        if (Arrays.equals(node.segment, segment) && node.isLeaf()) {
             return true;
         }
         if (!node.isLeaf()) {
-            if (Arrays.equals(node.LeftChild.segment, segment)) {
+            if (Arrays.equals(node.LeftChild.segment, segment) && node.LeftChild.isLeaf()) {
                 return true;
             }
-
-            if (Arrays.equals(node.RightChild.segment, segment)) {
+            if (Arrays.equals(node.RightChild.segment, segment) && node.RightChild.isLeaf()) {
                 return true;
             }
             if (in(segment, node.RightChild.segment)) {
@@ -154,7 +153,7 @@ public class RTree {
         }
     }
     private Set<String> left_of_helper(Set<String> set, Node node, int l) {
-        if (node.segment[1] <= l) {
+        if (node.segment[1] <= l && node.isLeaf()) {
             set.add(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
@@ -176,8 +175,10 @@ public class RTree {
         }
     }
     private Set<String> _print_helper(Set<String> set, Node node) {
-        set.add(Arrays.toString(node.segment));
-        if (!node.isLeaf()) {
+        if (node.isLeaf()) {
+            set.add(Arrays.toString(node.segment));
+        }
+        else {
             _print_helper(set, node.LeftChild);
             _print_helper(set, node.RightChild);
         }
@@ -192,7 +193,7 @@ public class RTree {
         }
     }
     private Set<String> contains_helper(Set<String> set, Node node,int[] segment) {
-        if (in(segment, node.segment)) {
+        if (in(segment, node.segment) && node.isLeaf()) {
             set.add(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
@@ -217,7 +218,7 @@ public class RTree {
         }
     }
     private Set<String> intersects_helper(Set<String> set, Node node, int[] segment) {
-        if (intersect(segment, node.segment)) {
+        if (intersect(segment, node.segment) && node.isLeaf()) {
             set.add(Arrays.toString(node.segment));
         }
         if (!node.isLeaf()) {
