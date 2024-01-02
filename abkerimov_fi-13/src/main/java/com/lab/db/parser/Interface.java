@@ -42,16 +42,16 @@ public class Interface {
     }
 
     private void handler(List<Parser.Token> tokens) {
-        if (tokens.get(0).getValue().equals("create")) {
+        if (tokens.get(0).getValue().equalsIgnoreCase("create")) {
             Create(tokens.get(1).getValue());
         }
-        if (tokens.get(0).getValue().equals("insert")) {
+        if (tokens.get(0).getValue().equalsIgnoreCase("insert")) {
             Insert(tokens.get(1).getValue(), tokens.get(2).getValue());
         }
-        if (tokens.get(0).getValue().equals("print_tree")) {
+        if (tokens.get(0).getValue().equalsIgnoreCase("print_tree")) {
             Print(tokens.get(1).getValue());
         }
-        if (tokens.get(0).getValue().equals("contains")) {
+        if (tokens.get(0).getValue().equalsIgnoreCase("contains")) {
             Contains(tokens.get(1).getValue(), tokens.get(2).getValue());
         }
         if (tokens.get(0).getValue().equalsIgnoreCase("search")) {
