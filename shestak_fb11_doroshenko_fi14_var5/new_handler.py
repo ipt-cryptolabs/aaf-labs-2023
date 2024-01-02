@@ -1,35 +1,22 @@
 import re
-
-
-class BTreeIndex:
-    def __init__(self):
-        self.index = {}
-
-    def insert(self, key, row_id):
-        if key not in self.index:
-            self.index[key] = []
-        self.index[key].append(row_id)
-
-    def find(self, key):
-        return self.index.get(key, [])
+import sortedcontainers
 
 
 class DB_Handler:
     def __init__(self):
         self.tables = {}
-        self.indexed_columns = {}
-        self.btree_indexes = {}
+        self.indexed = []
 
     def create(self, table_name: str, column_definitions: list):
         columns = {}
         for column_def in column_definitions:
             if 'INDEXED' in column_def:
-                column_name, _ = column_def.split(' INDEXED')
-                self.indexed_columns[f'{table_name}.{column_name}'] = True
-                self.btree_indexes[f'{table_name}.{column_name}'] = BTreeIndex()
+                column_name = column_def.replace(' INDEXED', '')
+                columns[column_name] = sortedcontainers.SortedDict()
+                self.indexed.append(column_name)
             else:
                 column_name = column_def
-            columns[column_name] = []
+                columns[column_name] = []
 
         self.tables[table_name] = columns
         print(f'Table {table_name} has been created.')
@@ -43,9 +30,13 @@ class DB_Handler:
 
             row_id = len(next(iter(columns.values())))
             for (column, value), column_name in zip(zip(columns.values(), values), columns.keys()):
-                column.append(value)
-                if f'{table_name}.{column_name}' in self.indexed_columns:
-                    self.btree_indexes[f'{table_name}.{column_name}'].insert(value, row_id)
+                if type(column) == type([]):
+                    column.append(value+f'${row_id}')
+                    # print(1)
+                else:
+                    column.setdefault(value+f'${row_id}', row_id)
+                    # print(2)
+
             print(f'1 row has been inserted into {table_name}.')
         else:
             print(f"Table '{table_name}' does not exist.")
@@ -56,7 +47,9 @@ class DB_Handler:
             return
 
         result_keys = list(self.tables[table_name].keys())
-        result_table = [list(row) for row in zip(*self.tables[table_name].values())]
+        new_list = [sorted(x, key=lambda x: x.split('$')[-1]) if type(x)==type([]) else sorted(list(x.keys()), key=lambda x: x.split('$')[-1]) for x in self.tables[table_name].values()]
+        result_table = [list(map(lambda x: x.split('$')[0], row)) for row in zip(*new_list)]
+        # print(new_list)
 
         if left_join_table:
             if left_join_table not in self.tables:
@@ -83,24 +76,36 @@ class DB_Handler:
                         joined_table.append(row + [None] * len(join_table_columns))
                 result_table = joined_table
 
+        # тут реалізована індексація, у випадку коли колонка має її
         if where_condition:
             where_column, where_value = where_condition.split(' < ')
             where_value = where_value.strip('"')
-            column_full_name = f"{table_name}.{where_column}"
-            if column_full_name in self.indexed_columns:
-                # Тут ми використовуємо індекс для оптимізації пошуку
-                indexed_rows = set()
-                for key in self.btree_indexes[column_full_name].index.keys():
-                    if key < where_value:
-                        indexed_rows.update(self.btree_indexes[column_full_name].find(key))
-                result_table = [result_table[i] for i in indexed_rows]
+
+            if where_column in self.indexed:
+                column_data = self.tables[table_name][where_column]
+                filtered_keys = list(map(lambda x: x.split('$')[-1], column_data.irange(maximum=where_value, inclusive=(True, False))))
+
+                filtered_rows = []
+
+                for row in zip(*self.tables[table_name].values()):
+                    row_id = row[0].split('$')[-1]
+                    if row_id in filtered_keys:
+                        filtered_rows.append(map(lambda x: x.split('$')[0], row))
+
+                result_table = filtered_rows
+
             else:
-                if where_column in result_keys:
-                    where_index = result_keys.index(where_column)
-                    result_table = [row for row in result_table if str(row[where_index]) < where_value]
-                else:
-                    print(f"Column '{where_column}' not found in the table.")
-                    return
+                column_data = self.tables[table_name][where_column]
+                column_index = list(self.tables[table_name].keys()).index(where_column)
+
+                filtered_rows = []
+
+                for row in zip(*self.tables[table_name].values()):
+                    value_to_check = row[column_index].split('$')[0]
+                    if value_to_check < where_value:
+                        filtered_rows.append(list(map(lambda x: x.split('$')[0], row)))
+
+                result_table = filtered_rows
 
         print(', '.join(result_keys))
         for row in result_table:
