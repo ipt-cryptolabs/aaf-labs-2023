@@ -48,11 +48,15 @@ def parse_create(tokens):
 
 def parse_insert(tokens):
     assert tokens[0].lower() == 'insert', f"Invalid command: {tokens[0].lower()}"
+    
+    if len(tokens) > 2 and tokens[1].lower() == 'into':
+        i = 2
+    else:
+        i = 1
 
     table_name = None
     values = []
-
-    i = 1
+    
     if i < len(tokens) and tokens[i].isidentifier():
         table_name = tokens[i]
         i += 1
@@ -63,7 +67,7 @@ def parse_insert(tokens):
             while i < len(tokens):
                 if tokens[i].startswith('"') and tokens[i].endswith('"'):
                     values.append(tokens[i].strip('"'))
-
+                    
                     i += 1
                     if i < len(tokens) and tokens[i] == ',':
                         i += 1
