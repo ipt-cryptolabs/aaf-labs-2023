@@ -1,0 +1,14 @@
+﻿  DB_OAA.cpp
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(107,23): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(128,43): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(147,41): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(172,24): warning C4267: аргумент: преобразование из "size_t" в "_Ty"; возможна потеря данных
+          with
+          [
+              _Ty=int
+          ]
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(198,43): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(217,51): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(239,13): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\Acer\source\repos\DB_OAA\DB_OAA\Table.hpp(247,19): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+  DB_OAA.vcxproj -> C:\Users\Acer\source\repos\DB_OAA\x64\Debug\DB_OAA.exe
