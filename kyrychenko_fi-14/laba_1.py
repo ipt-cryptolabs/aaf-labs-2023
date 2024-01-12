@@ -8,20 +8,6 @@ CREATE, INSERT, SELECT, WHERE = (
     'WHERE'
 )
 
-class Token(object):
-    def __init__(self, type, value):
-        self.type = type
-        self.value = value
-
-    def __str__(self):
-        return 'Token({type}, {value})'.format(
-            type=self.type,
-            value=repr(self.value)
-        )
-
-    def __repr__(self):
-        return self.__str__()
-
 class Interpreter(object):
     def __init__(self):
         self.tables = {}
@@ -30,7 +16,6 @@ class Interpreter(object):
     def create_table(self, table_name, columns):
         self.tables[table_name] = columns
         self.data[table_name] = []
-
         print(f'Table "{table_name}" has been created')
 
     def insert_data(self, table_name, values):
@@ -69,13 +54,13 @@ class Interpreter(object):
         print(tabulate(selected_data, headers="keys", tablefmt="grid", showindex=False))
 
     def parse_condition(self, condition):
-        match = re.match(r'(.*?)\s*([=<>])\s*(.*)', condition)
+        match = re.match(r'\((.*?)\s*([=<>])\s*(.*)\)', condition)
         if match:
             column, operator, value = match.groups()
             return column, operator, value
         else:
             print('Incorrect condition syntax')
-            return None
+            return
 
     def check_condition(self, row, column, operator, value):
         if column not in row:
@@ -84,6 +69,10 @@ class Interpreter(object):
 
         if operator == '=':
             return row[column] == value
+        elif operator == '>':
+            return row[column] > value
+        elif operator == '<':
+            return row[column] < value
         else:
             print(f'Unsupported operator "{operator}"')
             return False
@@ -116,7 +105,6 @@ class Interpreter(object):
 
             self.select_data(table_name, condition)
 
-
 if __name__ == '__main__':
     interpreter = Interpreter()
     while True:
@@ -127,4 +115,6 @@ if __name__ == '__main__':
         if not command:
             continue
         interpreter.interpret(command)
+
+
 
