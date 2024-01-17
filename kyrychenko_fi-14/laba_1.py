@@ -1,10 +1,11 @@
 import re
 from tabulate import tabulate
 
-CREATE, INSERT, SELECT, WHERE = (
+CREATE, INSERT, SELECT, FROM, WHERE = (
     'CREATE',
     'INSERT',
     'SELECT',
+    'FROM',
     'WHERE'
 )
 
@@ -95,15 +96,23 @@ class Interpreter(object):
                 self.insert_data(table_name, values)
             else:
                 print('Incorrect data: No values provided for insertion')
+
         elif tokens[0].lower() == SELECT.lower():
-            table_name = tokens[1].rstrip(';')
+            if FROM.lower() not in [token.lower() for token in tokens]:
+                print('Incorrect SELECT command syntax: Missing FROM keyword')
+                return
+
+            table_name_index = [token.lower() for token in tokens].index(FROM.lower()) + 1
+            table_name = tokens[table_name_index].rstrip(';')
             condition = None
 
             if WHERE.lower() in [token.lower() for token in tokens]:
                 where_index = [token.lower() for token in tokens].index(WHERE.lower())
+
                 condition = ' '.join(tokens[where_index + 1:])
 
             self.select_data(table_name, condition)
+
 
 if __name__ == '__main__':
     interpreter = Interpreter()
@@ -115,5 +124,6 @@ if __name__ == '__main__':
         if not command:
             continue
         interpreter.interpret(command)
+
 
 
