@@ -1,689 +1,325 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <fstream>
-using namespace std;
+#include <algorithm>
+#include <sstream>
 
-class Node
-{
-public:
-	int a,b;
-	Node *left, *right;
+struct Point {
+    int x, y;
+
+    Point(int _x, int _y) : x(_x), y(_y) {}
 };
 
+struct Node {
+    std::string treeName;  // Added the name of the tree
+    Point point;
+    Node* left;
+    Node* right;
+    Node(const std::string& name, const Point& p) : treeName(name), point(p), left(nullptr), right(nullptr) {}
+    Node() = delete;
+};
 
-class kd_tree{
-public:
-	kd_tree();
-	~kd_tree();
-	void print_leaf(Node *current, string prefix, string childrenprefix);
-	void insert(int l, int h);
-	bool contains(int l, int h);
-	void print_tree();
-	void search(string type, int l, int h);
-
+class KDTree {
 private:
-    void all(Node *current);
-	void cointained_by(Node *current, int l, int h, bool a_comparison);
-	void intersects(Node *current, int l, int h, bool a_comparison);
-	void right_of(Node *current, int l, bool a_comparison);
-    void delete_tree(Node *current);
-	Node *root;
-};
+    Node* root;
 
-kd_tree::kd_tree()
-{
-	root = NULL;
-}
+    Node* buildTree(std::vector<Point> points, const std::string& treeName, int depth) {
+        if (points.empty()) {
+            return nullptr;
+        }
 
-kd_tree::~kd_tree()
-{
-	delete_tree(root);
-}
+        int axis = depth % 2;
+        int median = points.size() / 2;
 
-void kd_tree::delete_tree(Node *current)
-{
-    if (current != NULL){
-        delete_tree(current->left);
-        delete_tree(current->right);
-        delete current;
+        std::nth_element(points.begin(), points.begin() + median, points.end(),
+                         [axis](const Point& a, const Point& b) {
+                             return axis == 0 ? a.x < b.x : a.y < b.y;
+                         });
+
+        Node* node = new Node(treeName, points[median]);
+        node->left = buildTree(std::move(std::vector<Point>(points.begin(), points.begin() + median)), treeName, depth + 1);
+        node->right = buildTree(std::vector<Point>(points.begin() + median + 1, points.end()), treeName, depth + 1);
+
+        return node;
     }
-}
 
-void kd_tree::insert(int l, int h)
-{
-    if (root!=NULL){
-        Node *current = NULL;
-        Node *next = root;
-        bool a_comparison = 0;
-        bool coordinate_bigger;
-        while (next!=NULL){
-            current = next;
-            a_comparison = !(a_comparison);
-            coordinate_bigger = 0;
-            if (a_comparison){
-                if ((current->a)<l)
-                    coordinate_bigger = 1;
+    
+
+    void printTree() {
+        printLeaf(root, "", "");
+    }
+
+    void printLeaf(Node* current, std::string prefix, std::string childPrefix) {
+        if (current != nullptr) {
+            std::cout << prefix << "[" << current->point.x << ", " << current->point.y << "]\n";
+            Node* left = current->left;
+            if (left == nullptr) {
+                printLeaf(current->right, childPrefix + "'---", childPrefix + "    ");
             } else {
-                if ((current->b)<h)
-                    coordinate_bigger = 1;
+                printLeaf(current->right, childPrefix + ">---", childPrefix + "|   ");
+                printLeaf(current->left, childPrefix + "'---", childPrefix + "    ");
             }
-            if (coordinate_bigger)
-                next = current->right;
-            else
-                next = current->left;
-        }
-        next = new Node;
-        next->left = NULL;
-        next->right = NULL;
-        next->a = l;
-        next->b = h;
-        if (coordinate_bigger)
-            current->right = next;
-        else
-            current->left = next;
-    }
-    else {
-        root = new Node;
-        root->left = NULL;
-        root->right = NULL;
-        root->a = l;
-        root->b = h;
-    }
-}
-
-bool kd_tree::contains(int l, int h)
-{
-    bool in_tree = 0;
-    if (root!=NULL){
-        Node *current = NULL;
-        Node *next = root;
-        bool a_comparison = 0;
-        bool coordinate_bigger;
-        while (next!=NULL){
-            current = next;
-            if ((current->a == l)&&(current->b == h)){
-                in_tree = 1;
-                break;
-            }
-            a_comparison = !(a_comparison);
-            coordinate_bigger = 0;
-            if (a_comparison){
-                if ((current->a)<l)
-                    coordinate_bigger = 1;
-            } else {
-                if ((current->b)<h)
-                    coordinate_bigger = 1;
-            }
-            if (coordinate_bigger)
-                next = current->right;
-            else
-                next = current->left;
-        }
-
-    }
-    return in_tree;
-}
-
-void kd_tree::print_tree()
-{
-    print_leaf(root, "", "");
-}
-
-void kd_tree::print_leaf(Node *current, string prefix, string childprefix)
-{
-    if (current!=NULL){
-        cout<<prefix<<"["<<current->a<<", "<<current->b<<"]\n";
-        Node *left = current->left;
-        if (left==NULL){
-            print_leaf(current->right, childprefix+"'---", childprefix + "    ");
-        }
-        else{
-            print_leaf(current->right, childprefix+">---", childprefix + "|   ");
-            print_leaf(current->left , childprefix+"'---", childprefix + "    ");
         }
     }
-}
 
-void kd_tree::search(string type, int l, int h)
-{
-    if (type == "EOF")
-        all(root);
-    else if (type == "RIGHT_OF")
-        right_of(root, l, 1);
-    else if (type == "CONTAINED_BY")
-        cointained_by(root, l, h, 1);
-    else if (type == "INTERSECTS")
-        intersects(root, l, h, 1);
-}
+    bool contains(Node* node, const Point& target, int depth) {
+        if (node == nullptr) {
+            return false;
+        }
 
-void kd_tree::all(Node *current)
-{
-    if (current!=NULL){
-        all(current->left);
-        all(current->right);
-        cout<<"["<<current->a<<", "<<current->b<<"] ";
-    }
-}
+        if (node->point.x == target.x && node->point.y == target.y) {
+            return true;
+        }
 
-void kd_tree::cointained_by(Node *current, int l, int h, bool a_comparison)
-{
-    if (current!=NULL){
-        int a = current->a;
-        int b = current->b;
-        if (a_comparison){
-            if (a<=h) cointained_by(current->right, l, h, !(a_comparison));
-            if (a>=l) cointained_by(current->left, l, h, !(a_comparison));
+        int axis = depth % 2;
+        if ((axis == 0 && target.x < node->point.x) || (axis == 1 && target.y < node->point.y)) {
+            return contains(node->left, target, depth + 1);
         } else {
-            if (b<=h) cointained_by(current->right, l, h, !(a_comparison));
-            if (b>=l) cointained_by(current->left, l, h, !(a_comparison));
+            return contains(node->right, target, depth + 1);
         }
-        if ((l<=a)&&(b<=h)) cout<<"["<<a<<", "<<b<<"] ";
     }
-}
 
-void kd_tree::intersects(Node *current, int l, int h, bool a_comparison)
-{
-    if (current!=NULL){
-        int a = current->a;
-        int b = current->b;
-        if (a_comparison){
-            intersects(current->left, l, h, !(a_comparison));
-            if (a<=h) intersects(current->right, l, h, !(a_comparison));
+    void insert(Node*& node, const std::string& treeName, const Point& point, int depth) {
+        if (node == nullptr) {
+            node = new Node(treeName, point);
+            return;
+        }
+
+        int axis = depth % 2;
+        if ((axis == 0 && point.x < node->point.x) || (axis == 1 && point.y < node->point.y)) {
+            insert(node->left, treeName, point, depth + 1);
         } else {
-            intersects(current->right, l, h, !(a_comparison));
-            if (l<=b) intersects(current->left, l, h, !(a_comparison));
-        }
-        if (!((b<l)||(a>h))) cout<<"["<<a<<", "<<b<<"] ";
-    }
-}
-
-void kd_tree::right_of(Node *current, int l, bool a_comparison)
-{
-    if (current!=NULL){
-        int a = current->a;
-        int b = current->b;
-        if (a_comparison){
-            right_of(current->right, l, !(a_comparison));
-            if (l<=a){
-                right_of(current->left, l, !(a_comparison));
-                cout<<"["<<a<<", "<<b<<"] ";
-            }
-        } else {
-            right_of(current->right, l, !(a_comparison));
-            if (l<=b){
-                right_of(current->left, l, !(a_comparison));
-                if (l<=a) cout<<"["<<a<<", "<<b<<"] ";
-            }
+            insert(node->right, treeName, point, depth + 1);
         }
     }
-}
+    
+    void check(Node*& node, const std::string& treeName, const Point& point, int depth){
+        
+    }
 
+    void search(Node* node, const std::string& condition, const std::vector<int>& values, int depth) {
+        if (node == nullptr) {
+            return;
+        }
 
-const string key_words[10] ={"CREATE", "INSERT", "PRINT_TREE","CONTAINS", "SEARCH", "WHERE","CONTAINED_BY", "INTERSECTS", "RIGHT_OF","END"};
+        int axis = depth % 2;
 
-class Token
-{
+        if (condition == "CONTAINS" && node->point.x == values[0] && node->point.y == values[1]) {
+            std::cout << "(" << node->point.x << ", " << node->point.y << ") ";
+        } else if (condition == "INTERSECTS" && node->point.x >= values[0] && node->point.x <= values[1]) {
+            std::cout << "(" << node->point.x << ", " << node->point.y << ") ";
+        } else if (condition == "LEFT_OF" && node->point.x < values[0]) {
+            std::cout << "(" << node->point.x << ", " << node->point.y << ") ";
+        }
+
+        if ((axis == 0 && values[axis] < node->point.x) || (axis == 1 && values[axis] < node->point.y)) {
+            search(node->left, condition, values, depth + 1);
+        }
+
+        if ((axis == 0 && values[axis] >= node->point.x) || (axis == 1 && values[axis] >= node->point.y)) {
+            search(node->right, condition, values, depth + 1);
+        }
+    }
+    
+    bool treeExists(const std::string& name, Node* node) {
+        
+        if (node == nullptr) {
+            return false;
+        }
+        if (node->treeName == name) {
+            return true;
+        }
+
+        return treeExists(name, node->left) || treeExists(name, node->right);
+    }
+
 public:
-    Token(string type,string value);
-    Token();
-    string type;
-    string value;
-    void show();
-};
+    KDTree() : root(nullptr) {}
 
-Token::Token(string type, string value)
-{
-	this->type=type;
-	this->value=value;
+    void create(const std::string& name) {
+    if (treeExists(name, root)) {
+        std::cerr << "A tree with the name " << name << " already exists. Cannot create a new tree." << std::endl;
+        return;
+    }else{
+        root = new Node(name, Point(0,0));  // You can modify the default Point as needed
+        std::cout << "Tree created with name: " << name << std::endl;
+    }
 }
 
-void Token::show()
-{
-    cout<<"Token("<<type<<","<<value<<")\n";
-}
+    void insert(const std::string& treeName, const std::vector<int>& values) {
+        if (values.size() != 2) {
+            std::cerr << "Invalid number of coordinates for insertion." << std::endl;
+            return;
+        }
 
-Token::Token()
-{
+        Point point(values[0], values[1]);
+        if (root == nullptr) {
+            root = new Node(treeName, point);
+        } else {
+            insert(root, treeName, point, 0);
+        }
 
-}
+        std::cout << "Point (" << point.x << ", " << point.y << ") inserted successfully into " << treeName << "." << std::endl;
+    }
+    
+    bool treeExists(const std::string& name) {
+        return treeExists(name, root);
+    }
 
-class Interpreter
-{
-public:
-    void get_command(string text);
-    void expr();
-    bool closed();
+    void printTree(const std::string& name) {
+        std::cout << "Tree " << name << " contents: " << std::endl;
+        printTree();
+        std::cout << std::endl;
+    }
 
-private:
-    vector<string> names;
-    kd_tree kd_trees [10000];
+    bool CONTAINS(const std::string& treeName, const Point& target) {
+        return contains(root, target, 0);
+    }
 
-    string text;
-    string integer();
-    string word();
-    string name;
+    void SEARCH(const std::string& treeName) {
+        std::cout << "Searching in " << treeName << ": ";
+        printTree();
+        std::cout << std::endl;
+    }
 
-    int len_text;
-    int pos;
-
-    bool is_closed;
-    bool first_smaller_second(string int1, string int2);
-
-    char current_char;
-
-    Token current_token;
-    Token get_next_token();
-
-    void eat(string type);
-    void eat_name();
-    void skip();
-    void advance();
+    void SEARCH(const std::string& treeName, const std::string& condition, const std::vector<int>& values) {
+        std::cout << "Searching in " << treeName << " where ";
+        if (condition == "CONTAINS") {
+            std::cout << condition << " [" << values[0] << ", " << values[1] << "]: ";
+        } else if (condition == "INTERSECTS") {
+            std::cout << condition << " [" << values[0] << ", " << values[1] << "]: ";
+        } else if (condition == "LEFT_OF") {
+            std::cout << condition << " " << values[0] << ": ";
+        }
+        
+        search(root, condition, values, 0);
+        std::cout << std::endl;
+    }
 };
 
 
-void Interpreter::get_command(string text)
-{
-	this->text = text;
-	len_text = text.length();
-	pos = 0;
-	current_char=text[pos];
-	is_closed=0;
+
+void collectWords(const std::string& text, std::vector<std::string>& collectedWords) {
+    std::istringstream iss(text);
+    std::string word;
+    while (iss >> word) {
+        // Remove punctuation (replace with your logic if needed)
+        word.erase(std::remove_if(word.begin(), word.end(), ::ispunct), word.end());
+        collectedWords.push_back(word);
+    }
 }
 
-void Interpreter::advance()
-{
-    pos++;
-    if (pos>len_text-1)
-        current_char = 0;
-    else
-        current_char = text[pos];
+void parseCommand(const std::vector<std::string>& words, std::string& command, std::string& name, std::vector<std::string>& additionalData) {
+    if (!words.empty()) {
+        command = words[0];
+    }
+    if (words.size() > 1) {
+        name = words[1];
+    }
+    additionalData.clear();
+    additionalData.insert(additionalData.end(), words.begin() + 2, words.end());
 }
 
-void Interpreter::skip()
-{
-    while ((current_char!=0) && (isspace(current_char)!=0))
-        advance();
-}
+int main() {
+    KDTree kdTree;
 
-bool Interpreter::closed()
-{
-    return is_closed;
-}
+    std::cout << "Пишіть текст\n";
+    bool is_closed = false;
 
-string Interpreter::integer()
-{
-    string result = "";
-    bool has_minus = 0;
-    if (current_char=='-')
-    {
-        has_minus = 1;
-        result += '-';
-        advance();
-    }
-    while ((current_char!=0) && isdigit(current_char))
-    {
-        result += current_char;
-        advance();
-    }
-    if ((result != "0")&&(result[has_minus]=='0'))
-        throw std::runtime_error(result + " є 0 перед числом");
+    while (!is_closed) {
+        try {
+            std::string text = "";
+            std::string line = "";
+            std::vector<std::string> collectedWords;
 
-    return result;
-}
+            std::cout << ">>>";
 
-bool Interpreter::first_smaller_second(string int1, string int2)
-{
-    bool is_correct = 1;
-    if (int1[0] == '-')
-    {
-        if (int2[0] == '-')
-        {
-            if (int1.length() < int2.length())
-                is_correct = 0;
-            else
-            if ((int1.length() == int2.length())&&(int1 < int2))
-                is_correct = 0;
-        }
-    }
-    else
-    {
-        if (int2[0] == '-')
-            is_correct = 0;
-        else
-        {
-            if (int1.length() > int2.length())
-                is_correct = 0;
-            else
-            if ((int1.length() == int2.length())&&(int1 > int2))
-                is_correct = 0;
-        }
-    }
-
-    return is_correct;
-}
-
-string Interpreter::word()
-{
-    string result = "";
-    while ((current_char!=0) && ((isalpha(current_char))||(current_char=='_')||isdigit(current_char)))
-    {
-        result += current_char;
-        advance();
-    }
-
-    return result;
-}
-
-Token Interpreter::get_next_token()
-{
-    while (current_char!=0)
-    {
-        if (isspace(current_char)!=0)
-            skip();
-        else
-        if (isalpha(current_char)){
-            string w = word();
-            string w_up = "";
-            int len = w.length();
-            if (len<=12)
-            {
-                for(int i=0; i<len; ++i)
-                    w_up += toupper(w[i]);
-                for(int i=0; i<10; ++i)
-                    if(w_up == key_words[i])
-                        return Token(w_up, w);
-            }
-            return Token("NAME", w);
-        }
-        else
-        if ((isdigit(current_char))||(current_char == '-'))
-            return Token("INTEGER", integer());
-        else
-        if (current_char == '['){
-            advance();
-            return Token("OPEN_BRACK", "[");
-        }
-        else
-        if (current_char == ','){
-            advance();
-            return Token("COMMA", ",");
-        }
-        else
-        if (current_char == ']'){
-            advance();
-            return Token("CLOSE_BRACK", "]");
-        }
-        else throw std::runtime_error("символ '" + string(1, current_char) + "' не підтримується");
-    }
-    return Token("EOF", "NULL");
-}
-
-void Interpreter::eat(string type)
-{
-    if (current_token.type == type)
-        current_token = get_next_token();
-    else
-        throw std::runtime_error("потрібно '" + type +"', а ми отримали '"+current_token.type+"'");
-}
-
-void Interpreter::eat_name()
-{
-    if (current_token.type == "NAME")
-    {
-        bool flag = 0;
-        name = current_token.value;
-        for(vector <int>::size_type i=0; i<names.size(); ++i)
-            if (names[i] == name)
-            {
-                flag = 1;
-                break;
-            }
-        if (flag==0)
-            throw std::runtime_error(name + " не існує");
-    }
-    else throw std::runtime_error("потрібно 'NAME', а ми отримали '"+current_token.type+"'");
-    current_token = get_next_token();
-}
-
-void Interpreter::expr()
-{
-	current_token = get_next_token();
-
-    if (current_token.type == "END"){
-        is_closed = 1;
-    }
-    else
-	if (current_token.type == "CREATE"){
-        current_token = get_next_token();
-        if (current_token.type == "NAME")
-            name = current_token.value;
-        else throw std::runtime_error("потрібно 'NAME', а ми отримали '"+current_token.type+"'");
-        current_token = get_next_token();
-        eat("EOF");
-
-        for(vector<int>::size_type i=0; i<names.size(); ++i)
-            if (names[i] == name)
-                throw std::runtime_error(name + "' вже існує");
-        if (names.size()<=10000){
-            names.push_back(name);
-            cout<< name + "' створено\n";
-        }
-        else
-            throw std::runtime_error("sets занадто багато");
-    }
-    else
-    if (current_token.type == "PRINT_TREE"){
-        current_token = get_next_token();
-        eat_name();
-        eat("EOF");
-        vector<int>::size_type index = 0;
-        bool is_exist = 0;
-        for(vector<int>::size_type i=0; i<names.size(); ++i)
-            if (names[i] == name){
-                index = i;
-                is_exist = 1;
-                break;
-            }
-        if (is_exist){
-            cout<<'\n';
-            kd_trees[index].print_tree();
-        }
-    }
-    else
-    if (current_token.type == "INSERT"){
-        current_token = get_next_token();
-        eat_name();
-        eat("OPEN_BRACK");
-        string int1 = current_token.value;
-        eat("INTEGER");
-        eat("COMMA");
-        string int2 = current_token.value;
-        eat("INTEGER");
-        eat("CLOSE_BRACK");
-        eat("EOF");
-        if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(int1 + " > " + int2);
-        vector<int>::size_type index = 0;
-        bool is_exist = 0;
-        for(vector<int>::size_type i=0; i<names.size(); ++i)
-            if (names[i] == name){
-                index = i;
-                is_exist = 1;
-                break;
-            }
-        if (is_exist)
-            kd_trees[index].insert(stoi(int1), stoi(int2));
-        cout<<"  Відстань [" + int1 + ", " + int2 + "] Додана до '" + name + "'\n";
-    }
-    else
-    if (current_token.type == "CONTAINS"){
-        current_token = get_next_token();
-        eat_name();
-        eat("OPEN_BRACK");
-        string int1 = current_token.value;
-        eat("INTEGER");
-        eat("COMMA");
-        string int2 = current_token.value;
-        eat("INTEGER");
-        eat("CLOSE_BRACK");
-        eat("EOF");
-        if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(int1 + " > " + int2);
-        vector<int>::size_type index = 0;
-        bool is_exist = 0;
-        for(vector<int>::size_type i=0; i<names.size(); ++i)
-            if (names[i] == name){
-                index = i;
-                is_exist = 1;
-                break;
-            }
-        if (is_exist){
-            bool in_tree = kd_trees[index].contains(stoi(int1), stoi(int2));
-            if (in_tree)
-                cout<<"TRUE\n";
-            else
-                cout<<"FALSE\n";
-        }
-    }
-    else
-    if (current_token.type == "SEARCH"){
-        current_token = get_next_token();
-        eat_name();
-        if (current_token.type == "WHERE")
-        {
-            current_token = get_next_token();
-            if (current_token.type == "RIGHT_OF")
-            {
-                current_token = get_next_token();
-                string int1 = current_token.value;
-                eat("INTEGER");
-                eat("EOF");
-                vector<int>::size_type index = 0;
-                bool is_exist = 0;
-                for(vector<int>::size_type i=0; i<names.size(); ++i)
-                    if (names[i] == name){
-                        index = i;
-                        is_exist = 1;
-                        break;
-                    }
-                if (is_exist)
-                    kd_trees[index].search("RIGHT_OF", stoi(int1), 0);
-                cout<<"\n";
-            }
-
-            else
-            if (current_token.type == "CONTAINED_BY")
-            {
-                current_token = get_next_token();
-                eat("OPEN_BRACK");
-                string int1 = current_token.value;
-                eat("INTEGER");
-                eat("COMMA");
-                string int2 = current_token.value;
-                eat("INTEGER");
-                eat("CLOSE_BRACK");
-                eat("EOF");
-                if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(int1 + " > " + int2);
-                vector<int>::size_type index = 0;
-                bool is_exist = 0;
-                for(vector<int>::size_type i=0; i<names.size(); ++i)
-                    if (names[i] == name){
-                        index = i;
-                        is_exist = 1;
-                        break;
-                    }
-                if (is_exist)
-                    kd_trees[index].search("CONTAINED_BY", stoi(int1), stoi(int2));
-                cout<<"\n";
-            }
-            else
-            if (current_token.type == "INTERSECTS")
-            {
-                current_token = get_next_token();
-                eat("OPEN_BRACK");
-                string int1 = current_token.value;
-                eat("INTEGER");
-                eat("COMMA");
-                string int2 = current_token.value;
-                eat("INTEGER");
-                eat("CLOSE_BRACK");
-                eat("EOF");
-                if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(int1 + " > " + int2);
-                if (first_smaller_second(int1, int2) == 0) throw std::runtime_error(int1 + " > " + int2);
-                vector<int>::size_type index = 0;
-                bool is_exist = 0;
-                for(vector<int>::size_type i=0; i<names.size(); ++i)
-                    if (names[i] == name){
-                        index = i;
-                        is_exist = 1;
-                        break;
-                    }
-                if (is_exist)
-                    kd_trees[index].search("INTERSECTS", stoi(int1), stoi(int2));
-                cout<<"\n";
-            }
-            else
-                throw std::runtime_error("потрібно 'RIGHT_OF'/'CONTAINED_BY'/'INTERSECTS', отримали '"+current_token.type+"'");
-        }
-        else
-        if (current_token.type == "EOF")
-        {
-            vector<int>::size_type index = 0;
-            bool is_exist = 0;
-            for(vector<int>::size_type i=0; i<names.size(); ++i)
-                if (names[i] == name){
-                    index = i;
-                    is_exist = 1;
-                    break;
+            while (line.find(';') == std::string::npos) {
+                getline(std::cin, line);
+                size_t semicolonPos = line.find(';');
+                if (semicolonPos != std::string::npos) {
+                    text += (" " + line.substr(0, semicolonPos));
+                } else {
+                    text += (" " + line);
                 }
-            if (is_exist)
-                kd_trees[index].search("EOF", 0, 0);
-            cout<<"\n";
-        }
-        else
-            throw std::runtime_error("потрібно 'EOF'/'WHERE', отримали '"+current_token.type+"'");
-
-    }
-    else
-        throw std::runtime_error("потрібно 'CREATE'/'INSERT'/'PRINT_TREE'/'CONTAINS'/'SEARCH', отримали '"+current_token.type+"'");
-}
-
-
-// Приклад тексту:
-//CREATE reservations;
-//INSERT reservations [10, 20];
-//PRINT_TREE reservations;
-//CONTAINS reservations [10, 20];
-//SEARCH reservations;
-//SEARCH reservations WHERE CONTAINED_BY [0, 30];
-//SEARCH reservations WHERE INTERSECTS [5, 20];
-//SEARCH reservations WHERE RIGHT_OF 15;
-
-
-int main()
-{
-     cout<<"Пишіть текст\n";
-    bool is_closed = 0;
-    Interpreter inter;
-    while (is_closed == 0)
-        try
-        {
-            string text="";
-            string line="";
-            cout<<">>>";
-            while (line.find(';')>=line.length()){
-                text += (" " + line);
-                getline(cin, line);
-                //getline(infile, line);
             }
 
-            text += (" " +line.substr(0,line.find(';')));
-            
-            inter.get_command(text);
-            inter.expr();
-            is_closed = inter.closed();
+            collectWords(text, collectedWords);
+
+            std::string command;
+            std::string name;
+            std::vector<std::string> additionalData;
+            parseCommand(collectedWords, command, name, additionalData);
+
+            if (command == "CREATE") {
+                if (kdTree.treeExists(name)) {
+                    std::cerr << "Tree with name " << name << " already exists." << std::endl;
+                } else {
+                    kdTree.create(name);
+                }
+            } else if (command == "INSERT") {
+                if (!name.empty() && kdTree.treeExists(name)) {
+                    if (!name.empty() && additionalData.size() == 2) {
+                        int x = std::stoi(additionalData[0]);
+                        int y = std::stoi(additionalData[1]);
+                        kdTree.insert(name, {x, y});
+                    } else {
+                        std::cerr << "Invalid command parameters for INSERT. Try (INSERT <name> 5 10)" << std::endl;
+                    }
+                } else {
+                    std::cerr << "Tree with name " << name << " does not exist." << std::endl;
+                }
+
+            } else if (command == "PRINT") {
+                if (!name.empty() && kdTree.treeExists(name)) {
+                    kdTree.printTree(name);
+                } else {
+                    std::cerr << "Tree with name " << name << " does not exist." << std::endl;
+                }
+            } else if (command == "CONTAINS") {
+                if (!name.empty() && additionalData.size() == 2 && kdTree.treeExists(name)) {
+                    int x = std::stoi(additionalData[0]);
+                    int y = std::stoi(additionalData[1]);
+                    bool contains = kdTree.CONTAINS(name, {x, y});
+                    std::cout << "Contains: " << (contains ? "true" : "false") << std::endl;
+                } else {
+                    std::cerr << "Invalid command parameters for CONTAINS." << std::endl;
+                }
+            } else if (command == "SEARCH") {
+                if (!name.empty() && additionalData.size() >= 1) {
+                    if (additionalData[0] == "WHERE" && additionalData.size() >= 4) {
+                        std::string condition = additionalData[1];
+                        int x = std::stoi(additionalData[2]);
+                        int y = std::stoi(additionalData[3]);
+                        kdTree.SEARCH(name, condition, {x, y});
+                    } else if (additionalData.size() == 1) {
+                        kdTree.SEARCH(name); // SEARCH <treeName>;
+                    } else if (additionalData.size() >= 3
+                               && additionalData[0] == "WHERE" && additionalData[1] == "CONTAINS") {
+                        int x = std::stoi(additionalData[2]);
+                        int y = std::stoi(additionalData[3]);
+                        kdTree.SEARCH(name, "CONTAINS", {x, y}); // SEARCH <treeName> WHERE CONTAINS [10, 12];
+                    } else if (additionalData.size() >= 4
+                               && additionalData[0] == "WHERE" && additionalData[1] == "INTERSECTS") {
+                        int x1 = std::stoi(additionalData[2]);
+                        int x2 = std::stoi(additionalData[3]);
+                        kdTree.SEARCH(name, "INTERSECTS", {x1, x2}); // SEARCH <treeName> WHERE INTERSECTS [5, 20];
+                    } else if (additionalData.size() >= 3
+                               && additionalData[0] == "WHERE" && additionalData[1] == "LEFT_OF") {
+                        int x = std::stoi(additionalData[2]);
+                        kdTree.SEARCH(name, "LEFT_OF", {x}); // SEARCH <treeName> WHERE LEFT_OF 15;
+                    } else {
+                        std::cerr << "Invalid SEARCH command format." << std::endl;
+                    }
+                } else {
+                    std::cerr << "Invalid command parameters for SEARCH." << std::endl;
+                }
+            } else {
+                std::cerr << "Unknown command: " << command << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << '\n';
         }
-        catch(const std::exception& e)
-        {
-            std::cerr << "  Error: " << e.what()<< '\n';
-        }
+    }
+
+    return 0;
 }
