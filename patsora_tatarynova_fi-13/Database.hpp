@@ -108,12 +108,12 @@ inline void Database::Parser() {
             cellValuesVec.push_back(cellValue);
 
         insert(tableName, cellValuesVec);
-    } else if (regex_search(command, match, regex("SELECT\\s+(.+)\\s+FROM\\s+([a-zA-Z0-9_]+)\\s+JOIN\\s+([a-zA-Z0-9_]+)\\s+ON\\s+(.+)\\s*=\\s*(.+)", regex_constants::icase))) {
+    } else if (regex_search(command, match, regex("SELECT\\s+(.+)\\s+FROM\\s+([a-zA-Z0-9_]+)\\s+JOIN\\s+([a-zA-Z0-9_]+)\\s+ON\\s+(.+)\\s*( )\\s*=\\s*( )\\s*(.+)", regex_constants::icase))) {
         string columnNames = match[1].str();
         string tableName = match[2].str();
         string tableNamejoin = match[3].str();
         string colName = match[4].str();
-        string colNamejoin = match[5].str();
+        string colNamejoin = match[7].str();
         columnNames = regex_replace(columnNames, regex("\\s+"), "");
         
         vector<string> columnNamesVec;
@@ -127,11 +127,11 @@ inline void Database::Parser() {
         else
             join(tableName, tableNamejoin, colName, colNamejoin).select(columnNamesVec);
 
-    } else if (regex_search(command, match, regex("SELECT\\s+FROM\\s+([a-zA-Z0-9_]+)\\s+JOIN\\s+([a-zA-Z0-9_]+)\\s+ON\\s+(.+)\\s*=\\s*(.+)", regex_constants::icase))) {
+    } else if (regex_search(command, match, regex("SELECT\\s+FROM\\s+([a-zA-Z0-9_]+)\\s+JOIN\\s+([a-zA-Z0-9_]+)\\s+ON\\s+(.+)\\s*( )\\s*=\\s*( )\\s*(.+)", regex_constants::icase))) {
         string tableName = match[1].str();
         string tableNamejoin = match[2].str();
         string colName = match[3].str();
-        string colNamejoin = match[4].str();
+        string colNamejoin = match[6].str();
 
         join(tableName, tableNamejoin, colName, colNamejoin).select();
     } else if (regex_search(command, match, regex("SELECT\\s+(.+)\\s+FROM\\s+([a-zA-Z0-9_]+)", regex_constants::icase ))) {
@@ -161,3 +161,5 @@ inline void Database::Parser() {
 
     Parser();
 }
+
+
