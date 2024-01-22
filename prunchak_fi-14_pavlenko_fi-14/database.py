@@ -1,7 +1,4 @@
-import re
-from parser import Lexer
-from parser import Interpreter
-
+from parser import *
 class DataManager:
     def __init__(self):
         self.collections = {}
@@ -57,26 +54,36 @@ class DataManager:
         if collection_name not in self.collections:
             raise Exception(f"Collection '{collection_name}' does not exist.")
 
-        results = []
-        for doc_id, document in self.collections[collection_name].items():
-            if self._matches_condition(document, condition):
-                results.append((doc_id, document))
+        # Оптимізований пошук з використанням інвертованих індексів
+        if '-' in condition or '<' in condition:
+            # Для складних умов (діапазон, відстань) використовуємо повне сканування
+            results = [(doc_id, document) for doc_id, document in self.collections[collection_name].items() if
+                       self._matches_condition(collection_name, document, condition)]
+        else:
+            # Для простого пошуку одного слова
+            condition_word = condition.lower()
+            if condition_word in self.indexes[collection_name]:
+                document_ids = self.indexes[collection_name][condition_word]
+                results = [(doc_id, self.collections[collection_name][doc_id]) for doc_id in document_ids]
+            else:
+                results = []
 
         if not results:
             return "No documents matching the condition were found."
         return results
 
-    def _matches_condition(self, document, condition):
+
+    def _matches_condition(self, collection_name, document, condition):
+        print(f"Debug: Searching in document '{document}' for condition '{condition}'")
         # Перевірка на діапазон слов
         if '-' in condition:
             return self._matches_range_condition(document, condition)
         # Перевірка на відстань між словами
         elif '<' in condition:
             return self._matches_distance_condition(document, condition)
-        # Простий пошук одного слова
+        # Пошук фрази
         else:
-            words = re.findall(r'\b\w+\b', document.lower())
-            return condition.lower() in words
+            return condition.lower() in document.lower()
 
     def _matches_range_condition(self, document, condition):
         range_start, range_end = condition.split('-')
@@ -117,53 +124,4 @@ class DataManager:
                     return True
         return False
 
-if __name__ == '__main__':
-    data_manager = DataManager()
-    while True:
-        text = input("Enter request SQL-like: ")
-        if not text:
-            break
-        lexer = Lexer(text)
-        interpreter = Interpreter(lexer)
-        command_dict = interpreter.expr()
-        print(command_dict)
-        # print(command_dict.keys())
-        match list(command_dict.keys()):
 
-            case ['CREATE']:
-                data_manager.create_collection(command_dict['CREATE'])
-                print(f"Collection '{command_dict['CREATE']}' has been created")
-
-            case ['INSERT', 'VALUE']:
-                collection_name = command_dict['INSERT']
-                document = " ".join(command_dict['VALUE'])
-                document_id = f'd{len(data_manager.get_collection(collection_name)) + 1}'
-                data_manager.insert_into_collection(collection_name, document, document_id)
-                print(f"Document '{command_dict['VALUE']}' has been added to '{command_dict['INSERT']}'")
-
-            case ['PRINT_INDEX']:
-                collection_name = command_dict['PRINT_INDEX']
-                data_manager.print_inverted_index(collection_name)
-
-            case ['SEARCH']:
-                collection_name = command_dict['SEARCH']
-                try:
-                    documents = data_manager.get_all_documents(collection_name)
-                    for doc_id, document in documents.items():
-                        print(f"{doc_id}: {document}")
-                except Exception as e:
-                    print(f"Error: {e}")
-
-            case ['SEARCH', 'WHERE']:
-                print(f"Searching in '{command_dict['SEARCH']}' for '{command_dict['WHERE']}'")
-                collection_name = command_dict['SEARCH']
-                condition = command_dict['WHERE']
-                try:
-                    documents = data_manager.get_all_documents(collection_name)
-                    for doc_id, document in documents.items():
-                        if data_manager._matches_condition(document, condition):
-                            print(f"{doc_id}: {document}")
-                        else:
-                            print(f"Condition '{condition}' not found in the document '{collection_name}'")
-                except Exception as e:
-                    print(f"Error: {e}")

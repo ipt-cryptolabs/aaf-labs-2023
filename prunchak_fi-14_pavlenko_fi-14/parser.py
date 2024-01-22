@@ -1,3 +1,5 @@
+# Use main.py for the connecting to database
+
 # Importing string for checking ascii letters
 import string
 # import regex
@@ -47,11 +49,12 @@ class Lexer(object):
 
     # Method for handling errors
     def error(self):
-        raise Exception("Invalid input")
+        print("Invalid input")
+        return Token(EOF, None)
 
     # Method for handling errors related to collection names
     def error_coll(self):
-        raise Exception("Invalid name of collection")
+        print("Invalid name of collection")
 
     # Method to advance to the next character in the input
     def advance(self):
@@ -183,6 +186,7 @@ class Lexer(object):
                 return Token(WHERE, self.search_value())
             else:
                 self.error()
+                break
         return Token(VALUES, type)
 
 # Interpreter class to interpret the tokens and generate command dictionaries
@@ -197,7 +201,7 @@ class Interpreter(object):
 
     # Method to interpret the input and generate command dictionaries
     def expr(self):
-        while self.current_token.type in (CREATE, INSERT, PRINT_INDEX, SEARCH, WHERE):
+        if self.current_token.type in (CREATE, INSERT, PRINT_INDEX, SEARCH, WHERE):
             token = self.current_token
             if token.type == CREATE:
                 # Handling CREATE command
@@ -227,8 +231,11 @@ class Interpreter(object):
                     dict_sw[self.current_token.type] = self.current_token.value
                     return dict_sw
                 return dict_s
+        else:
+            return None
 
 # Main block for user input and execution
+
 if __name__ == '__main__':
     while True:
         text = input("Enter SQL-like request: ")
@@ -237,16 +244,20 @@ if __name__ == '__main__':
         lexer = Lexer(text)
         interpreter = Interpreter(lexer)
         command_dict = interpreter.expr()
-        print(command_dict)
         # Matching command types to print appropriate messages
-        match list(command_dict.keys()):
-            case ['CREATE']:
-                print(f"Collection '{command_dict['CREATE']}' has been created")
-            case ['INSERT', 'VALUE']:
-                print(f"Document '{command_dict['VALUE']}' has been added to '{command_dict['INSERT']}'")
-            case ['PRINT_INDEX']:
-                print("There are indexes")
-            case ['SEARCH']:
-                print(f"Searching in '{command_dict['SEARCH']}'")
-            case ['SEARCH', 'WHERE']:
-                print(f"Searching in '{command_dict['SEARCH']}' for '{command_dict['WHERE']}'")
+        if command_dict is None:
+            print("You have been entered something wrong\n"
+                  "Try again")
+        else:
+            print(command_dict)
+            match list(command_dict.keys()):
+                case ['CREATE']:
+                    print(f"Collection '{command_dict['CREATE']}' has been created")
+                case ['INSERT', 'VALUE']:
+                    print(f"Document '{command_dict['VALUE']}' has been added to '{command_dict['INSERT']}'")
+                case ['PRINT_INDEX']:
+                    print("There are indexes")
+                case ['SEARCH']:
+                    print(f"Searching in '{command_dict['SEARCH']}'")
+                case ['SEARCH', 'WHERE']:
+                    print(f"Searching in '{command_dict['SEARCH']}' for '{command_dict['WHERE']}'")
