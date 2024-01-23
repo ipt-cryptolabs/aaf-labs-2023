@@ -57,9 +57,7 @@ class KDTree:
         if node is None:
             return False
 
-        target = tuple(target) if isinstance(target, list) else target
-
-        if target == node.point:
+        if target[0] == node.point[0] and target[1] == node.point[1]:
             return True
 
         axis = node.axis
@@ -121,9 +119,9 @@ class KDTree:
         if node.point[1] > y:
             result.append(node.point)
 
-        if current_axis == 1 or node.point[1] > y:
+        if node.point[1] > y or current_axis == 1:
             self._find_above_to(node.left, y, depth + 1, result)
-        if current_axis == 1 or node.point[1] <= y:
+        if node.point[1] <= y or current_axis == 1:
             self._find_above_to(node.right, y, depth + 1, result)
 
 

@@ -291,6 +291,4 @@ class Parser:
             self._print_tree(stack.pop(0))
 
         elif cmd == "CONTAINS":
-            col = stack.pop(0)
-            target_point = stack.pop(0)
-            print(self._contains(col, target_point))
+            print(self._contains(stack.pop(0), stack.pop(0)))
