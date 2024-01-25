@@ -117,14 +117,18 @@ public:
     }
 
     void select(const std::string& conditionColumn, int conditionValue) {
-
+        int num2 = -1;
         std::vector<std::vector<int>> result;
-
-        for (const auto& row : data) {
-            if (std::find(row.begin(), row.end(), conditionValue) != row.end()) {
-                result.push_back(row);
+        for(int i = 0; i < columns.size();i++){
+            if(columns[i] == conditionColumn){
+                num2 = i;
             }
         }
+        for (const auto& row : data) {
+            if (row.size() > static_cast<size_t>(num2) && row[num2] == conditionValue) {
+                result.push_back(row);
+            }
+    }
 
 
         for (const auto& row : result) {
